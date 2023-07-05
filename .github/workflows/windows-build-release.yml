@@ -21,8 +21,11 @@ jobs:
     - name: Build 
       run: |
         pyinstaller --onefile --noconsole
-    - name: Upload exe
+    - name: Build Installer
+      run: |
+        iscc buildscript.iss
+    - name: Upload portable
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
-        path: 'dist\GameFace Setup.exe'
+        path: 'Output\TranslateAndTTS.exe'
