@@ -1,3 +1,4 @@
+pyinstaller
 pyperclip
 pyttsx4
 configparser
