@@ -1,0 +1,9 @@
+pyperclip
+pyttsx4
+configparser
+translate
+TTS
+pyaudio
+gTTS
+gspeak
+pygame
