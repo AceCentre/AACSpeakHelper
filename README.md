@@ -1,7 +1,16 @@
 # TranslateAndTTS
-Copys the pasteboard. Translates to defined lang, Reads aloud and replaces pasteboard with translated text
+
+Copies the pasteboard. Translates to defined lang, Reads aloud and replaces pasteboard with translated text
+
+## Who needs this
+
+Imagine the scenario. You rely on technology to communicate, but you only speak in Ukranian and have little expressive skills in English. You are in a care setting. We need a quick translation tool using your existing technology to translate from your known language to English so you can communicate with your carers. This does that. 
 
 ![Short demo video](https://img.youtube.com/vi/c6zSPYZ4T10/maxresdefault.jpg)(https://www.youtube.com/watch?v=c6zSPYZ4T10)
+
+## What does it work with?
+
+It's a small windows executable. You call it from your Windows AAC app if it has a way of running external programs. Most Windows AAC apps can. 
 
 ## Where do I download it?
 
@@ -110,3 +119,20 @@ If you wish to improve the code and have the skills to, please fork and PR. Or c
 - zh-CN: Chinese (Simplified)
 - zh-TW: Chinese (Mandarin/Taiwan)
 - zh: Chinese (Mandarin)
+
+## AAC Specific Guides
+
+### Snap
+
+![Screenshot of how to call a program](assets/AAC-Screen-Snap.jpg)
+
+### The Grid 3
+
+### Communicator
+
+### NuVoice
+
+### MindExpress
+
+Don't bother - MEX already can do this. 
+
