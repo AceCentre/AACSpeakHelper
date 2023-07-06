@@ -1,9 +1,7 @@
 # TranslateAndTTS
 Copys the pasteboard. Translates to defined lang, Reads aloud and replaces pasteboard with translated text
 
-[![Short demo video]
-(https://img.youtube.com/vi/c6zSPYZ4T10/maxresdefault.jpg)]
-(https://www.youtube.com/watch?v=c6zSPYZ4T10)
+![Short demo video](https://img.youtube.com/vi/c6zSPYZ4T10/maxresdefault.jpg)(https://www.youtube.com/watch?v=c6zSPYZ4T10)
 
 ## Where do I download it?
 
@@ -49,66 +47,66 @@ Next, in your AAC software, you need to create a button. This button needs to
 
 Right now, this is a very, very quick (and dirty) example. We dare say there will be * SIGNIFICANT * problems using this. Remember if you use the gTTS option, it will need to be online. Translating too. We have put no logic in the script to deal with this failure. 
 
-If you wish to improve the code and have the skills to, please do so. Or consider donating to us and asking for specific support for this 
+If you wish to improve the code and have the skills to, please fork and PR. Or consider donating to us and asking for specific support for this 
 
 ## Language codes available
  
-  af: Afrikaans 
-  ar: Arabic    
-  bg: Bulgarian 
-  bn: Bengali   
-  bs: Bosnian   
-  ca: Catalan   
-  cs: Czech     
-  da: Danish    
-  de: German    
-  el: Greek     
-  en: English   
-  es: Spanish   
-  et: Estonian  
-  fi: Finnish   
-  fr: French    
-  gu: Gujarati  
-  hi: Hindi     
-  hr: Croatian  
-  hu: Hungarian 
-  id: Indonesian
-  is: Icelandic 
-  it: Italian   
-  iw: Hebrew    
-  ja: Japanese  
-  jw: Javanese
-  km: Khmer
-  kn: Kannada
-  ko: Korean
-  la: Latin
-  lv: Latvian
-  ml: Malayalam
-  mr: Marathi
-  ms: Malay
-  my: Myanmar (Burmese)
-  ne: Nepali
-  nl: Dutch
-  no: Norwegian
-  pl: Polish
-  pt: Portuguese
-  ro: Romanian
-  ru: Russian
-  si: Sinhala
-  sk: Slovak
-  sq: Albanian
-  sr: Serbian
-  su: Sundanese
-  sv: Swedish
-  sw: Swahili
-  ta: Tamil
-  te: Telugu
-  th: Thai
-  tl: Filipino
-  tr: Turkish
-  uk: Ukrainian
-  ur: Urdu
-  vi: Vietnamese
-  zh-CN: Chinese (Simplified)
-  zh-TW: Chinese (Mandarin/Taiwan)
-  zh: Chinese (Mandarin)
+- af: Afrikaans 
+- ar: Arabic    
+- bg: Bulgarian 
+- bn: Bengali   
+- bs: Bosnian   
+- ca: Catalan   
+- cs: Czech     
+- da: Danish    
+- de: German    
+- el: Greek     
+- en: English   
+- es: Spanish   
+- et: Estonian  
+- fi: Finnish   
+- fr: French    
+- gu: Gujarati  
+- hi: Hindi     
+- hr: Croatian  
+- hu: Hungarian 
+- id: Indonesian
+- is: Icelandic 
+- it: Italian   
+- iw: Hebrew    
+- ja: Japanese  
+- jw: Javanese
+- km: Khmer
+- kn: Kannada
+- ko: Korean
+- la: Latin
+- lv: Latvian
+- ml: Malayalam
+- mr: Marathi
+- ms: Malay
+- my: Myanmar (Burmese)
+- ne: Nepali
+- nl: Dutch
+- no: Norwegian
+- pl: Polish
+- pt: Portuguese
+- ro: Romanian
+- ru: Russian
+- si: Sinhala
+- sk: Slovak
+- sq: Albanian
+- sr: Serbian
+- su: Sundanese
+- sv: Swedish
+- sw: Swahili
+- ta: Tamil
+- te: Telugu
+- th: Thai
+- tl: Filipino
+- tr: Turkish
+- uk: Ukrainian
+- ur: Urdu
+- vi: Vietnamese
+- zh-CN: Chinese (Simplified)
+- zh-TW: Chinese (Mandarin/Taiwan)
+- zh: Chinese (Mandarin)
