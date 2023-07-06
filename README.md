@@ -128,11 +128,16 @@ If you wish to improve the code and have the skills to, please fork and PR. Or c
 
 ### The Grid 3
 
-See the demo gridset [here](assets/Grid3 - Text Talker TranslatePB.zip)
+See the demo gridset [here](blob:https://github.com/ed686e34-f4b1-4e04-83b7-a895ea934750)
 
 ### Communicator
 
-See the demo pageset [here](assets/Communicator - Qwerty 10 Translate.zip)
+
+See the demo pageset [here](blob:https://github.com/8ba8e61e-d59d-4c6b-909c-ee910cbdb212)
+
+![Screenshot of how to call a program](assets/AAC-Screen-Communicator.png)
+
+
 
 ### NuVoice
 
