@@ -21,10 +21,20 @@ jobs:
     - name: Build 
       run: |
         pyinstaller translatepb.py --onefile --noconsole
+    - name: Zip Portable 
+      shell: pwsh
+      run: |
+        Copy-Item settings.cfg -Destination dist\ 
+        Compress-Archive -Path dist -DestinationPath TranslatePBPortable.zip
     - name: Build Installer
       run: |
         iscc buildscript.iss
     - name: Upload portable
+      uses: actions/upload-artifact@v3
+      with:
+        name: 'Windows Release'
+        path: 'TranslatePBPortable'
+    - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
