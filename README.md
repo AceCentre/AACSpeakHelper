@@ -11,7 +11,7 @@ We have an installer - and we have a precompiled binary - which you can find [he
 
 You need to unzip the folder, put it somewhere on your machine you can find again (e.g. C:\translatepb )
 
-Next you will need to edit the * settings.cfg* file
+Next, you will need to edit the *settings.cfg* file
 
 You can do this in a plain text editor such as Notepad. You may need to run the application as an Administrator depending on your rights. It Looks like this:
 
