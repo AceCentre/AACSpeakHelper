@@ -32,7 +32,7 @@ You can do this in a plain text editor such as Notepad. You may need to run the 
     rate = 100
     volume = 100
 
-Edit any of the items here - the essential one is what is your Start Language (What do you write in) - and what is your End Language? (What you want it translated to). See below for what Language codes are available. Note the TTS options. You can use SAPI - just make sure the VoiceID is listed. You can find this out by running the app with a flag of `--listvoices` in the command line. 
+Edit any of the items here - the essential one is what is your Start Language (What do you write in) - and what is your End Language? (What you want it translated to). See below for what Language codes are available. Note the TTS options. You can use SAPI - just make sure the VoiceID is listed. You can find this out by running the app with a flag of `--listvoices` in the command line. gTTS is using Google's TTS system. At this time you can't choose your voice - it will just pick the first one that matches the language code. We might change this at some point. 
 
 *Note* - if you just want to use this tool to act as a bridge to the other TTS systems - mark noTranslate as True - and it will just read out the messaagebar text
 
