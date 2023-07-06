@@ -14,7 +14,7 @@ It's a small windows executable. You call it from your Windows AAC app if it has
 
 ## Where do I download it?
 
-We have an installer - and we have a precompiled binary - which you can find [here](/AceCentre/TranslateAndTTS/releases/latest/releases/latest). 
+We have an installer - and we have a precompiled binary - which you can find [here](https://github.com/AceCentre/TranslateAndTTS/releases/latest). 
 
 ## How do I install it?
 
