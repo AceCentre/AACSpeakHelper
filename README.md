@@ -128,7 +128,11 @@ If you wish to improve the code and have the skills to, please fork and PR. Or c
 
 ### The Grid 3
 
+See the demo gridset [here](assets/Grid3 - Text Talker TranslatePB.zip)
+
 ### Communicator
+
+See the demo pageset [here](assets/Communicator - Qwerty 10 Translate.zip)
 
 ### NuVoice
 
