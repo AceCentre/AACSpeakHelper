@@ -138,5 +138,5 @@ See the demo pageset [here](assets/Communicator - Qwerty 10 Translate.zip)
 
 ### MindExpress
 
-Don't bother - MEX already can do this. 
+Don't bother - MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
 
