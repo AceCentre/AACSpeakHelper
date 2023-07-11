@@ -14,13 +14,13 @@ It's a small windows executable. You call it from your Windows AAC app if it has
 
 ## Where do I download it?
 
-We have an installer - and we have a precompiled binary - which you can find [here](https://github.com/AceCentre/TranslateAndTTS/releases/latest). 
+We have an installer - and we have a precompiled binary - which you can find [here](https://github.com/AceCentre/TranslateAndTTS/releases/latest). Our instructions and demo pages for devices are using the installer. 
 
 ## How do I install it?
 
-You need to unzip the folder, put it somewhere on your machine you can find again (e.g. C:\translatepb )
+Run the installer. It will put the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\`
 
-Next, you will need to edit the *settings.cfg* file
+Next, you will need to edit the *settings.cfg* file. Find this at `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\settings.cfg`
 
 You can do this in a plain text editor such as Notepad. You may need to run the application as an Administrator depending on your rights. It Looks like this:
 
@@ -128,11 +128,15 @@ If you wish to improve the code and have the skills to, please fork and PR. Or c
 
 ### The Grid 3
 
-See the demo gridset [here](assets/Grid3 - Text Talker TranslatePB.zip)
+See the demo gridset [here](https://github.com/AceCentre/TranslateAndTTS/tree/main/assets)
 
 ### Communicator
 
-See the demo pageset [here](assets/Communicator - Qwerty 10 Translate.zip)
+See the demo pageset [here](https://github.com/AceCentre/TranslateAndTTS/tree/main/assets)
+
+![Screenshot of how to call a program](assets/AAC-Screen-Communicator.png)
+
+
 
 ### NuVoice
 
