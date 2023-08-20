@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TranslateAndTTS "
-#define MyAppVersion "0.9"
+#define MyAppVersion "1.0"
 #define MyAppPublisher "Ace Centre"
 #define MyAppURL "https://acecentre.org.uk"
 #define MyAppExeName "translatepb.exe"
@@ -37,7 +37,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "settings.cfg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "settings.cfg"; DestDir: "{userappdata}\.TranslateAndTTS"; Flags: ignoreversion
+; Source: "Configure TranslateAndTTS.exe"; DestDir: "{app}"; Flags: ignoreversion
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

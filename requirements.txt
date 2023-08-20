@@ -8,3 +8,6 @@ pyaudio
 gTTS
 gspeak
 pygame
+azure-cognitiveservices-speech  
+aspeak
+easygui
