@@ -19,10 +19,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Build Portable
+      env: 
+        PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
         pyinstaller translatepb.py translatepb.spec
     - name: Build GUI Apps
+      env: 
+        PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
+        dir /ad /b /s
         pyinstaller ./GUI/GUI_TranslateAndTTS/widget.spec
     - name: Zip Portable 
       shell: pwsh
