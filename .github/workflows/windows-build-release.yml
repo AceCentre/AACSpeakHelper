@@ -20,16 +20,11 @@ jobs:
         Get-ChildItem -Path D:\PowerShell -Recurse | Where-Object {$_.PSIsContainer} 
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Build Portable
+    - name: Build Apps
       env: 
         PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
-        pyinstaller translatepb.py translatepb.spec
-    - name: Build GUI Apps
-      env: 
-        PYGAME_HIDE_SUPPORT_PROMPT: 1
-      run: |
-        pyinstaller .\GUI\GUI_TranslateAndTTS\widget.py
+        python build_executable.py
     - name: Zip Portable 
       shell: pwsh
       run: |
