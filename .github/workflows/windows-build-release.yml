@@ -23,7 +23,7 @@ jobs:
         pyinstaller translatepb.py translatepb.spec
     - name: Build GUI Apps
       run: |
-        pyinstaller .\GUI\GUI_TranslateAndTTS\widget.spec
+        pyinstaller GUI\GUI_TranslateAndTTS\widget.spec
     - name: Zip Portable 
       shell: pwsh
       run: |
