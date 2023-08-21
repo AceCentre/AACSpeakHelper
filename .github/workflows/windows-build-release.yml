@@ -28,7 +28,7 @@ jobs:
         PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
         dir /ad /b /s
-        pyinstaller ./GUI/GUI_TranslateAndTTS/widget.spec
+        pyinstaller .\GUI\GUI_TranslateAndTTS\widget.py
     - name: Zip Portable 
       shell: pwsh
       run: |
