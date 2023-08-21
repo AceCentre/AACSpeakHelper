@@ -14,6 +14,30 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
-    - name: check dirs2
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Build Apps
+      env: 
+        PYGAME_HIDE_SUPPORT_PROMPT: 1
+      run: |
+        python build_executable.py
+    - name: Zip Portable 
       shell: pwsh
-      run: ls -Path 'D:\a\TranslateAndTTS\TranslateAndTTS\GUI\GUI_TranslateAndTTS'
+      run: |
+        Copy-Item settings.cfg -Destination dist\ 
+        Compress-Archive -Path dist -DestinationPath TranslatePBPortable.zip
+    - name: Build Installer
+      run: |
+        iscc buildscript.iss
+    - name: Upload portable
+      uses: actions/upload-artifact@v3
+      with:
+        name: 'Windows Portable'
+        path: 'TranslatePBPortable.zip'
+    - name: Upload Installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: 'Windows Release'
+        path: 'Output\TranslateAndTTS.exe'
