@@ -15,7 +15,9 @@ jobs:
       with:
         python-version: "3.10"
     - name: Install dependencies
+      shell: pwsh
       run: |
+        Get-ChildItem -Path D:\PowerShell -Recurse | Where-Object {$_.PSIsContainer} 
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Build Portable
@@ -27,7 +29,6 @@ jobs:
       env: 
         PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
-        dir /ad /b /s
         pyinstaller .\GUI\GUI_TranslateAndTTS\widget.py
     - name: Zip Portable 
       shell: pwsh
