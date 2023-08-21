@@ -11,7 +11,26 @@ import easygui
 
 
 
-
+def configure_app():
+    import subprocess
+    # determine if application is a script file or frozen exe
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+        exe_name = ""
+        for root, dirs, files in os.walk(application_path):
+            for file in files:
+                if "Configure TranslateAndTTS" in file:
+                    exe_name = file
+        GUI_path = os.path.join(application_path, exe_name)
+        # Use subprocess.Popen to run the executable
+        process = subprocess.Popen(GUI_path)
+        # Wait for the process to complete
+        process.wait()
+    elif __file__:
+        application_path = os.path.dirname(__file__)
+        GUI_script_path = os.path.join(application_path, 'GUI', 'GUI_TranslateAndTTS', 'widget.py')
+        print(GUI_script_path)
+        process = subprocess.run(["python", GUI_script_path])
 
 parser = argparse.ArgumentParser(
     description='Reads pasteboard. Translates it. Speaks it out. Or any variation of that')
@@ -23,12 +42,18 @@ args = vars(parser.parse_args())
 
 if (args['config'] != '' and os.path.exists(args['config'])):
     config_path = args['config']
+    wav_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
+    # Check if the directory already exists
+    if not os.path.exists(wav_files_path):
+        # Create the "WAV Files" directory
+        os.makedirs(wav_files_path)
+    print(wav_files_path)
 else:
     # determine if application is a script file or frozen exe
     if getattr(sys, 'frozen', False):
         # Get the path to the user's app data folder
         home_directory = os.path.expanduser("~")
-        application_path = os.path.join(home_directory, 'AppData', 'Roaming', '.TranslateAndTTS')
+        application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
 
     elif __file__:
         application_path = os.path.dirname(__file__)
@@ -40,6 +65,16 @@ else:
         os.makedirs(wav_files_path)
 
     config_path = os.path.join(application_path, 'settings.cfg')
+
+
+# Check if the file already exists
+if not os.path.exists(config_path):
+    result = easygui.ynbox("settings.cfg file not found." + '\n\n Do You want to open the Configuration Setup?', 'Error')
+    if result == True:
+        configure_app()
+    else:
+        result = easygui.msgbox("settings.cfg file not found. \n\n Please Run 'Configure TranslateAndTTS executable' first.", 'Error')
+        sys.exit()
 
 config = configparser.ConfigParser()
 config.read(config_path)
@@ -57,7 +92,7 @@ def speakstr(text=''):
     if (ttsengine == 'gTTS'):
         from gspeak import speak
         speak(text, lang=config.get('translate', 'endLang').lower())
-    if (ttsengine == 'azureTTS'):
+    elif (ttsengine == 'azureTTS'):
         azureSpeak(text, lang=config.get('translate', 'endLang').lower(),)
     else:
         engine = pyttsx4.init(ttsengine)
@@ -67,6 +102,7 @@ def speakstr(text=''):
         engine.say(text)
         engine.runAndWait()
 
+
 def mainrun(listvoices):
     if (listvoices == True):
         try:
@@ -74,6 +110,7 @@ def mainrun(listvoices):
             engine = pyttsx4.init(config.get('TTS', 'engine'))
         except Exception as e:
             # Code to handle other exceptions
+            result = easygui.msgbox(str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to open the Configuration Setup?', 'Error')
             print ("listvoices method not supported for specified TTS Engine.")
         else:
             # Code that will run if no exception is raised
@@ -83,13 +120,20 @@ def mainrun(listvoices):
         # finally:
         #     # Code that will run regardless of whether an exception occurred
     else:
-        if (config.getboolean('translate', 'noTranslate')):
-            newstr = pyperclip.paste()
-        else:
-            newstr = translatepb()
-            speakstr(newstr)
-        if (config.getboolean('translate', 'replacepb')):
-            pyperclip.copy(newstr)
+        try:
+            if (config.getboolean('translate', 'noTranslate')):
+                newstr = pyperclip.paste()
+            else:
+                newstr = translatepb()
+                speakstr(newstr)
+            if (config.getboolean('translate', 'replacepb')):
+                pyperclip.copy(newstr)
+        except Exception as e:
+            result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+            if result == True:
+                configure_app()
+            else:
+                return
 
 def azureSpeak(text, lang):
     try:
@@ -103,7 +147,7 @@ def azureSpeak(text, lang):
     except Exception as e:
         result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
         if result == True:
-            easygui.msgbox('In Milestone 2')
+            configure_app()
         else:
             return
     else:
@@ -121,7 +165,7 @@ def azureSpeak(text, lang):
                 except Exception as e:
                     result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
                     if result == True:
-                        easygui.msgbox('In Milestone 2')
+                        configure_app()
 
     # What a beautiful day today!
 
