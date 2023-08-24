@@ -6,7 +6,7 @@ import configparser
 from PySide6.QtWidgets import QApplication, QWidget, QDialogButtonBox, QFileDialog
 import PySide6.QtCore
 
-import pyttsx3
+import pyttsx4
 
 
 # Important:
