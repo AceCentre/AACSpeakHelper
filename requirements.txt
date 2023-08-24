@@ -2,6 +2,7 @@
 pyinstaller==5.13.0 
 pyperclip==1.8.2 
 pyttsx4==3.0.15
+pyttsx3
 configparser==6.0.0
 translate==3.6.1
 TTS==0.16.3
@@ -13,4 +14,4 @@ azure-cognitiveservices-speech==1.31.0
 aspeak==6.0.0
 easygui==0.98.3
 PySide6==6.5.2
-TTS-Wrapper
+TTS-Wrapper	
