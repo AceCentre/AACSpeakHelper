@@ -1157,7 +1157,7 @@ class Widget(QWidget):
         self.ui.comboBox_writeLang.addItems(self.translate_languages.keys())
         self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
 
-        voices_sapi = pyttsx3.init('sapi5').getProperty('voices')
+        voices_sapi = pyttsx4.init('sapi5').getProperty('voices')
         self.voices_sapi_dict = {}
         for voice in voices_sapi:
             import re
