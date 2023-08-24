@@ -44,6 +44,8 @@ Source: "dist\Configure TranslateAndTTS.exe"; DestDir: "{app}"; Flags: ignorever
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\Configure TranslateAndTTS.exe"
+Name: "{group}\Settings File"; Filename: "{userappdata}\TranslateAndTTS\settings.cfg"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 

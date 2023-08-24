@@ -2,14 +2,15 @@ import pyperclip
 import pyttsx4
 import configparser
 import os
-import translate
 import sys
 import argparse
 import time
-from aspeak import SpeechService, AudioFormat
 import easygui
-
-
+import pygame
+import io
+from tts_wrapper import MicrosoftClient, MicrosoftTTS
+from tts_wrapper import GoogleClient, GoogleTTS
+from tts_wrapper import SAPIClient, SAPITTS
 
 def configure_app():
     import subprocess
@@ -28,7 +29,7 @@ def configure_app():
         process.wait()
     elif __file__:
         application_path = os.path.dirname(__file__)
-        GUI_script_path = os.path.join(application_path, 'GUI', 'GUI_TranslateAndTTS', 'widget.py')
+        GUI_script_path = os.path.join(application_path, 'GUI_TranslateAndTTS', 'widget.py')
         print(GUI_script_path)
         process = subprocess.run(["python", GUI_script_path])
 
@@ -39,6 +40,8 @@ parser.add_argument(
 parser.add_argument(
     '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False)
 args = vars(parser.parse_args())
+
+pygame.mixer.init()
 
 if (args['config'] != '' and os.path.exists(args['config'])):
     config_path = args['config']
@@ -89,12 +92,16 @@ def translatepb():
 
 def speakstr(text=''):
     ttsengine = config.get('TTS', 'engine')
-    if (ttsengine == 'gTTS'):
+    if (ttsengine == 'gspeak'):
         from gspeak import speak
         speak(text, lang=config.get('translate', 'endLang').lower())
     elif (ttsengine == 'azureTTS'):
-        azureSpeak(text, lang=config.get('translate', 'endLang').lower(),)
-    else:
+        azureSpeak(text)
+    elif (ttsengine == 'gTTS'):
+        googleSpeak(text)
+    elif (ttsengine == 'sapi5'):
+        sapiSpeak(text)
+    else: # Unsupported Engines
         engine = pyttsx4.init(ttsengine)
         engine.setProperty('voice', config.get('TTS', 'voiceid'))
         engine.setProperty('rate', config.get('TTS', 'rate'))
@@ -104,6 +111,7 @@ def speakstr(text=''):
 
 
 def mainrun(listvoices):
+    # listvoices = True
     if (listvoices == True):
         try:
             # Code that may raise an exception
@@ -135,14 +143,72 @@ def mainrun(listvoices):
             else:
                 return
 
-def azureSpeak(text, lang):
+def azureSpeak(text):
     try:
         # Add your key and endpoint
         key = config.get('azureTTS', 'key')
         location = config.get('azureTTS', 'location')
         voiceid = config.get('azureTTS', 'voiceid')
-        service = SpeechService(AudioFormat.Riff24Khz16BitMonoPcm, region=location, key=key)
-        service.speak_text(text, voice=voiceid)
+        save_to_wav = bool(config.get('TTS', 'save_to_wav'))
+
+        client = MicrosoftClient(credentials=key, region=location)
+        tts = MicrosoftTTS(client=client, voice=voiceid)
+
+        ttsWrapperSpeak(text, tts, save_to_wav)
+
+    except Exception as e:
+        result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+        if result == True:
+            configure_app()
+        else:
+            return
+        
+def googleSpeak(text):
+    try:
+        # Add your key and endpoint
+        creds_file = config.get('googleTTS', 'creds_file')
+        voiceid = config.get('googleTTS', 'voiceid')
+        save_to_wav = bool(config.get('TTS', 'save_to_wav'))
+
+        client = GoogleClient(credentials=creds_file)
+        tts = GoogleTTS(client=client, voice=voiceid)
+        ttsWrapperSpeak(text, tts, save_to_wav)
+    except Exception as e:
+        result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+        if result == True:
+            configure_app()
+        else:
+            return
+
+def sapiSpeak(text):
+    try:
+        # Add your key and endpoint
+        voiceid = config.get('sapi5TTS', 'voiceid')
+        save_to_wav = bool(config.get('TTS', 'save_to_wav'))
+        
+        
+        client = SAPIClient()
+        client._client.setProperty('voice', voiceid)
+        client._client.setProperty('rate', config.get('TTS', 'rate'))
+        client._client.setProperty('volume', config.get('TTS', 'volume'))
+        tts = SAPITTS(client=client)
+        ttsWrapperSpeak(text, tts, save_to_wav)
+    except Exception as e:
+        result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+        if result == True:
+            configure_app()
+        else:
+            return
+
+
+def ttsWrapperSpeak(text, tts, save_to_wav):
+    try:
+        if isinstance(tts, SAPITTS):
+            wav_bytes = tts.synth_to_bytes(text, 'wav')
+        else:
+            wav_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
+
+        play_wav(wav_bytes=wav_bytes)
         print("Speech synthesized for text [{}]".format(text))
     except Exception as e:
         result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
@@ -151,25 +217,32 @@ def azureSpeak(text, lang):
         else:
             return
     else:
-        try:
-            save_to_wav = bool(config.get('azureTTS', 'save_to_wav'))
-        except Exception as e:
-            pass
-        else:
-            if save_to_wav:
-                # save to .wav file
-                timestr = time.strftime("%Y%m%d-%H%M%S")
-                filename = os.path.join(wav_files_path, timestr+'.wav')
-                try:
-                    service.synthesize_text(text, output=filename, voice=voiceid)
-                except Exception as e:
-                    result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
-                    if result == True:
-                        configure_app()
-
+        if save_to_wav:
+            try:
+                save_wav(wav_bytes=wav_bytes)
+            except Exception as e:
+                result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+                if result == True:
+                    configure_app()
     # What a beautiful day today!
 
-    
+def play_wav(wav_bytes):
+    wav_stream = io.BytesIO(wav_bytes)
+    # pygame.mixer.init()
+    pygame.mixer.music.load(wav_stream)
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        continue
+
+def save_wav(wav_bytes):
+    # save to .wav file
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    filename = os.path.join(wav_files_path, timestr+'.wav')
+
+    # Write the WAV bytes to the output file
+    with open(filename, 'wb') as out_file:
+        out_file.write(wav_bytes)
+
 
 if __name__ == '__main__':
     mainrun(args['listvoices'])
