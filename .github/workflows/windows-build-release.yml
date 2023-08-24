@@ -23,6 +23,7 @@ jobs:
         PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
         python build_executable.py
+        pyinstaller translatepb.py --onefile --noconsole
     - name: Zip Portable 
       shell: pwsh
       run: |
