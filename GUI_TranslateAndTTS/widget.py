@@ -1340,7 +1340,7 @@ class Widget(QWidget):
         # move this on every TTS "if" condition if necessary.
         index = self.ui.comboBox_targetLang.currentIndex()
         self.ui.comboBox_targetLang.clear()
-        self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
+        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.setCurrentIndex(index)
 
         if self.ui.radioButton_azure.isChecked():
