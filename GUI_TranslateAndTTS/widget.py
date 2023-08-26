@@ -3,10 +3,11 @@ import sys
 import os
 import configparser
 
-from PySide6.QtWidgets import QApplication, QWidget, QDialogButtonBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QDialogButtonBox, QFileDialog, QMessageBox
 import PySide6.QtCore
 
 import pyttsx3
+import uuid
 
 
 # Important:
@@ -53,6 +54,8 @@ class Widget(QWidget):
             "Khmer":"km",
             "Kannada":"kn",
             "Korean":"ko",
+            "Kurdish (Kurmanji)":"ku",
+            "Kurdish (Sorani)":"ckb",
             "Latin":"la",
             "Latvian":"lv",
             "Malayalam":"ml",
@@ -1208,7 +1211,7 @@ class Widget(QWidget):
             self.key = self.config.get('azureTTS', 'key')
             self.region = self.config.get('azureTTS', 'location')
             self.voiceidAzure = self.config.get('azureTTS', 'voiceid')
-            self.saveToWav = self.config.getboolean('TTS', 'save_to_wav')
+            self.saveAudio = self.config.getboolean('TTS', 'save_audio_file')
 
             self.credsFilePath = self.config.get('googleTTS', 'creds_file')
             self.voiceidGoogle = self.config.get('googleTTS', 'voiceid')
@@ -1218,29 +1221,30 @@ class Widget(QWidget):
             if self.ttsEngine == "azureTTS":
                 self.ui.stackedWidget.setCurrentIndex(0)
                 self.ui.radioButton_azure.setChecked(True)
+            elif self.ttsEngine == "gTTS":
+                self.ui.stackedWidget.setCurrentIndex(1)
+                self.ui.radioButton_google.setChecked(True)
+            elif self.ttsEngine == "gspeak":
+                self.ui.stackedWidget.setCurrentIndex(2)
+                self.ui.radioButton_gspeak.setChecked(True)
+            elif self.ttsEngine == "sapi5":
+                self.ui.stackedWidget.setCurrentIndex(3)
+                self.ui.radioButton_sapi5.setChecked(True)
+            elif self.ttsEngine == "kurdishTTS":
+                self.ui.stackedWidget.setCurrentIndex(4)
+                self.ui.radioButton_kurdish.setChecked(True)
+            elif self.ttsEngine == "espeak":
+                self.ui.stackedWidget.setCurrentIndex(5)
+                self.ui.radioButton_espeak.setChecked(True)
+            elif self.ttsEngine == "nsss":
+                self.ui.stackedWidget.setCurrentIndex(5)
+                self.ui.radioButton_nsss.setChecked(True)
+            elif self.ttsEngine == "coqui":
+                self.ui.stackedWidget.setCurrentIndex(5)
+                self.ui.radioButton_coqui.setChecked(True)
             else:
-                if self.ttsEngine == "gTTS":
-                    self.ui.stackedWidget.setCurrentIndex(1)
-                    self.ui.radioButton_google.setChecked(True)
-                elif self.ttsEngine == "gspeak":
-                    self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.radioButton_gspeak.setChecked(True)
-                elif self.ttsEngine == "sapi5":
-                    self.ui.stackedWidget.setCurrentIndex(3)
-                    self.ui.radioButton_sapi5.setChecked(True)
-                elif self.ttsEngine == "espeak":
-                    self.ui.stackedWidget.setCurrentIndex(4)
-                    self.ui.radioButton_espeak.setChecked(True)
-                elif self.ttsEngine == "nsss":
-                    self.ui.stackedWidget.setCurrentIndex(4)
-                    self.ui.radioButton_nsss.setChecked(True)
-                elif self.ttsEngine == "coqui":
-                    self.ui.stackedWidget.setCurrentIndex(4)
-                    self.ui.radioButton_coqui.setChecked(True)
-                else:
-                    self.ui.stackedWidget.setCurrentIndex(0)
-                    self.ui.radioButton_azure.setChecked(True)
-
+                self.ui.stackedWidget.setCurrentIndex(0)
+                self.ui.radioButton_azure.setChecked(True)
 
             lang = [key for key, value in self.translate_languages.items() if value == self.startLang.lower()]
             if not len(lang) == 0:
@@ -1266,26 +1270,33 @@ class Widget(QWidget):
 
             self.ui.checkBox_translate.setChecked(not self.notranslate)
             self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
-            self.ui.checkBox_saveToWav.setChecked(self.saveToWav)
+            self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
 
             self.ui.horizontalSlider_rate.setValue(self.rate)
             self.ui.horizontalSlider_volume.setValue(self.volume)
+            self.ui.horizontalSlider_rate_sapi.setValue(self.rate)
+            self.ui.horizontalSlider_volume_sapi.setValue(self.volume)
             self.ui.lineEdit_voiceID.setText(self.voiceid)
             self.ui.lineEdit_key.setText(self.key)
             self.ui.lineEdit_region.setText(self.region)
 
-            self.ui.checkBox_saveToWav_gTTS.setChecked(self.saveToWav)
+            self.ui.checkBox_saveAudio_gTTS.setChecked(self.saveAudio)
             self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
-            self.ui.checkBox_saveToWav_sapi.setChecked(self.saveToWav)
+            self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
+            self.ui.checkBox_saveAudio_kurdish.setChecked(self.saveAudio)
 
+            self.ui.checkBox_latin.setChecked(self.config.getboolean('kurdishTTS', 'latin'))
+            self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
+
+            self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
 
         else:
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
-            self.saveToWav_azure = True
+            self.saveAudio_azure = True
             self.overwritePb = True
 
             self.voiceid = None
@@ -1301,9 +1312,9 @@ class Widget(QWidget):
             self.endLang = None
 
             self.credsFilePath = ""
-            self.saveToWav_google = True
+            self.saveAudio_google = True
 
-            self.saveToWav_sapi5 = True
+            self.saveAudio_sapi5 = True
 
             item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure,PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voiceazure.setCurrentItem(item[0])
@@ -1340,8 +1351,11 @@ class Widget(QWidget):
         elif self.ui.radioButton_sapi5.isChecked():
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
-        else:
+        elif self.ui.radioButton_kurdish.isChecked():
+            self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
+        else:
+            self.ui.stackedWidget.setCurrentIndex(5)
             if self.ui.radioButton_espeak.isChecked():
                 self.ttsEngine = "espeak"
             elif self.ui.radioButton_espeak.isChecked():
@@ -1353,23 +1367,37 @@ class Widget(QWidget):
 
     def OnSavePressed(self):
         # Add sections and key-value pairs
+
+        self.startLang = self.translate_languages[self.ui.comboBox_writeLang.currentText()]
+        self.endLang = self.translate_languages[self.ui.comboBox_targetLang.currentText()]
+        self.notranslate = not self.ui.checkBox_translate.isChecked()
+
+        id = self.get_uuid()
         self.config.clear()
+
+        self.config.add_section('App')
+        self.config.set('App', 'uuid', str(id))
+        self.config.set('App', 'collectstats', str(self.ui.checkBox_stats.isChecked()))
+
+
         self.config.add_section('translate')
-        self.config.set('translate', 'noTranslate', str(not self.ui.checkBox_translate.isChecked()))
-        self.config.set('translate', 'startLang', self.translate_languages[self.ui.comboBox_writeLang.currentText()])
-        self.config.set('translate', 'endLang', self.translate_languages[self.ui.comboBox_targetLang.currentText()])
+        self.config.set('translate', 'noTranslate', str(self.notranslate))
+        self.config.set('translate', 'startLang', self.startLang)
+        self.config.set('translate', 'endLang', self.endLang)
         self.config.set('translate', 'replacepb', str(self.ui.checkBox_overwritepb.isChecked()))
 
         self.config.add_section('TTS')
         self.config.set('TTS', 'engine', self.ttsEngine)
         if self.ttsEngine == 'azureTTS':
-            self.config.set('TTS', 'save_to_wav', str(self.ui.checkBox_saveToWav.isChecked()))
+            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio.isChecked()))
         elif self.ttsEngine == 'gTTS':
-            self.config.set('TTS', 'save_to_wav', str(self.ui.checkBox_saveToWav_gTTS.isChecked()))
+            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_gTTS.isChecked()))
         elif self.ttsEngine == 'sapi5':
-            self.config.set('TTS', 'save_to_wav', str(self.ui.checkBox_saveToWav_sapi.isChecked()))
+            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
+        elif self.ttsEngine == 'kurdishTTS':
+            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_kurdish.isChecked()))
         else:
-            self.config.set('TTS', 'save_to_wav', str(False))
+            self.config.set('TTS', 'save_audio_file', str(False))
 
         self.config.set('TTS', 'voiceid', self.ui.lineEdit_voiceID.text())
         if self.ttsEngine == 'sapi5':
@@ -1391,12 +1419,54 @@ class Widget(QWidget):
 
         self.config.add_section('sapi5TTS')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
+
+        self.config.add_section('kurdishTTS')
+        self.config.set('kurdishTTS', 'latin', str(self.ui.checkBox_latin.isChecked()).lower())
+        self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
+
+        start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
+        end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
+        prompt1 = False
+        prompt2 = False
+        if self.notranslate:
+            if self.ttsEngine != "kurdishTTS":
+                if start_lang_is_Kurdish:
+                    prompt1 = True
+            else:
+                if not start_lang_is_Kurdish:
+                    prompt2 = True
+
+        else:
+            if self.ttsEngine != "kurdishTTS":
+                if end_lang_is_Kurdish:
+                    prompt1 = True
+            else:
+                if not end_lang_is_Kurdish:
+                    prompt2 = True
+
+
+        msg = ""
+        if prompt1:
+            msg = 'Do you really want to save?\n'
+            msg += 'Tip:\n'
+            msg += 'Choose Kurdish TTS Engine for these settings.'
+
+        if prompt2:
+            msg = 'Do you really want to save?\n'
+            msg += 'Tip:\n'
+            msg += 'Choose TTS Engine other than Kurdish TTS.'
+
+        if prompt1 or prompt2:
+            reply = QMessageBox.question(self, 'Confirmation', msg,
+                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+            if reply == QMessageBox.No:
+                return
+
         # Write the configuration to a file
         with open(self.config_path, 'w') as configfile:
             self.config.write(configfile)
-
         self.close()
-
 
     def OnDiscardPressed(self):
         self.close()
@@ -1409,6 +1479,17 @@ class Widget(QWidget):
 
     def OnCredsFilePathChanged(self):
         self.credsFilePath = self.ui.credsFilePathEdit.text()
+
+    def get_uuid(self):
+        try:
+            # Code that may raise an exception
+            id = uuid.UUID(self.config.get('App', 'uuid'))
+        except Exception as e:
+            # Code to handle other exceptions
+            id = uuid.uuid4()
+            pass
+
+        return str(id)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

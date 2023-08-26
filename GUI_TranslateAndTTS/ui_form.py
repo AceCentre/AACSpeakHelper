@@ -25,149 +25,16 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(830, 520)
+        Widget.resize(830, 553)
         self.gridLayout = QGridLayout(Widget)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.groupBox_translate = QGroupBox(Widget)
-        self.groupBox_translate.setObjectName(u"groupBox_translate")
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_translate.sizePolicy().hasHeightForWidth())
-        self.groupBox_translate.setSizePolicy(sizePolicy)
-        self.groupBox_translate.setCheckable(False)
-        self.gridLayout_2 = QGridLayout(self.groupBox_translate)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
-        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
-        self.checkBox_overwritepb.setSizePolicy(sizePolicy1)
-        self.checkBox_overwritepb.setChecked(True)
-
-        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
-
-        self.checkBox_translate = QCheckBox(self.groupBox_translate)
-        self.checkBox_translate.setObjectName(u"checkBox_translate")
-        sizePolicy1.setHeightForWidth(self.checkBox_translate.sizePolicy().hasHeightForWidth())
-        self.checkBox_translate.setSizePolicy(sizePolicy1)
-        self.checkBox_translate.setChecked(True)
-
-        self.gridLayout_2.addWidget(self.checkBox_translate, 0, 0, 1, 1)
-
-        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
-        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
-
-        self.gridLayout_2.addWidget(self.comboBox_writeLang, 2, 1, 1, 1)
-
-        self.label_2 = QLabel(self.groupBox_translate)
-        self.label_2.setObjectName(u"label_2")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy2)
-
-        self.gridLayout_2.addWidget(self.label_2, 3, 0, 1, 1)
-
-        self.label = QLabel(self.groupBox_translate)
-        self.label.setObjectName(u"label")
-
-        self.gridLayout_2.addWidget(self.label, 2, 0, 1, 1)
-
-        self.comboBox_targetLang = QComboBox(self.groupBox_translate)
-        self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
-        sizePolicy1.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
-        self.comboBox_targetLang.setSizePolicy(sizePolicy1)
-
-        self.gridLayout_2.addWidget(self.comboBox_targetLang, 3, 1, 1, 1)
-
-
-        self.gridLayout.addWidget(self.groupBox_translate, 1, 0, 1, 1)
-
-        self.buttonBox = QDialogButtonBox(Widget)
-        self.buttonBox.setObjectName(u"buttonBox")
-        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
-        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
-        self.buttonBox.setCenterButtons(True)
-
-        self.gridLayout.addWidget(self.buttonBox, 2, 0, 1, 2)
-
-        self.groupBox_ttsEngine = QGroupBox(Widget)
-        self.groupBox_ttsEngine.setObjectName(u"groupBox_ttsEngine")
-        sizePolicy.setHeightForWidth(self.groupBox_ttsEngine.sizePolicy().hasHeightForWidth())
-        self.groupBox_ttsEngine.setSizePolicy(sizePolicy)
-        self.groupBox_ttsEngine.setFlat(False)
-        self.groupBox_ttsEngine.setCheckable(False)
-        self.verticalLayout = QVBoxLayout(self.groupBox_ttsEngine)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.radioButton_azure = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_azure.setObjectName(u"radioButton_azure")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.radioButton_azure.sizePolicy().hasHeightForWidth())
-        self.radioButton_azure.setSizePolicy(sizePolicy3)
-        self.radioButton_azure.setChecked(True)
-
-        self.verticalLayout.addWidget(self.radioButton_azure)
-
-        self.radioButton_google = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_google.setObjectName(u"radioButton_google")
-        sizePolicy3.setHeightForWidth(self.radioButton_google.sizePolicy().hasHeightForWidth())
-        self.radioButton_google.setSizePolicy(sizePolicy3)
-        self.radioButton_google.setChecked(False)
-
-        self.verticalLayout.addWidget(self.radioButton_google)
-
-        self.radioButton_gspeak = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_gspeak.setObjectName(u"radioButton_gspeak")
-
-        self.verticalLayout.addWidget(self.radioButton_gspeak)
-
-        self.radioButton_sapi5 = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_sapi5.setObjectName(u"radioButton_sapi5")
-        sizePolicy3.setHeightForWidth(self.radioButton_sapi5.sizePolicy().hasHeightForWidth())
-        self.radioButton_sapi5.setSizePolicy(sizePolicy3)
-
-        self.verticalLayout.addWidget(self.radioButton_sapi5)
-
-        self.radioButton_nsss = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_nsss.setObjectName(u"radioButton_nsss")
-        sizePolicy3.setHeightForWidth(self.radioButton_nsss.sizePolicy().hasHeightForWidth())
-        self.radioButton_nsss.setSizePolicy(sizePolicy3)
-
-        self.verticalLayout.addWidget(self.radioButton_nsss)
-
-        self.radioButton_coqui = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_coqui.setObjectName(u"radioButton_coqui")
-        self.radioButton_coqui.setEnabled(True)
-        sizePolicy3.setHeightForWidth(self.radioButton_coqui.sizePolicy().hasHeightForWidth())
-        self.radioButton_coqui.setSizePolicy(sizePolicy3)
-
-        self.verticalLayout.addWidget(self.radioButton_coqui)
-
-        self.radioButton_espeak = QRadioButton(self.groupBox_ttsEngine)
-        self.radioButton_espeak.setObjectName(u"radioButton_espeak")
-        self.radioButton_espeak.setEnabled(True)
-        sizePolicy3.setHeightForWidth(self.radioButton_espeak.sizePolicy().hasHeightForWidth())
-        self.radioButton_espeak.setSizePolicy(sizePolicy3)
-
-        self.verticalLayout.addWidget(self.radioButton_espeak)
-
-
-        self.gridLayout.addWidget(self.groupBox_ttsEngine, 0, 0, 1, 1)
-
         self.stackedWidget = QStackedWidget(Widget)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
-        self.stackedWidget.setSizePolicy(sizePolicy4)
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        self.stackedWidget.setSizePolicy(sizePolicy)
         self.azure_page = QWidget()
         self.azure_page.setObjectName(u"azure_page")
         self.formLayoutWidget_4 = QWidget(self.azure_page)
@@ -176,16 +43,19 @@ class Ui_Widget(object):
         self.gridLayout_4 = QGridLayout(self.formLayoutWidget_4)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.checkBox_saveToWav = QCheckBox(self.formLayoutWidget_4)
-        self.checkBox_saveToWav.setObjectName(u"checkBox_saveToWav")
-        self.checkBox_saveToWav.setChecked(True)
+        self.checkBox_saveAudio = QCheckBox(self.formLayoutWidget_4)
+        self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
+        self.checkBox_saveAudio.setChecked(True)
 
-        self.gridLayout_4.addWidget(self.checkBox_saveToWav, 2, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.checkBox_saveAudio, 2, 1, 1, 1)
 
         self.listWidget_voiceazure = QListWidget(self.formLayoutWidget_4)
         self.listWidget_voiceazure.setObjectName(u"listWidget_voiceazure")
-        sizePolicy.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
-        self.listWidget_voiceazure.setSizePolicy(sizePolicy)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
+        self.listWidget_voiceazure.setSizePolicy(sizePolicy1)
         self.listWidget_voiceazure.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.listWidget_voiceazure.setSortingEnabled(True)
 
@@ -250,11 +120,11 @@ class Ui_Widget(object):
 
         self.gridLayout_6.addWidget(self.listWidget_voicegoogle, 3, 1, 1, 2)
 
-        self.checkBox_saveToWav_gTTS = QCheckBox(self.gridLayoutWidget_2)
-        self.checkBox_saveToWav_gTTS.setObjectName(u"checkBox_saveToWav_gTTS")
-        self.checkBox_saveToWav_gTTS.setChecked(True)
+        self.checkBox_saveAudio_gTTS = QCheckBox(self.gridLayoutWidget_2)
+        self.checkBox_saveAudio_gTTS.setObjectName(u"checkBox_saveAudio_gTTS")
+        self.checkBox_saveAudio_gTTS.setChecked(True)
 
-        self.gridLayout_6.addWidget(self.checkBox_saveToWav_gTTS, 2, 1, 1, 2)
+        self.gridLayout_6.addWidget(self.checkBox_saveAudio_gTTS, 2, 1, 1, 2)
 
         self.stackedWidget.addWidget(self.gTTS_page)
         self.gspeak_page = QWidget()
@@ -316,13 +186,40 @@ class Ui_Widget(object):
 
         self.gridLayout_8.addWidget(self.label_7, 0, 0, 1, 1)
 
-        self.checkBox_saveToWav_sapi = QCheckBox(self.formLayoutWidget_2)
-        self.checkBox_saveToWav_sapi.setObjectName(u"checkBox_saveToWav_sapi")
-        self.checkBox_saveToWav_sapi.setChecked(True)
+        self.checkBox_saveAudio_sapi = QCheckBox(self.formLayoutWidget_2)
+        self.checkBox_saveAudio_sapi.setObjectName(u"checkBox_saveAudio_sapi")
+        self.checkBox_saveAudio_sapi.setChecked(True)
 
-        self.gridLayout_8.addWidget(self.checkBox_saveToWav_sapi, 2, 1, 1, 1)
+        self.gridLayout_8.addWidget(self.checkBox_saveAudio_sapi, 2, 1, 1, 1)
 
         self.stackedWidget.addWidget(self.sapi_page)
+        self.kurdish_page = QWidget()
+        self.kurdish_page.setObjectName(u"kurdish_page")
+        self.gridLayoutWidget_3 = QWidget(self.kurdish_page)
+        self.gridLayoutWidget_3.setObjectName(u"gridLayoutWidget_3")
+        self.gridLayoutWidget_3.setGeometry(QRect(9, 29, 461, 94))
+        self.gridLayout_7 = QGridLayout(self.gridLayoutWidget_3)
+        self.gridLayout_7.setObjectName(u"gridLayout_7")
+        self.gridLayout_7.setContentsMargins(0, 0, 0, 0)
+        self.checkBox_saveAudio_kurdish = QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_saveAudio_kurdish.setObjectName(u"checkBox_saveAudio_kurdish")
+        self.checkBox_saveAudio_kurdish.setChecked(True)
+
+        self.gridLayout_7.addWidget(self.checkBox_saveAudio_kurdish, 0, 0, 1, 1)
+
+        self.checkBox_latin = QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_latin.setObjectName(u"checkBox_latin")
+        self.checkBox_latin.setChecked(True)
+
+        self.gridLayout_7.addWidget(self.checkBox_latin, 1, 0, 1, 1)
+
+        self.checkBox_punctuation = QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_punctuation.setObjectName(u"checkBox_punctuation")
+        self.checkBox_punctuation.setChecked(False)
+
+        self.gridLayout_7.addWidget(self.checkBox_punctuation, 2, 0, 1, 1)
+
+        self.stackedWidget.addWidget(self.kurdish_page)
         self.ttsPage = QWidget()
         self.ttsPage.setObjectName(u"ttsPage")
         self.formLayoutWidget = QWidget(self.ttsPage)
@@ -369,7 +266,159 @@ class Ui_Widget(object):
 
         self.stackedWidget.addWidget(self.ttsPage)
 
-        self.gridLayout.addWidget(self.stackedWidget, 0, 1, 2, 1)
+        self.gridLayout.addWidget(self.stackedWidget, 0, 1, 3, 1)
+
+        self.groupBox_translate = QGroupBox(Widget)
+        self.groupBox_translate.setObjectName(u"groupBox_translate")
+        sizePolicy1.setHeightForWidth(self.groupBox_translate.sizePolicy().hasHeightForWidth())
+        self.groupBox_translate.setSizePolicy(sizePolicy1)
+        self.groupBox_translate.setCheckable(False)
+        self.gridLayout_2 = QGridLayout(self.groupBox_translate)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.checkBox_translate = QCheckBox(self.groupBox_translate)
+        self.checkBox_translate.setObjectName(u"checkBox_translate")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.checkBox_translate.sizePolicy().hasHeightForWidth())
+        self.checkBox_translate.setSizePolicy(sizePolicy2)
+        self.checkBox_translate.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.checkBox_translate, 0, 0, 1, 1)
+
+        self.label = QLabel(self.groupBox_translate)
+        self.label.setObjectName(u"label")
+
+        self.gridLayout_2.addWidget(self.label, 2, 0, 1, 1)
+
+        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
+        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
+
+        self.gridLayout_2.addWidget(self.comboBox_writeLang, 2, 1, 1, 1)
+
+        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
+        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
+        sizePolicy2.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
+        self.checkBox_overwritepb.setSizePolicy(sizePolicy2)
+        self.checkBox_overwritepb.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
+
+        self.comboBox_targetLang = QComboBox(self.groupBox_translate)
+        self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
+        sizePolicy2.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
+        self.comboBox_targetLang.setSizePolicy(sizePolicy2)
+
+        self.gridLayout_2.addWidget(self.comboBox_targetLang, 3, 1, 1, 1)
+
+        self.label_2 = QLabel(self.groupBox_translate)
+        self.label_2.setObjectName(u"label_2")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
+        self.label_2.setSizePolicy(sizePolicy3)
+
+        self.gridLayout_2.addWidget(self.label_2, 3, 0, 1, 1)
+
+
+        self.gridLayout.addWidget(self.groupBox_translate, 2, 0, 1, 1)
+
+        self.buttonBox = QDialogButtonBox(Widget)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
+        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
+        self.buttonBox.setCenterButtons(True)
+
+        self.gridLayout.addWidget(self.buttonBox, 5, 0, 1, 2)
+
+        self.groupBox_ttsEngine = QGroupBox(Widget)
+        self.groupBox_ttsEngine.setObjectName(u"groupBox_ttsEngine")
+        sizePolicy1.setHeightForWidth(self.groupBox_ttsEngine.sizePolicy().hasHeightForWidth())
+        self.groupBox_ttsEngine.setSizePolicy(sizePolicy1)
+        self.groupBox_ttsEngine.setFlat(False)
+        self.groupBox_ttsEngine.setCheckable(False)
+        self.verticalLayout = QVBoxLayout(self.groupBox_ttsEngine)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.radioButton_azure = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_azure.setObjectName(u"radioButton_azure")
+        sizePolicy4 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.radioButton_azure.sizePolicy().hasHeightForWidth())
+        self.radioButton_azure.setSizePolicy(sizePolicy4)
+        self.radioButton_azure.setChecked(True)
+
+        self.verticalLayout.addWidget(self.radioButton_azure)
+
+        self.radioButton_google = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_google.setObjectName(u"radioButton_google")
+        sizePolicy4.setHeightForWidth(self.radioButton_google.sizePolicy().hasHeightForWidth())
+        self.radioButton_google.setSizePolicy(sizePolicy4)
+        self.radioButton_google.setChecked(False)
+
+        self.verticalLayout.addWidget(self.radioButton_google)
+
+        self.radioButton_gspeak = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_gspeak.setObjectName(u"radioButton_gspeak")
+
+        self.verticalLayout.addWidget(self.radioButton_gspeak)
+
+        self.radioButton_sapi5 = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_sapi5.setObjectName(u"radioButton_sapi5")
+        sizePolicy4.setHeightForWidth(self.radioButton_sapi5.sizePolicy().hasHeightForWidth())
+        self.radioButton_sapi5.setSizePolicy(sizePolicy4)
+
+        self.verticalLayout.addWidget(self.radioButton_sapi5)
+
+        self.radioButton_nsss = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_nsss.setObjectName(u"radioButton_nsss")
+        sizePolicy4.setHeightForWidth(self.radioButton_nsss.sizePolicy().hasHeightForWidth())
+        self.radioButton_nsss.setSizePolicy(sizePolicy4)
+
+        self.verticalLayout.addWidget(self.radioButton_nsss)
+
+        self.radioButton_coqui = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_coqui.setObjectName(u"radioButton_coqui")
+        self.radioButton_coqui.setEnabled(True)
+        sizePolicy4.setHeightForWidth(self.radioButton_coqui.sizePolicy().hasHeightForWidth())
+        self.radioButton_coqui.setSizePolicy(sizePolicy4)
+
+        self.verticalLayout.addWidget(self.radioButton_coqui)
+
+        self.radioButton_espeak = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_espeak.setObjectName(u"radioButton_espeak")
+        self.radioButton_espeak.setEnabled(True)
+        sizePolicy4.setHeightForWidth(self.radioButton_espeak.sizePolicy().hasHeightForWidth())
+        self.radioButton_espeak.setSizePolicy(sizePolicy4)
+
+        self.verticalLayout.addWidget(self.radioButton_espeak)
+
+        self.radioButton_kurdish = QRadioButton(self.groupBox_ttsEngine)
+        self.radioButton_kurdish.setObjectName(u"radioButton_kurdish")
+
+        self.verticalLayout.addWidget(self.radioButton_kurdish)
+
+
+        self.gridLayout.addWidget(self.groupBox_ttsEngine, 0, 0, 1, 1)
+
+        self.groupBox = QGroupBox(Widget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.verticalLayoutWidget = QWidget(self.groupBox)
+        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
+        self.verticalLayoutWidget.setGeometry(QRect(4, 24, 281, 61))
+        self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.checkBox_stats = QCheckBox(self.verticalLayoutWidget)
+        self.checkBox_stats.setObjectName(u"checkBox_stats")
+        self.checkBox_stats.setChecked(True)
+
+        self.verticalLayout_2.addWidget(self.checkBox_stats)
+
+
+        self.gridLayout.addWidget(self.groupBox, 1, 0, 1, 1)
 
         QWidget.setTabOrder(self.radioButton_azure, self.radioButton_google)
         QWidget.setTabOrder(self.radioButton_google, self.radioButton_sapi5)
@@ -381,8 +430,8 @@ class Ui_Widget(object):
         QWidget.setTabOrder(self.comboBox_writeLang, self.comboBox_targetLang)
         QWidget.setTabOrder(self.comboBox_targetLang, self.lineEdit_key)
         QWidget.setTabOrder(self.lineEdit_key, self.lineEdit_region)
-        QWidget.setTabOrder(self.lineEdit_region, self.checkBox_saveToWav)
-        QWidget.setTabOrder(self.checkBox_saveToWav, self.listWidget_voiceazure)
+        QWidget.setTabOrder(self.lineEdit_region, self.checkBox_saveAudio)
+        QWidget.setTabOrder(self.checkBox_saveAudio, self.listWidget_voiceazure)
         QWidget.setTabOrder(self.listWidget_voiceazure, self.horizontalSlider_volume)
         QWidget.setTabOrder(self.horizontalSlider_volume, self.horizontalSlider_rate)
         QWidget.setTabOrder(self.horizontalSlider_rate, self.lineEdit_voiceID)
@@ -397,39 +446,14 @@ class Ui_Widget(object):
 
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
-        self.groupBox_translate.setTitle(QCoreApplication.translate("Widget", u"Translate Settings", None))
-#if QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
-#if QT_CONFIG(tooltip)
-        self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_translate.setText(QCoreApplication.translate("Widget", u"Translate", None))
-#if QT_CONFIG(tooltip)
-        self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
-#endif // QT_CONFIG(tooltip)
-        self.label_2.setText(QCoreApplication.translate("Widget", u"Target Language", None))
-#if QT_CONFIG(tooltip)
-        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
-        self.groupBox_ttsEngine.setTitle(QCoreApplication.translate("Widget", u"TTS Engine", None))
-        self.radioButton_azure.setText(QCoreApplication.translate("Widget", u"Azure TTS", None))
-        self.radioButton_google.setText(QCoreApplication.translate("Widget", u"Google TTS", None))
-        self.radioButton_gspeak.setText(QCoreApplication.translate("Widget", u"GSpeak", None))
-        self.radioButton_sapi5.setText(QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
-        self.radioButton_nsss.setText(QCoreApplication.translate("Widget", u"NSSS (Mac Only)", None))
-        self.radioButton_coqui.setText(QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
-        self.radioButton_espeak.setText(QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
-        self.checkBox_saveToWav.setText(QCoreApplication.translate("Widget", u"Save to Wav Files", None))
+        self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
         self.label_11.setText(QCoreApplication.translate("Widget", u"Voice Model:", None))
         self.browseButton.setText(QCoreApplication.translate("Widget", u"Browse", None))
         self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
         self.label_13.setText(QCoreApplication.translate("Widget", u"Voice Model:", None))
-        self.checkBox_saveToWav_gTTS.setText(QCoreApplication.translate("Widget", u"Save to Wav Files", None))
+        self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.textBrowser.setHtml(QCoreApplication.translate("Widget", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -449,12 +473,43 @@ class Ui_Widget(object):
 #endif // QT_CONFIG(tooltip)
         self.label_12.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
         self.label_7.setText(QCoreApplication.translate("Widget", u"Volume:", None))
-        self.checkBox_saveToWav_sapi.setText(QCoreApplication.translate("Widget", u"Save to Wav Files", None))
+        self.checkBox_saveAudio_sapi.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+        self.checkBox_saveAudio_kurdish.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+        self.checkBox_latin.setText(QCoreApplication.translate("Widget", u"Latin", None))
+        self.checkBox_punctuation.setText(QCoreApplication.translate("Widget", u"Punctuation", None))
         self.label_3.setText(QCoreApplication.translate("Widget", u"Volume:", None))
         self.label_4.setText(QCoreApplication.translate("Widget", u"Rate:", None))
 #if QT_CONFIG(tooltip)
         self.label_5.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
+        self.groupBox_translate.setTitle(QCoreApplication.translate("Widget", u"Translate Settings", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_translate.setText(QCoreApplication.translate("Widget", u"Translate", None))
+#if QT_CONFIG(tooltip)
+        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
+#if QT_CONFIG(tooltip)
+        self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
+#endif // QT_CONFIG(tooltip)
+        self.label_2.setText(QCoreApplication.translate("Widget", u"Target Language", None))
+        self.groupBox_ttsEngine.setTitle(QCoreApplication.translate("Widget", u"TTS Engine", None))
+        self.radioButton_azure.setText(QCoreApplication.translate("Widget", u"Azure TTS", None))
+        self.radioButton_google.setText(QCoreApplication.translate("Widget", u"Google TTS", None))
+        self.radioButton_gspeak.setText(QCoreApplication.translate("Widget", u"GSpeak", None))
+        self.radioButton_sapi5.setText(QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
+        self.radioButton_nsss.setText(QCoreApplication.translate("Widget", u"NSSS (Mac Only)", None))
+        self.radioButton_coqui.setText(QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
+        self.radioButton_espeak.setText(QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
+        self.radioButton_kurdish.setText(QCoreApplication.translate("Widget", u"Kurdish TTS", None))
+        self.groupBox.setTitle(QCoreApplication.translate("Widget", u"App", None))
+        self.checkBox_stats.setText(QCoreApplication.translate("Widget", u"Allow Collecting Stats", None))
     # retranslateUi
 
