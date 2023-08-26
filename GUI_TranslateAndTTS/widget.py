@@ -9,12 +9,12 @@ import PySide6.QtCore
 import pyttsx3
 import uuid
 
-
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
+
 
 class Widget(QWidget):
     def __init__(self, parent=None):
@@ -24,69 +24,68 @@ class Widget(QWidget):
 
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
 
-
         # Translate Language Dictionary
-        self.translate_languages = {"Afrikaans":"af",
-            "Arabic":"ar",
-            "Bulgarian":"bg",
-            "Bengali":"bn",
-            "Bosnian":"bs",
-            "Catalan":"ca",
-            "Czech":"cs",
-            "Danish":"da",
-            "German":"de",
-            "Greek":"el",
-            "English":"en",
-            "Spanish":"es",
-            "Estonian":"et",
-            "Finnish":"fi",
-            "French":"fr",
-            "Gujarati":"gu",
-            "Hindi":"hi",
-            "Croatian":"hr",
-            "Hungarian":"hu",
-            "Indonesian":"id",
-            "Icelandic":"is",
-            "Italian":"it",
-            "Hebrew":"iw",
-            "Japanese":"ja",
-            "Javanese":"jw",
-            "Khmer":"km",
-            "Kannada":"kn",
-            "Korean":"ko",
-            "Kurdish (Kurmanji)":"ku",
-            "Kurdish (Sorani)":"ckb",
-            "Latin":"la",
-            "Latvian":"lv",
-            "Malayalam":"ml",
-            "Marathi":"mr",
-            "Malay":"ms",
-            "Myanmar(Burmese)":"my",
-            "Nepali":"ne",
-            "Dutch":"nl",
-            "Norwegian":"no",
-            "Polish":"pl",
-            "Portuguese":"pt",
-            "Romanian":"ro",
-            "Russian":"ru",
-            "Sinhala":"si",
-            "Slovak":"sk",
-            "Albanian":"sq",
-            "Serbian":"sr",
-            "Sundanese":"su",
-            "Swedish":"sv",
-            "Swahili":"sw",
-            "Tamil":"ta",
-            "Telugu":"te",
-            "Thai":"th",
-            "Filipino":"tl",
-            "Turkish":"tr",
-            "Ukrainian":"uk",
-            "Urdu":"ur",
-            "Vietnamese":"vi",
-            "Chinese(Simplified)":"zh-CN",
-            "Chinese(Mandarin/Taiwan)":"zh-TW",
-            "Chinese(Mandarin)":"zh"}
+        self.translate_languages = {"Afrikaans": "af",
+                                    "Arabic": "ar",
+                                    "Bulgarian": "bg",
+                                    "Bengali": "bn",
+                                    "Bosnian": "bs",
+                                    "Catalan": "ca",
+                                    "Czech": "cs",
+                                    "Danish": "da",
+                                    "German": "de",
+                                    "Greek": "el",
+                                    "English": "en",
+                                    "Spanish": "es",
+                                    "Estonian": "et",
+                                    "Finnish": "fi",
+                                    "French": "fr",
+                                    "Gujarati": "gu",
+                                    "Hindi": "hi",
+                                    "Croatian": "hr",
+                                    "Hungarian": "hu",
+                                    "Indonesian": "id",
+                                    "Icelandic": "is",
+                                    "Italian": "it",
+                                    "Hebrew": "iw",
+                                    "Japanese": "ja",
+                                    "Javanese": "jw",
+                                    "Khmer": "km",
+                                    "Kannada": "kn",
+                                    "Korean": "ko",
+                                    "Kurdish (Kurmanji)": "ku",
+                                    "Kurdish (Sorani)": "ckb",
+                                    "Latin": "la",
+                                    "Latvian": "lv",
+                                    "Malayalam": "ml",
+                                    "Marathi": "mr",
+                                    "Malay": "ms",
+                                    "Myanmar(Burmese)": "my",
+                                    "Nepali": "ne",
+                                    "Dutch": "nl",
+                                    "Norwegian": "no",
+                                    "Polish": "pl",
+                                    "Portuguese": "pt",
+                                    "Romanian": "ro",
+                                    "Russian": "ru",
+                                    "Sinhala": "si",
+                                    "Slovak": "sk",
+                                    "Albanian": "sq",
+                                    "Serbian": "sr",
+                                    "Sundanese": "su",
+                                    "Swedish": "sv",
+                                    "Swahili": "sw",
+                                    "Tamil": "ta",
+                                    "Telugu": "te",
+                                    "Thai": "th",
+                                    "Filipino": "tl",
+                                    "Turkish": "tr",
+                                    "Ukrainian": "uk",
+                                    "Urdu": "ur",
+                                    "Vietnamese": "vi",
+                                    "Chinese(Simplified)": "zh-CN",
+                                    "Chinese(Mandarin/Taiwan)": "zh-TW",
+                                    "Chinese(Mandarin)": "zh"}
 
         voices = """af-ZA-AdriNeural
         af-ZA-WillemNeural
@@ -544,7 +543,7 @@ class Widget(QWidget):
         voices = voices.replace(" ", "")
         # Split the text into lines
         voices = voices.split("\n")
-        voices = sorted(voices) # Azure voices
+        voices = sorted(voices)  # Azure voices
 
         voices_google = """mr-IN-Standard-A
         mr-IN-Standard-B
@@ -1153,7 +1152,7 @@ class Widget(QWidget):
         voices_google = voices_google.replace(" ", "")
         # Split the text into lines
         voices_google = voices_google.split("\n")
-        voices_google = sorted(voices_google) # Google voices
+        voices_google = sorted(voices_google)  # Google voices
 
         self.ui.listWidget_voiceazure.addItems(voices)
         self.ui.listWidget_voicegoogle.addItems(voices_google)
@@ -1180,13 +1179,12 @@ class Widget(QWidget):
 
         self.ui.listWidget_sapi.addItems(self.voices_sapi_dict.keys())
 
-
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             app_data_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
         elif __file__:
-            app_data_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), os.pardir))
+            app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
         self.config_path = os.path.join(app_data_path, 'settings.cfg')
 
@@ -1196,12 +1194,10 @@ class Widget(QWidget):
         if os.path.exists(self.config_path):
             self.config.read(self.config_path)
 
-
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
             self.endLang = self.config.get('translate', 'endLang')
             self.overwritePb = self.config.getboolean('translate', 'replacepb')
-
 
             self.ttsEngine = self.config.get('TTS', 'engine')
             self.voiceid = self.config.get('TTS', 'voiceid')
@@ -1256,16 +1252,15 @@ class Widget(QWidget):
                 lang = lang[0]
             self.ui.comboBox_targetLang.setCurrentText(lang)
 
-            item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure,PySide6.QtCore.Qt.MatchExactly)
+            item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voiceazure.setCurrentItem(item[0])
 
-            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle,PySide6.QtCore.Qt.MatchExactly)
+            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
-
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
 
-            item = self.ui.listWidget_sapi.findItems(item[0],PySide6.QtCore.Qt.MatchExactly)
+            item = self.ui.listWidget_sapi.findItems(item[0], PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_sapi.setCurrentItem(item[0])
 
             self.ui.checkBox_translate.setChecked(not self.notranslate)
@@ -1290,6 +1285,8 @@ class Widget(QWidget):
             self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
 
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
+            # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
+            self.onTTSEngineToggled()
 
         else:
             self.ttsEngine = "azureTTS"
@@ -1316,12 +1313,11 @@ class Widget(QWidget):
 
             self.saveAudio_sapi5 = True
 
-            item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure,PySide6.QtCore.Qt.MatchExactly)
+            item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voiceazure.setCurrentItem(item[0])
 
-            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle,PySide6.QtCore.Qt.MatchExactly)
+            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
-
 
         self.ui.radioButton_azure.toggled.connect(self.onTTSEngineToggled)
         self.ui.radioButton_google.toggled.connect(self.onTTSEngineToggled)
@@ -1337,8 +1333,17 @@ class Widget(QWidget):
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
+        # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
+        self.onTTSEngineToggled()
 
     def onTTSEngineToggled(self):
+        # move this on every TTS "if" condition if necessary.
+        index = self.ui.comboBox_targetLang.currentIndex()
+        self.ui.comboBox_targetLang.clear()
+        self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
+        self.ui.comboBox_targetLang.setCurrentIndex(index)
+
+
         if self.ui.radioButton_azure.isChecked():
             self.ui.stackedWidget.setCurrentIndex(0)
             self.ttsEngine = "azureTTS"
@@ -1354,6 +1359,8 @@ class Widget(QWidget):
         elif self.ui.radioButton_kurdish.isChecked():
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
+            self.ui.comboBox_targetLang.clear()
+            self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
             self.ui.stackedWidget.setCurrentIndex(5)
             if self.ui.radioButton_espeak.isChecked():
@@ -1378,7 +1385,6 @@ class Widget(QWidget):
         self.config.add_section('App')
         self.config.set('App', 'uuid', str(id))
         self.config.set('App', 'collectstats', str(self.ui.checkBox_stats.isChecked()))
-
 
         self.config.add_section('translate')
         self.config.set('translate', 'noTranslate', str(self.notranslate))
@@ -1406,7 +1412,6 @@ class Widget(QWidget):
         else:
             self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate.value()))
             self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume.value()))
-
 
         self.config.add_section('azureTTS')
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
@@ -1444,7 +1449,6 @@ class Widget(QWidget):
                 if not end_lang_is_Kurdish:
                     prompt2 = True
 
-
         msg = ""
         if prompt1:
             msg = 'Do you really want to save?\n'
@@ -1458,7 +1462,7 @@ class Widget(QWidget):
 
         if prompt1 or prompt2:
             reply = QMessageBox.question(self, 'Confirmation', msg,
-                                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
             if reply == QMessageBox.No:
                 return
@@ -1474,7 +1478,8 @@ class Widget(QWidget):
     def OnBrowseButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
-        self.credsFilePath, _ = QFileDialog.getOpenFileName(self, "Open JSON File containing OAuth 2.0 Credentials", "", "JSON Files (*.json)", options=options)
+        self.credsFilePath, _ = QFileDialog.getOpenFileName(self, "Open JSON File containing OAuth 2.0 Credentials", "",
+                                                            "JSON Files (*.json)", options=options)
         self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
     def OnCredsFilePathChanged(self):
@@ -1490,6 +1495,7 @@ class Widget(QWidget):
             pass
 
         return str(id)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
