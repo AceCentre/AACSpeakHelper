@@ -1156,8 +1156,8 @@ class Widget(QWidget):
 
         self.ui.listWidget_voiceazure.addItems(voices)
         self.ui.listWidget_voicegoogle.addItems(voices_google)
-        self.ui.comboBox_writeLang.addItems(self.translate_languages.keys())
-        self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
+        self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
 
         voices_sapi = pyttsx3.init('sapi5').getProperty('voices')
         self.voices_sapi_dict = {}
@@ -1178,7 +1178,7 @@ class Widget(QWidget):
                 self.voices_sapi_dict[name] = voice_id
 
         self.ui.listWidget_sapi.addItems(self.voices_sapi_dict.keys())
-
+        self.ui.listWidget_sapi.setCurrentRow(0)
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
@@ -1342,7 +1342,6 @@ class Widget(QWidget):
         self.ui.comboBox_targetLang.clear()
         self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
         self.ui.comboBox_targetLang.setCurrentIndex(index)
-
 
         if self.ui.radioButton_azure.isChecked():
             self.ui.stackedWidget.setCurrentIndex(0)
