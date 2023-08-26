@@ -2,11 +2,15 @@ import pyperclip
 import pyttsx3
 import easygui
 import pygame
+import logging
 
 from utils import configure_app, config, args
 from tts_utils import speak
 
 pygame.mixer.init()
+logging.basicConfig(filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.warning('This will get logged to a file')
+
 
 def translatepb():
     from translate import Translator
@@ -15,14 +19,17 @@ def translatepb():
     translation = translator.translate(pyperclip.paste())
     return translation
 
-def mainrun(listvoices : bool):
+
+def mainrun(listvoices: bool):
     if listvoices:
         try:
             # Code that may raise an exception
             engine = pyttsx3.init(config.get('TTS', 'engine'))
         except Exception as e:
             # Code to handle other exceptions
-            result = easygui.msgbox(str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to open the Configuration Setup?', 'Error')
+            result = easygui.msgbox(
+                str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to open the Configuration Setup?',
+                'Error')
         else:
             # Code that will run if no exception is raised
             voices = engine.getProperty('voices')
@@ -37,7 +44,7 @@ def mainrun(listvoices : bool):
             else:
                 newstr = translatepb()
 
-            speak(newstr) # Good Morning
+            speak(newstr)  # Good Morning
 
             if (config.getboolean('translate', 'replacepb')):
                 pyperclip.copy(newstr)
@@ -47,6 +54,7 @@ def mainrun(listvoices : bool):
                 configure_app()
             else:
                 return
-            
+
+
 if __name__ == '__main__':
     mainrun(args['listvoices'])

@@ -24,6 +24,7 @@ class KurdishTTS:
         # normalizedText = self.script.call("clearFormatting", text)
         normalizedText = unicodedata.normalize('NFC', text)
         # normalizedText = normalizer.clearFormatting(text)
+        print("InputText: " + text)
         print("Normalized Text: " + normalizedText)
         return normalizedText
 
