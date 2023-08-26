@@ -1343,6 +1343,7 @@ class Widget(QWidget):
         self.ui.comboBox_targetLang.addItems(self.translate_languages.keys())
         self.ui.comboBox_targetLang.setCurrentIndex(index)
 
+
         if self.ui.radioButton_azure.isChecked():
             self.ui.stackedWidget.setCurrentIndex(0)
             self.ttsEngine = "azureTTS"
