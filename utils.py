@@ -10,6 +10,7 @@ import configparser
 import uuid
 import posthog
 
+
 def configure_app():
     # determine if application is a script file or frozen exe
     if getattr(sys, 'frozen', False):
@@ -29,6 +30,7 @@ def configure_app():
         GUI_script_path = os.path.join(application_path, 'GUI_TranslateAndTTS', 'widget.py')
         print(GUI_script_path)
         process = subprocess.run(["python", GUI_script_path])
+
 
 def get_paths(args: vars):
     if (args['config'] != '' and os.path.exists(args['config'])):
@@ -56,17 +58,17 @@ def get_paths(args: vars):
     if not os.path.exists(config_path):
         msg = '\n\n Do You want to open the Configuration Setup?'
         result = easygui.ynbox("settings.cfg file not found." + msg, 'Error')
-        if result == True:
+        if result:
             configure_app()
         else:
             msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
-            result = easygui.msgbox("settings.cfg file not found. "+ msg, 'Error')
+            result = easygui.msgbox("settings.cfg file not found. " + msg, 'Error')
             sys.exit()
-    
-    return (config_path, audio_files_path)
-    
 
-def play_audio(audio_bytes:bytes):
+    return config_path, audio_files_path
+
+
+def play_audio(audio_bytes: bytes):
     audio_stream = io.BytesIO(audio_bytes)
     # pygame.mixer.init()
     pygame.mixer.music.load(audio_stream)
@@ -74,14 +76,16 @@ def play_audio(audio_bytes:bytes):
     while pygame.mixer.music.get_busy():
         continue
 
-def save_audio(audio_bytes:bytes, format:str='wav'):
+
+def save_audio(audio_bytes: bytes, format: str = 'wav'):
     # save to .wav file
     timestr = time.strftime("%Y%m%d-%H%M%S.")
-    filename = os.path.join(audio_files_path, timestr+format)
+    filename = os.path.join(audio_files_path, timestr + format)
 
     # Write the WAV bytes to the output file
     with open(filename, 'wb') as out_file:
         out_file.write(audio_bytes)
+
 
 def get_uuid():
     try:
@@ -96,9 +100,11 @@ def get_uuid():
 
     return str(id)
 
-def notify_posthog(id : str, event_name : str, properties : dict = {}):
+
+def notify_posthog(id: str, event_name: str, properties: dict = {}):
     try:
-        posthog_client = posthog.Posthog(project_api_key='phc_L5wgGTFZYVC1q8Hk7Qu0dp3YKuU1OUPSPGAx7kADWcs', host='https://app.posthog.com')
+        posthog_client = posthog.Posthog(project_api_key='phc_L5wgGTFZYVC1q8Hk7Qu0dp3YKuU1OUPSPGAx7kADWcs',
+                                         host='https://app.posthog.com')
         # Attempt to send the event to PostHog
         posthog_client.capture(distinct_id=id, event=event_name, properties=properties)
         print(f"Event '{event_name}' captured successfully!")
@@ -106,7 +112,8 @@ def notify_posthog(id : str, event_name : str, properties : dict = {}):
         # Handle the case when there's an issue with sending the event
         print(f"Failed to capture event '{event_name}': {e}")
         # You can add further logic here if needed, such as logging the error or continuing the script
-        pass       
+        pass
+
 
 parser = argparse.ArgumentParser(
     description='Reads pasteboard. Translates it. Speaks it out. Or any variation of that')
@@ -126,11 +133,11 @@ if Allow_Collecting_Stats:
     distinct_id = get_uuid()
     event_name = 'App Run'
     event_properties = {
-    'uuid': distinct_id,
-    'source': 'app',
-    'fromLang':  config.get('translate', 'startlang'),
-    'toLang':  config.get('translate', 'endlang'),        
-    'ttsengine':  config.get('TTS', 'engine'),
+        'uuid': distinct_id,
+        'source': 'app',
+        'fromLang': config.get('translate', 'startlang'),
+        'toLang': config.get('translate', 'endlang'),
+        'ttsengine': config.get('TTS', 'engine'),
     }
 
     notify_posthog(distinct_id, event_name, event_properties)
