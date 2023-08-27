@@ -1,14 +1,50 @@
 import os
 import sys
 import subprocess
-import easygui
-import pygame
 import time
 import io
 import argparse
 import configparser
 import uuid
 import posthog
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame
+
+app = QApplication(sys.argv)
+
+
+def ynbox(message: str, header: str, timeout: int = 10000):
+    try:
+
+        ynInstance = QMessageBox(None)
+        ynInstance.setWindowTitle(header)
+        ynInstance.setText(message)
+        ynInstance.setStandardButtons(QMessageBox.StandardButton.Yes)
+        ynInstance.addButton(QMessageBox.StandardButton.No)
+        timer = QTimer(None)
+        timer.singleShot(timeout, lambda: ynInstance.button(QMessageBox.StandardButton.No).animateClick())
+        return ynInstance.exec() == QMessageBox.StandardButton.Yes
+
+    except Exception as e:
+        print(str(e))
+
+
+def msgbox(message: str, header: str, timeout: int = 10000):
+    try:
+        msgInstance = QMessageBox(None)
+        msgInstance.setWindowTitle(header)
+        msgInstance.setText(message)
+        msgInstance.setStandardButtons(QMessageBox.StandardButton.Ok)
+        timer = QTimer(None)
+        timer.singleShot(timeout, lambda: msgInstance.button(QMessageBox.StandardButton.Ok).animateClick())
+        return msgInstance.exec() == QMessageBox.StandardButton.Ok
+
+    except Exception as e:
+        print(str(e))
 
 
 def configure_app():
@@ -45,9 +81,9 @@ def get_paths(args: vars):
 
         elif __file__:
             application_path = os.path.dirname(__file__)
-
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
+        print(config_path, audio_files_path)
 
     # Check if the directory already exists
     if not os.path.exists(audio_files_path):
@@ -57,12 +93,17 @@ def get_paths(args: vars):
     # Check if the file already exists
     if not os.path.exists(config_path):
         msg = '\n\n Do You want to open the Configuration Setup?'
-        result = easygui.ynbox("settings.cfg file not found." + msg, 'Error')
+        # result = easygui.ynbox("settings.cfg file not found." + msg, 'Error')
+        try:
+            result = ynbox("settings.cfg file not found." + msg, 'Error')
+            pass
+        except Exception as e:
+            pass
         if result:
             configure_app()
         else:
             msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
-            result = easygui.msgbox("settings.cfg file not found. " + msg, 'Error')
+            result = msgbox("settings.cfg file not found. " + msg, 'Error')
             sys.exit()
 
     return config_path, audio_files_path
@@ -122,12 +163,21 @@ parser.add_argument(
 parser.add_argument(
     '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False)
 args = vars(parser.parse_args())
-
+print(args)
 (config_path, audio_files_path) = get_paths(args=args)
 config = configparser.ConfigParser()
-config.read(config_path)
 
-Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
+try:
+    print(config_path)
+    if os.path.isfile(config_path):
+        config.read(config_path)
+        Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
+    else:
+        msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+        result = msgbox("settings.cfg file not found. " + msg, 'Error')
+        sys.exit()
+except Exception as e:
+    sys.exit()
 
 if Allow_Collecting_Stats:
     distinct_id = get_uuid()
