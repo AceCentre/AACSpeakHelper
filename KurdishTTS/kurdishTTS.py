@@ -7,6 +7,7 @@ from io import BytesIO
 import string
 import random
 import unicodedata
+import logging
 # import Normalizer as normalizer
 
 
@@ -25,6 +26,7 @@ class KurdishTTS:
         normalizedText = unicodedata.normalize('NFC', text)
         # normalizedText = normalizer.clearFormatting(text)
         print("Normalized Text: " + normalizedText)
+        logging.info("Normalized Text: {}".format(normalizedText))
         return normalizedText
 
     def synth_to_bytes(self, text: str, latin: str = 'true', punctuation: str = 'false'):#, download: bool = True):
@@ -34,6 +36,7 @@ class KurdishTTS:
         # download = either True or False, choose if you need to download the audio file or not
 
         if len(text) > 2000:
+            logging.error("Text reached the maximum characters limit", exc_info=True)
             raise Exception("Text reached the maximum characters limit")
         words = self.normalize_text(text)
         url = 'https://tts.kurdishspeech.com'

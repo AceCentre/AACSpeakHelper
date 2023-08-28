@@ -1,3 +1,5 @@
+import logging
+
 import os
 import sys
 import subprocess
@@ -11,7 +13,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import pygame
 
 app = QApplication(sys.argv)
@@ -163,12 +165,20 @@ parser.add_argument(
 parser.add_argument(
     '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False)
 args = vars(parser.parse_args())
-print(args)
+logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
 config = configparser.ConfigParser()
-
+current_path = os.path.dirname(config_path)
+if os.path.isdir(current_path):
+    # print(os.path.join(current_path, 'app.log'))
+    logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
+                        filemode='a',
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        level=logging.DEBUG,
+                        force=True)
 try:
-    print(config_path)
+    # print(config_path)
+
     if os.path.isfile(config_path):
         config.read(config_path)
         Allow_Collecting_Stats = config.getboolean('App', 'collectstats')

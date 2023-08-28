@@ -8,6 +8,7 @@ import PySide6.QtCore
 
 import pyttsx3
 import uuid
+import logging
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -1469,6 +1470,7 @@ class Widget(QWidget):
         # Write the configuration to a file
         with open(self.config_path, 'w') as configfile:
             self.config.write(configfile)
+            logging.info("Configuration file is saved on {}".format(self.config_path))
         self.close()
 
     def OnDiscardPressed(self):
@@ -1486,11 +1488,14 @@ class Widget(QWidget):
 
     def get_uuid(self):
         try:
-            # Code that may raise an exception
-            id = uuid.UUID(self.config.get('App', 'uuid'))
+            # Code that may raise an exception\
+            if os.path.isfile(self.config_path) and self.config.has_section('App'):
+                id = uuid.UUID(self.config.get('App', 'uuid'))
+            else:
+                id = uuid.uuid4()
         except Exception as e:
             # Code to handle other exceptions
-            id = uuid.uuid4()
+            logging.error("UUID Error: {}".format(e), exc_info=True)
             pass
 
         return str(id)
