@@ -21,7 +21,7 @@ def translatepb():
         logging.info('Translation [{}]: {}'.format(config.get('translate', 'endLang'), translation))
         return translation
     except Exception as e:
-        logging.error("Translation Error!", exc_info=True)
+        logging.error("Translation Error: {}".format(e), exc_info=True)
 
 
 def mainrun(listvoices: bool):
@@ -55,7 +55,7 @@ def mainrun(listvoices: bool):
             if config.getboolean('translate', 'replacepb'):
                 pyperclip.copy(clipboard)
         except Exception as e:
-            logging.error("Configuration Error!", exc_info=True)
+            logging.error("Configuration ErrorL {}".format(e), exc_info=True)
             result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
             if result:
                 configure_app()
