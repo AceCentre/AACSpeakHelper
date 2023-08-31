@@ -85,7 +85,7 @@ def get_paths(args: vars):
             application_path = os.path.dirname(__file__)
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-        print(config_path, audio_files_path)
+        #print(config_path, audio_files_path)
 
     # Check if the directory already exists
     if not os.path.exists(audio_files_path):
@@ -163,7 +163,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '-c', '--config', help='Path to a defined config file', required=False, default='')
 parser.add_argument(
-    '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False)
+    '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False, action="store_true")
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)

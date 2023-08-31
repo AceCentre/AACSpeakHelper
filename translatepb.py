@@ -2,14 +2,14 @@ import os
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 from utils import configure_app, config, args
+import utils
 import logging
 import pyperclip
 import pyttsx3
-import easygui
 import pygame
 from tts_utils import speak
 from translate import Translator
-import translate
+
 
 pygame.mixer.init()
 
@@ -17,7 +17,6 @@ pygame.mixer.init()
 def translatepb():
     try:
 
-        print(translate.providers.__all__)
         provider = config.get('translate', 'provider')
         if provider == 'MyMemoryProvider':
             key = config.get('translate', 'mymemoryprovider_secret_key')
@@ -75,10 +74,14 @@ def mainrun(listvoices: bool):
         except Exception as e:
             # Code to handle other exceptions
             logging.error("List Voice Error!", exc_info=True)
-            result = easygui.msgbox(
+            result = utils.ynbox(
                 str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to open the '
                          'Configuration Setup?',
-                'Error')
+                'List Voice Error')
+            if result:
+                configure_app()
+            else:
+                return
         else:
             # Code that will run if no exception is raised
             voices = engine.getProperty('voices')
@@ -99,7 +102,8 @@ def mainrun(listvoices: bool):
                 pyperclip.copy(clipboard)
         except Exception as e:
             logging.error("Configuration ErrorL {}".format(e), exc_info=True)
-            result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+            # result = easygui.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Error')
+            result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
             if result:
                 configure_app()
             else:
