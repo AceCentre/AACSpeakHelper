@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>830</width>
+    <width>854</width>
     <height>553</height>
    </rect>
   </property>
@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="azure_page">
       <widget class="QWidget" name="formLayoutWidget_4">
@@ -378,36 +378,22 @@ p, li { white-space: pre-wrap; }
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="4" column="0">
-       <widget class="QLabel" name="label">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;&quot;&gt;&lt;span style=&quot; font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;&quot;&gt;Writing Language &lt;/span&gt;&lt;/pre&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Writing Language</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="checkBox_translate">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="toolTip">
-         <string>Target Language for Translattion</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;&quot;&gt;&lt;span style=&quot; font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;&quot;&gt;Uncheck this option If you just want it to speak in the text you are writing&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Target Language</string>
+         <string>Translate</string>
         </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Provider</string>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -430,30 +416,22 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="comboBox_provider"/>
-      </item>
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_translate">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;&quot;&gt;&lt;span style=&quot; font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;&quot;&gt;Uncheck this option If you just want it to speak in the text you are writing&lt;/span&gt;&lt;/pre&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;pre style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;&quot;&gt;&lt;span style=&quot; font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;&quot;&gt;Writing Language &lt;/span&gt;&lt;/pre&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
-         <string>Translate</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>Writing Language</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QComboBox" name="comboBox_writeLang"/>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_14">
+        <property name="text">
+         <string>Provider</string>
+        </property>
+       </widget>
       </item>
       <item row="5" column="1">
        <widget class="QComboBox" name="comboBox_targetLang">
@@ -465,15 +443,196 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="comboBox_writeLang"/>
+      </item>
       <item row="3" column="0" colspan="2">
-       <widget class="QLineEdit" name="lineEdit_secret_key">
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+       <widget class="QStackedWidget" name="stackedWidget_provider">
+        <property name="currentIndex">
+         <number>0</number>
         </property>
-        <property name="placeholderText">
-         <string>Provider's secret access key</string>
+        <widget class="QWidget" name="mymemory">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="mymemory_secret_key">
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
+            <property name="placeholderText">
+             <string>MyMemory's secret access key</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="email_mymemory">
+            <property name="toolTip">
+             <string>Valid email allows 50000 chars/day.</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>Optional Email Address</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="deepl">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="deepl_secret_key">
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>DeepL's secret access key</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_pro">
+            <property name="text">
+             <string>DeepL Pro</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="microsoft">
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="microsoft_secret_key">
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>Microsoft's secret access key</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="microsoft_region">
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>Region</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="libretranslate">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="LibreTranslate_secret_key">
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string> LibreTranslate's secret access key</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="LibreTranslate_url">
+            <property name="toolTip">
+             <string>Leave it for default value</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="placeholderText">
+             <string>Url: https://translate.argosopentech.com/</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Target Language for Translattion</string>
+        </property>
+        <property name="text">
+         <string>Target Language</string>
         </property>
        </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="comboBox_provider"/>
       </item>
      </layout>
     </widget>
@@ -621,31 +780,27 @@ p, li { white-space: pre-wrap; }
    </item>
    <item row="1" column="0">
     <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>App</string>
      </property>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>4</x>
-        <y>24</y>
-        <width>281</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="checkBox_stats">
-         <property name="text">
-          <string>Allow Collecting Stats</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="checkBox_stats">
+        <property name="text">
+         <string>Allow Collecting Stats</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

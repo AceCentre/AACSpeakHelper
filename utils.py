@@ -169,11 +169,13 @@ logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
 config = configparser.ConfigParser()
 current_path = os.path.dirname(config_path)
+
+# Need to set initial path if no config file was found.
 if os.path.isdir(current_path):
     # print(os.path.join(current_path, 'app.log'))
     logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
                         filemode='a',
-                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
                         level=logging.DEBUG,
                         force=True)
 try:
