@@ -12,7 +12,7 @@ import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-
+import asyncio
 
 import pygame
 
@@ -85,7 +85,7 @@ def get_paths(args: vars):
             application_path = os.path.dirname(__file__)
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-        print(config_path, audio_files_path)
+        # print(config_path, audio_files_path)
 
     # Check if the directory already exists
     if not os.path.exists(audio_files_path):
@@ -163,17 +163,19 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '-c', '--config', help='Path to a defined config file', required=False, default='')
 parser.add_argument(
-    '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False)
+    '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False, action="store_true")
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
 config = configparser.ConfigParser()
 current_path = os.path.dirname(config_path)
+
+# Need to set initial path if no config file was found.
 if os.path.isdir(current_path):
     # print(os.path.join(current_path, 'app.log'))
     logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
                         filemode='a',
-                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
                         level=logging.DEBUG,
                         force=True)
 try:
@@ -187,9 +189,11 @@ try:
         result = msgbox("settings.cfg file not found. " + msg, 'Error')
         sys.exit()
 except Exception as e:
+    logging.error("Configuration ErrorL {}".format(e), exc_info=True)
     sys.exit()
 
 if Allow_Collecting_Stats:
+    start = time.perf_counter()
     distinct_id = get_uuid()
     event_name = 'App Run'
     event_properties = {
@@ -201,3 +205,7 @@ if Allow_Collecting_Stats:
     }
 
     notify_posthog(distinct_id, event_name, event_properties)
+    stop = time.perf_counter() - start
+    print(f"Posthog runtime is {stop:0.5f} seconds.")
+    logging.info(f"Posthog runtime is {stop:0.5f} seconds.")
+

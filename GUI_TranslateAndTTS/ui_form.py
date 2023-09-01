@@ -25,7 +25,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(830, 553)
+        Widget.resize(854, 553)
         self.gridLayout = QGridLayout(Widget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.stackedWidget = QStackedWidget(Widget)
@@ -286,16 +286,6 @@ class Ui_Widget(object):
 
         self.gridLayout_2.addWidget(self.checkBox_translate, 0, 0, 1, 1)
 
-        self.label = QLabel(self.groupBox_translate)
-        self.label.setObjectName(u"label")
-
-        self.gridLayout_2.addWidget(self.label, 2, 0, 1, 1)
-
-        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
-        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
-
-        self.gridLayout_2.addWidget(self.comboBox_writeLang, 2, 1, 1, 1)
-
         self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
         self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
         sizePolicy2.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
@@ -304,12 +294,108 @@ class Ui_Widget(object):
 
         self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
 
+        self.label = QLabel(self.groupBox_translate)
+        self.label.setObjectName(u"label")
+
+        self.gridLayout_2.addWidget(self.label, 4, 0, 1, 1)
+
+        self.label_14 = QLabel(self.groupBox_translate)
+        self.label_14.setObjectName(u"label_14")
+
+        self.gridLayout_2.addWidget(self.label_14, 2, 0, 1, 1)
+
         self.comboBox_targetLang = QComboBox(self.groupBox_translate)
         self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
         sizePolicy2.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
         self.comboBox_targetLang.setSizePolicy(sizePolicy2)
 
-        self.gridLayout_2.addWidget(self.comboBox_targetLang, 3, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.comboBox_targetLang, 5, 1, 1, 1)
+
+        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
+        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
+
+        self.gridLayout_2.addWidget(self.comboBox_writeLang, 4, 1, 1, 1)
+
+        self.stackedWidget_provider = QStackedWidget(self.groupBox_translate)
+        self.stackedWidget_provider.setObjectName(u"stackedWidget_provider")
+        self.mymemory = QWidget()
+        self.mymemory.setObjectName(u"mymemory")
+        self.verticalLayout_2 = QVBoxLayout(self.mymemory)
+        self.verticalLayout_2.setSpacing(2)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.mymemory_secret_key = QLineEdit(self.mymemory)
+        self.mymemory_secret_key.setObjectName(u"mymemory_secret_key")
+        self.mymemory_secret_key.setAlignment(Qt.AlignCenter)
+        self.mymemory_secret_key.setReadOnly(False)
+
+        self.verticalLayout_2.addWidget(self.mymemory_secret_key)
+
+        self.email_mymemory = QLineEdit(self.mymemory)
+        self.email_mymemory.setObjectName(u"email_mymemory")
+        self.email_mymemory.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_2.addWidget(self.email_mymemory)
+
+        self.stackedWidget_provider.addWidget(self.mymemory)
+        self.deepl = QWidget()
+        self.deepl.setObjectName(u"deepl")
+        self.verticalLayout_5 = QVBoxLayout(self.deepl)
+        self.verticalLayout_5.setSpacing(2)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.deepl_secret_key = QLineEdit(self.deepl)
+        self.deepl_secret_key.setObjectName(u"deepl_secret_key")
+        self.deepl_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_5.addWidget(self.deepl_secret_key)
+
+        self.checkBox_pro = QCheckBox(self.deepl)
+        self.checkBox_pro.setObjectName(u"checkBox_pro")
+
+        self.verticalLayout_5.addWidget(self.checkBox_pro)
+
+        self.stackedWidget_provider.addWidget(self.deepl)
+        self.microsoft = QWidget()
+        self.microsoft.setObjectName(u"microsoft")
+        self.verticalLayout_6 = QVBoxLayout(self.microsoft)
+        self.verticalLayout_6.setSpacing(2)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.microsoft_secret_key = QLineEdit(self.microsoft)
+        self.microsoft_secret_key.setObjectName(u"microsoft_secret_key")
+        self.microsoft_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_6.addWidget(self.microsoft_secret_key)
+
+        self.microsoft_region = QLineEdit(self.microsoft)
+        self.microsoft_region.setObjectName(u"microsoft_region")
+        self.microsoft_region.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_6.addWidget(self.microsoft_region)
+
+        self.stackedWidget_provider.addWidget(self.microsoft)
+        self.libretranslate = QWidget()
+        self.libretranslate.setObjectName(u"libretranslate")
+        self.verticalLayout_4 = QVBoxLayout(self.libretranslate)
+        self.verticalLayout_4.setSpacing(2)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.LibreTranslate_secret_key = QLineEdit(self.libretranslate)
+        self.LibreTranslate_secret_key.setObjectName(u"LibreTranslate_secret_key")
+        self.LibreTranslate_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_4.addWidget(self.LibreTranslate_secret_key)
+
+        self.LibreTranslate_url = QLineEdit(self.libretranslate)
+        self.LibreTranslate_url.setObjectName(u"LibreTranslate_url")
+        self.LibreTranslate_url.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_4.addWidget(self.LibreTranslate_url)
+
+        self.stackedWidget_provider.addWidget(self.libretranslate)
+
+        self.gridLayout_2.addWidget(self.stackedWidget_provider, 3, 0, 1, 2)
 
         self.label_2 = QLabel(self.groupBox_translate)
         self.label_2.setObjectName(u"label_2")
@@ -319,7 +405,12 @@ class Ui_Widget(object):
         sizePolicy3.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy3)
 
-        self.gridLayout_2.addWidget(self.label_2, 3, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.label_2, 5, 0, 1, 1)
+
+        self.comboBox_provider = QComboBox(self.groupBox_translate)
+        self.comboBox_provider.setObjectName(u"comboBox_provider")
+
+        self.gridLayout_2.addWidget(self.comboBox_provider, 2, 1, 1, 1)
 
 
         self.gridLayout.addWidget(self.groupBox_translate, 2, 0, 1, 1)
@@ -405,17 +496,15 @@ class Ui_Widget(object):
 
         self.groupBox = QGroupBox(Widget)
         self.groupBox.setObjectName(u"groupBox")
-        self.verticalLayoutWidget = QWidget(self.groupBox)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayoutWidget.setGeometry(QRect(4, 24, 281, 61))
-        self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.checkBox_stats = QCheckBox(self.verticalLayoutWidget)
+        sizePolicy1.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
+        self.groupBox.setSizePolicy(sizePolicy1)
+        self.verticalLayout_3 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.checkBox_stats = QCheckBox(self.groupBox)
         self.checkBox_stats.setObjectName(u"checkBox_stats")
         self.checkBox_stats.setChecked(True)
 
-        self.verticalLayout_2.addWidget(self.checkBox_stats)
+        self.verticalLayout_3.addWidget(self.checkBox_stats)
 
 
         self.gridLayout.addWidget(self.groupBox, 1, 0, 1, 1)
@@ -438,7 +527,8 @@ class Ui_Widget(object):
 
         self.retranslateUi(Widget)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget_provider.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(Widget)
@@ -455,18 +545,13 @@ class Ui_Widget(object):
         self.label_13.setText(QCoreApplication.translate("Widget", u"Voice Model:", None))
         self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.textBrowser.setHtml(QCoreApplication.translate("Widget", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"hr { height: 1px; border-width: 0; }\n"
-"li.unchecked::marker { content: \"\\2610\"; }\n"
-"li.checked::marker { content: \"\\2612\"; }\n"
-"</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:14px; color:#001e00; background-color:#f5f6f7;\">Note: </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue M"
-                        "ontreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:14px; color:#001e00; background-color:#f5f6f7;\">1. Can only be used when translating. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:14px; color:#001e00; background-color:#f5f6f7;\">2. Not all voices available. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:14px; color:#001e00; background-color:#f5f6f7;\">3. Voice is chosen by default based o"
-                        "n Target Lang</span></p></body></html>", None))
+"</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">Note: </span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:"
+                        "#001e00; background-color:#f5f6f7;\">1. Not all voices available. </span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">2. Voice is chosen by default based on Target Lang</span></p></body></html>", None))
         self.label_8.setText(QCoreApplication.translate("Widget", u"Rate:", None))
 #if QT_CONFIG(tooltip)
         self.label_12.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
@@ -489,13 +574,28 @@ class Ui_Widget(object):
 #endif // QT_CONFIG(tooltip)
         self.checkBox_translate.setText(QCoreApplication.translate("Widget", u"Translate", None))
 #if QT_CONFIG(tooltip)
-        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
-#if QT_CONFIG(tooltip)
         self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
+#if QT_CONFIG(tooltip)
+        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
+        self.label_14.setText(QCoreApplication.translate("Widget", u"Provider", None))
+        self.mymemory_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"MyMemory's secret access key", None))
+#if QT_CONFIG(tooltip)
+        self.email_mymemory.setToolTip(QCoreApplication.translate("Widget", u"Valid email allows 50000 chars/day.", None))
+#endif // QT_CONFIG(tooltip)
+        self.email_mymemory.setPlaceholderText(QCoreApplication.translate("Widget", u"Optional Email Address", None))
+        self.deepl_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"DeepL's secret access key", None))
+        self.checkBox_pro.setText(QCoreApplication.translate("Widget", u"DeepL Pro", None))
+        self.microsoft_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"Microsoft's secret access key", None))
+        self.microsoft_region.setPlaceholderText(QCoreApplication.translate("Widget", u"Region", None))
+        self.LibreTranslate_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u" LibreTranslate's secret access key", None))
+#if QT_CONFIG(tooltip)
+        self.LibreTranslate_url.setToolTip(QCoreApplication.translate("Widget", u"Leave it for default value", None))
+#endif // QT_CONFIG(tooltip)
+        self.LibreTranslate_url.setPlaceholderText(QCoreApplication.translate("Widget", u"Url: https://translate.argosopentech.com/", None))
 #if QT_CONFIG(tooltip)
         self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
 #endif // QT_CONFIG(tooltip)

@@ -1,0 +1,2 @@
+python -m PyInstaller translatepb.py --noupx --noconsole --distpath "TranslateAndTTS" --onedir -i .\assets\translate.ico --clean
+python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole --name "Configure TranslateAndTTS" --onefile --distpath "TranslateAndTTS\translatepb" -i .\assets\configure.ico --clean

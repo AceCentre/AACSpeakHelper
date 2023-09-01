@@ -91,7 +91,7 @@ def ttsWrapperSpeak(text: str, tts):
     play_audio(audio_bytes)
     print("Speech synthesized for text [{}]".format(text))
     logging.info("Speech synthesized for text [{}]".format(text))
-    logging.info("------------------------------------------------------------------------")
+
     if save_audio_file:
         save_audio(audio_bytes, format=fmt)
     # What a beautiful day today!
