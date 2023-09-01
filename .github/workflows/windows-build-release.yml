@@ -21,9 +21,10 @@ jobs:
         pip install -r requirements.txt
     - name: Build Apps
       run: |
-        .\build_executable.bat
+       .\build_executable.bat
     - name: Build Installer
       run: |
+        Get-ChildItem -Recurse -Directory
         iscc buildscript.iss
     - name: Upload Installer
       uses: actions/upload-artifact@v3
