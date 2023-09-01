@@ -12,7 +12,7 @@ import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-
+import asyncio
 
 import pygame
 
@@ -85,7 +85,7 @@ def get_paths(args: vars):
             application_path = os.path.dirname(__file__)
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-        #print(config_path, audio_files_path)
+        # print(config_path, audio_files_path)
 
     # Check if the directory already exists
     if not os.path.exists(audio_files_path):
@@ -189,9 +189,11 @@ try:
         result = msgbox("settings.cfg file not found. " + msg, 'Error')
         sys.exit()
 except Exception as e:
+    logging.error("Configuration ErrorL {}".format(e), exc_info=True)
     sys.exit()
 
 if Allow_Collecting_Stats:
+    start = time.perf_counter()
     distinct_id = get_uuid()
     event_name = 'App Run'
     event_properties = {
@@ -203,3 +205,7 @@ if Allow_Collecting_Stats:
     }
 
     notify_posthog(distinct_id, event_name, event_properties)
+    stop = time.perf_counter() - start
+    print(f"Posthog runtime is {stop:0.5f} seconds.")
+    logging.info(f"Posthog runtime is {stop:0.5f} seconds.")
+

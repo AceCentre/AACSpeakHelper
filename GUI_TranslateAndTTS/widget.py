@@ -27,6 +27,7 @@ class Widget(QWidget):
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
+
         # Translate Language Dictionary
         self.translate_languages = {"Afrikaans": "af",
                                     "Arabic": "ar",
@@ -1192,7 +1193,7 @@ class Widget(QWidget):
         self.config_path = os.path.join(app_data_path, 'settings.cfg')
 
         self.config = configparser.ConfigParser()
-
+        self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
         # Check if the file already exists
         if os.path.exists(self.config_path):
             self.config.read(self.config_path)
