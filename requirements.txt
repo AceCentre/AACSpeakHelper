@@ -12,7 +12,6 @@ gspeak==1.0.0
 pygame==2.5.1
 azure-cognitiveservices-speech==1.31.0 
 aspeak==6.0.0
-easygui==0.98.3
 PySide6==6.5.2
 #TTS-Wrapper==0.8.0
 TTS-Wrapper[google,microsoft,sapi]
