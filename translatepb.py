@@ -122,7 +122,7 @@ async def mainrun(listvoices: bool):
 async def remove_stale_temp_files(directory_path, ignore_pattern=".history"):
     start = time.perf_counter()
     current_time = time.time()
-    time_threshold = current_time - 1 * 24 * 60 * 60
+    time_threshold = current_time - 7 * 24 * 60 * 60
     for root, dirs, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
