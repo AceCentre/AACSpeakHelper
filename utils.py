@@ -132,14 +132,17 @@ def save_audio(audio_bytes: bytes, format: str = 'wav'):
 
 def get_uuid():
     try:
+        # Note: Remove uuid config every commit
+        # Code will raise an exception at first run due to blank uuid
+        identifier = uuid.UUID(config.get('App', 'uuid'))
+    except Exception as error:
         identifier = uuid.uuid4()
         config.set('App', 'uuid', str(identifier))
         with open(config_path, 'w') as configfile:
             config.write(configfile)
-        return str(identifier)
-    except Exception as error:
         logging.error("Failed to get uuid: {}".format(error), exc_info=True)
-        return str(uuid.uuid4())
+    logging.info("uuid: {}".format(identifier), exc_info=True)
+    return str(identifier)
 
 
 def notify_posthog(id: str, event_name: str, properties: dict = {}):
@@ -207,4 +210,3 @@ if Allow_Collecting_Stats:
     stop = time.perf_counter() - start
     print(f"Posthog runtime is {stop:0.5f} seconds.")
     logging.info(f"Posthog runtime is {stop:0.5f} seconds.")
-
