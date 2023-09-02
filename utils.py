@@ -132,16 +132,14 @@ def save_audio(audio_bytes: bytes, format: str = 'wav'):
 
 def get_uuid():
     try:
-        # Code that may raise an exception
-        id = uuid.UUID(config.get('App', 'uuid'))
-    except Exception as e:
-        # Code to handle other exceptions
-        id = uuid.uuid4()
-        config.set('App', 'uuid', str(id))
+        identifier = uuid.uuid4()
+        config.set('App', 'uuid', str(identifier))
         with open(config_path, 'w') as configfile:
             config.write(configfile)
-
-    return str(id)
+        return str(identifier)
+    except Exception as error:
+        logging.error("Failed to get uuid: {}".format(error), exc_info=True)
+        return str(uuid.uuid4())
 
 
 def notify_posthog(id: str, event_name: str, properties: dict = {}):
@@ -154,6 +152,7 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
     except Exception as e:
         # Handle the case when there's an issue with sending the event
         print(f"Failed to capture event '{event_name}': {e}")
+        logging.error("Failed to capture event '{}': {}".format(event_name, e), exc_info=True)
         # You can add further logic here if needed, such as logging the error or continuing the script
         pass
 
@@ -189,7 +188,7 @@ try:
         result = msgbox("settings.cfg file not found. " + msg, 'Error')
         sys.exit()
 except Exception as e:
-    logging.error("Configuration ErrorL {}".format(e), exc_info=True)
+    logging.error("Configuration Error {}".format(e), exc_info=True)
     sys.exit()
 
 if Allow_Collecting_Stats:
