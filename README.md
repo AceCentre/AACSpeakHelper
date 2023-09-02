@@ -14,7 +14,7 @@ It also allows people who natively need to speak in less well supported language
 
 It's a small windows executable. You call it from your Windows AAC app if it has a way of running external programs. Most Windows AAC apps can. 
 
-### How does it work?
+## How does it work?
 
 So as long as some text is in the copy buffer (e.g. ctrl+c) - it will then read that text. Depending on the settings file it will then either translate that text using the preferred service and then speak it out loud - or just speak out loud the passed string. 
 
@@ -149,8 +149,6 @@ Enable the APIs that your service account will be using. For example, if you're 
 Right now, this is a very, very quick (and dirty) example. We dare say there will be *SIGNIFICANT* problems using this. Remember if you use the gTTS option, it must be online. Translating too. We have put no logic in the script to deal with this failure. 
 
 If you wish to improve the code and have the skills to, please fork and PR. Or consider [donating](https://acecentre.org.uk/get-involved/donate) to us and asking for specific support for this.
-
-## Language codes available
  
 ## AAC Specific Guides
 
@@ -176,3 +174,7 @@ See the demo pageset [here](https://github.com/AceCentre/TranslateAndTTS/tree/ma
 
 Don't bother - MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
 
+## Developer details
+
+- See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml)
+- 
