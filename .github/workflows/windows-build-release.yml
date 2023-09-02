@@ -20,24 +20,12 @@ jobs:
         pip install TTS-Wrapper[google, microsoft, sapi]
         pip install -r requirements.txt
     - name: Build Apps
-      env: 
-        PYGAME_HIDE_SUPPORT_PROMPT: 1
       run: |
-        python build_executable.py
-        pyinstaller translatepb.py --onefile --noconsole
-    - name: Zip Portable 
-      shell: pwsh
-      run: |
-        Copy-Item settings.cfg -Destination dist\ 
-        Compress-Archive -Path dist -DestinationPath TranslatePBPortable.zip
+       .\build_executable.bat
     - name: Build Installer
       run: |
+        Get-ChildItem -Recurse -Directory
         iscc buildscript.iss
-    - name: Upload portable
-      uses: actions/upload-artifact@v3
-      with:
-        name: 'Windows Portable'
-        path: 'TranslatePBPortable.zip'
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
