@@ -36,9 +36,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\translatepb\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "settings.cfg"; DestDir: "{userappdata}\TranslateAndTTS"; Flags: ignoreversion
 Source: "dist\Configure TranslateAndTTS.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\translatepb\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
