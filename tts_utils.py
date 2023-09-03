@@ -1,5 +1,7 @@
 import logging
 import io
+import os.path
+
 import pyttsx3
 from gtts import gTTS
 from tts_wrapper import AbstractTTS
@@ -8,7 +10,7 @@ from tts_wrapper import GoogleClient, GoogleTTS
 from tts_wrapper import SAPIClient, SAPITTS
 
 from KurdishTTS.kurdishTTS import KurdishTTS
-from utils import play_audio, save_audio, config
+from utils import play_audio, save_audio, config, check_history
 
 
 class GSPEAK:
@@ -24,17 +26,23 @@ class GSPEAK:
 
 
 def speak(text=''):
+    file = check_history(text)
+    if file is not None and os.path.isfile(file):
+        play_audio(file, file=True)
+        print("Speech synthesized for text [{}]".format(text))
+        logging.info("Speech synthesized for text [{}]".format(text))
+        return
     ttsengine = config.get('TTS', 'engine')
     if ttsengine == 'gspeak':
-        gSpeak(text)
+        gSpeak(text, ttsengine)
     elif ttsengine == 'azureTTS':
-        azureSpeak(text)
+        azureSpeak(text, ttsengine)
     elif ttsengine == 'gTTS':
-        googleSpeak(text)
+        googleSpeak(text, ttsengine)
     elif ttsengine == 'sapi5':
-        sapiSpeak(text)
+        sapiSpeak(text, ttsengine)
     elif ttsengine == 'kurdishTTS':
-        kurdishSpeak(text)
+        kurdishSpeak(text, ttsengine)
     else:  # Unsupported Engines
         engine = pyttsx3.init(ttsengine)
         engine.setProperty('voice', config.get('TTS', 'voiceid'))
@@ -44,7 +52,7 @@ def speak(text=''):
         engine.runAndWait()
 
 
-def azureSpeak(text: str):
+def azureSpeak(text: str, engine):
     # Add your key and endpoint
     key = config.get('azureTTS', 'key')
     location = config.get('azureTTS', 'location')
@@ -53,20 +61,20 @@ def azureSpeak(text: str):
     client = MicrosoftClient(credentials=key, region=location)
     tts = MicrosoftTTS(client=client, voice=voiceid)
 
-    ttsWrapperSpeak(text, tts)
+    ttsWrapperSpeak(text, tts, engine)
 
 
-def googleSpeak(text: str):
+def googleSpeak(text: str, engine):
     # Add your key and endpoint
     creds_file = config.get('googleTTS', 'creds_file')
     voiceid = config.get('googleTTS', 'voiceid')
 
     client = GoogleClient(credentials=creds_file)
     tts = GoogleTTS(client=client, voice=voiceid)
-    ttsWrapperSpeak(text, tts)
+    ttsWrapperSpeak(text, tts, engine)
 
 
-def sapiSpeak(text: str):
+def sapiSpeak(text: str, engine):
     # Add your key and endpoint
     voiceid = config.get('sapi5TTS', 'voiceid')
 
@@ -75,20 +83,20 @@ def sapiSpeak(text: str):
     client._client.setProperty('rate', config.get('TTS', 'rate'))
     client._client.setProperty('volume', config.get('TTS', 'volume'))
     tts = SAPITTS(client=client)
-    ttsWrapperSpeak(text, tts)
+    ttsWrapperSpeak(text, tts, engine)
 
 
-def kurdishSpeak(text: str):
+def kurdishSpeak(text: str, engine):
     tts = KurdishTTS()
-    ttsWrapperSpeak(text, tts)
+    ttsWrapperSpeak(text, tts, engine)
 
 
-def gSpeak(text: str):
+def gSpeak(text: str, engine):
     tts = GSPEAK()
-    ttsWrapperSpeak(text, tts)
+    ttsWrapperSpeak(text, tts, engine)
 
 
-def ttsWrapperSpeak(text: str, tts):
+def ttsWrapperSpeak(text: str, tts, engine):
     save_audio_file = bool(config.get('TTS', 'save_audio_file'))
     fmt = 'wav'
     if isinstance(tts, SAPITTS):
@@ -112,4 +120,4 @@ def ttsWrapperSpeak(text: str, tts):
     logging.info("Speech synthesized for text [{}]".format(text))
 
     if save_audio_file:
-        save_audio(audio_bytes, format=fmt)
+        save_audio(audio_bytes, text=text, engine=engine, format=fmt)

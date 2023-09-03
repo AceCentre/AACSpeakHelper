@@ -1,17 +1,13 @@
 import os
 import time
 import asyncio
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 from utils import configure_app, config, args
 import utils
 import logging
 import pyperclip
 import pyttsx3
-import pygame
 from tts_utils import speak
 from translate import Translator
-
-pygame.mixer.init()
 
 
 def translatepb():
@@ -54,9 +50,6 @@ def translatepb():
                                     secret_access_key=None if key == "" else key,
                                     base_url=None if url == "" else url)
             logging.info('Translation Provider is {}'.format(provider))
-        # # else:
-        # #     translator = Translator(to_lang=config.get('translate', 'endLang'),
-        #                             from_lang=config.get('translate', 'startLang'))
 
         translation = translator.translate(pyperclip.paste())
         logging.info('Clipboard [{}]: {}'.format(config.get('translate', 'startLang'), pyperclip.paste()))
@@ -100,10 +93,10 @@ async def mainrun(listvoices: bool):
             else:
                 clipboard = translatepb()
                 stop = time.perf_counter() - start
-                print(f"Clipboard[Translate] runtime is {stop:0.5f} seconds.")
-                logging.info(f"Clipboard[Translate] runtime is {stop:0.5f} seconds.")
+                print(f"Translation runtime is {stop:0.5f} seconds.")
+                logging.info(f"Translation runtime is {stop:0.5f} seconds.")
             start = time.perf_counter()
-            speak(clipboard)  # Good Morning
+            speak(clipboard)
             stop = time.perf_counter() - start
             print(f"TTS runtime is {stop:0.5f} seconds.")
             logging.info(f"TTS runtime is {stop:0.5f} seconds.")
@@ -119,10 +112,11 @@ async def mainrun(listvoices: bool):
                 return
 
 
-async def remove_stale_temp_files(directory_path, ignore_pattern=".history"):
+async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     start = time.perf_counter()
     current_time = time.time()
-    time_threshold = current_time - 7 * 24 * 60 * 60
+    day = int(config.get('appCache', 'threshold'))
+    time_threshold = current_time - day * 24 * 60 * 60
     for root, dirs, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
@@ -143,12 +137,10 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".history"):
 
 
 async def main(wav_files_path):
-    await asyncio.gather(remove_stale_temp_files(wav_files_path, ".history"), mainrun(args['listvoices']))
+    await asyncio.gather(mainrun(args['listvoices']), remove_stale_temp_files(wav_files_path, ".history"))
 
 
 if __name__ == '__main__':
     asyncio.run(main(utils.audio_files_path))
 
 
-# if __name__ == '__main__':
-#     mainrun(args['listvoices'])
