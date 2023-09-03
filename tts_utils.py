@@ -1,7 +1,7 @@
 import logging
-
+import io
 import pyttsx3
-
+from gtts import gTTS
 from tts_wrapper import AbstractTTS
 from tts_wrapper import MicrosoftClient, MicrosoftTTS
 from tts_wrapper import GoogleClient, GoogleTTS
@@ -11,18 +11,29 @@ from KurdishTTS.kurdishTTS import KurdishTTS
 from utils import play_audio, save_audio, config
 
 
+class GSPEAK:
+
+    def __init__(self):
+        self.audio = io.BytesIO()
+
+    def synth_to_bytes(self, text: str):
+        with self.audio as file:
+            gTTS(text=text, lang=config.get('translate', 'endLang')).write_to_fp(file)
+            file.seek(0)
+            return file.read()
+
+
 def speak(text=''):
     ttsengine = config.get('TTS', 'engine')
-    if (ttsengine == 'gspeak'):
-        from gspeak import speak
-        speak(text, lang=config.get('translate', 'endLang').lower())
-    elif (ttsengine == 'azureTTS'):
+    if ttsengine == 'gspeak':
+        gSpeak(text)
+    elif ttsengine == 'azureTTS':
         azureSpeak(text)
-    elif (ttsengine == 'gTTS'):
+    elif ttsengine == 'gTTS':
         googleSpeak(text)
-    elif (ttsengine == 'sapi5'):
+    elif ttsengine == 'sapi5':
         sapiSpeak(text)
-    elif (ttsengine == 'kurdishTTS'):
+    elif ttsengine == 'kurdishTTS':
         kurdishSpeak(text)
     else:  # Unsupported Engines
         engine = pyttsx3.init(ttsengine)
@@ -69,7 +80,11 @@ def sapiSpeak(text: str):
 
 def kurdishSpeak(text: str):
     tts = KurdishTTS()
-    # tts.synth_to_bytes(text)
+    ttsWrapperSpeak(text, tts)
+
+
+def gSpeak(text: str):
+    tts = GSPEAK()
     ttsWrapperSpeak(text, tts)
 
 
@@ -81,11 +96,15 @@ def ttsWrapperSpeak(text: str, tts):
     elif isinstance(tts, KurdishTTS):
         latin = config.get('kurdishTTS', 'latin')
         punctuation = config.get('kurdishTTS', 'punctuation')
-        audio_bytes = tts.synth_to_bytes(text, latin, punctuation)  # Beyanî baş Good Morning
+        audio_bytes = tts.synth_to_bytes(text, latin, punctuation)
         fmt = 'mp3'
     elif isinstance(tts, AbstractTTS):
         audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
+    elif isinstance(tts, GSPEAK):
+        audio_bytes = tts.synth_to_bytes(text)
+        fmt = 'mp3'
     else:
+        logging.error(str(type(tts)) + " TTS Engine is Invalid.")
         raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
 
     play_audio(audio_bytes)
@@ -94,4 +113,3 @@ def ttsWrapperSpeak(text: str, tts):
 
     if save_audio_file:
         save_audio(audio_bytes, format=fmt)
-    # What a beautiful day today!

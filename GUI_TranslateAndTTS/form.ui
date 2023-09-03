@@ -695,6 +695,9 @@ p, li { white-space: pre-wrap; }
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Google Cloud TTS</string>
+        </property>
         <property name="text">
          <string>Google TTS</string>
         </property>
@@ -705,6 +708,9 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_gspeak">
+        <property name="toolTip">
+         <string>based on Google Translate speech functionality</string>
+        </property>
         <property name="text">
          <string>GSpeak</string>
         </property>
