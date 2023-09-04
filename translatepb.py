@@ -51,6 +51,7 @@ def translatepb():
                                     base_url=None if url == "" else url)
             logging.info('Translation Provider is {}'.format(provider))
 
+        print(pyperclip.paste())
         translation = translator.translate(pyperclip.paste())
         logging.info('Clipboard [{}]: {}'.format(config.get('translate', 'startLang'), pyperclip.paste()))
         logging.info('Translation [{}]: {}'.format(config.get('translate', 'endLang'), translation))
@@ -86,12 +87,12 @@ async def mainrun(listvoices: bool):
         try:
             start = time.perf_counter()
             if config.getboolean('translate', 'noTranslate'):
-                clipboard = pyperclip.paste()
+                clipboard = str(pyperclip.paste())
                 stop = time.perf_counter() - start
                 print(f"Clipboard runtime is {stop:0.2f} seconds.")
                 logging.info(f"Clipboard runtime is {stop:0.2f} seconds.")
             else:
-                clipboard = translatepb()
+                clipboard = str(translatepb())
                 stop = time.perf_counter() - start
                 print(f"Translation runtime is {stop:0.5f} seconds.")
                 logging.info(f"Translation runtime is {stop:0.5f} seconds.")
@@ -100,11 +101,11 @@ async def mainrun(listvoices: bool):
             stop = time.perf_counter() - start
             print(f"TTS runtime is {stop:0.5f} seconds.")
             logging.info(f"TTS runtime is {stop:0.5f} seconds.")
-            if config.getboolean('translate', 'replacepb'):
+            if config.getboolean('translate', 'replacepb') and type(clipboard) == str:
                 pyperclip.copy(clipboard)
             logging.info("------------------------------------------------------------------------")
         except Exception as e:
-            logging.error("Configuration ErrorL {}".format(e), exc_info=True)
+            logging.error("Configuration Error {}".format(e), exc_info=True)
             result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
             if result:
                 configure_app()

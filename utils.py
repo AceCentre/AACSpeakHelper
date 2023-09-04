@@ -162,12 +162,15 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
 
 def check_history(text: str):
     try:
-        sql = "SELECT filename FROM History WHERE text='{}'".format(text)
-        connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
-        cursor = connection.execute(sql)
-        file = os.path.join(audio_files_path, cursor.fetchone()[0])
-        connection.close()
-        return file
+        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+            sql = "SELECT filename FROM History WHERE text='{}'".format(text)
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            cursor = connection.execute(sql)
+            file = os.path.join(audio_files_path, cursor.fetchone()[0])
+            connection.close()
+            return file
+        else:
+            create_Database()
     except Exception as error:
         logging.error("Failed to connect to database: ".format(error), exc_info=True)
         return None
@@ -176,11 +179,32 @@ def check_history(text: str):
 def create_Database():
     try:
         if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+            sql1 = """CREATE TABLE IF NOT EXISTS "History" ("id"	INTEGER NOT NULL UNIQUE,
+                                                            "text"	TEXT NOT NULL,
+                                                            "filename"	TEXT NOT NULL,
+                                                            "engine"	TEXT NOT NULL,
+                                                            UNIQUE("id"),
+                                                            PRIMARY KEY("id" AUTOINCREMENT));"""
+            sql2 = """CREATE UNIQUE INDEX IF NOT EXISTS "id_text" ON "History" ("text");"""
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            connection.execute(sql1)
+            connection.execute(sql2)
+            connection.close()
+            logging.info("Cache database is created.")
+        else:
+            logging.info("Cache database is found")
+    except Exception as error:
+        logging.error("Failed to create database: ".format(error), exc_info=True)
+
+
+def update_Database(file):
+    try:
+        if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
             pass
         else:
             logging.info("Cache database is found: ")
     except Exception as error:
-        logging.error("Failed to create database: ".format(error), exc_info=True)
+        logging.error("Failed to update database: ".format(error), exc_info=True)
 
 
 parser = argparse.ArgumentParser(
