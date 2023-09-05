@@ -176,6 +176,20 @@ def check_history(text: str):
         return None
 
 
+def clear_history(files: list):
+    try:
+        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')) and len(files) > 0:
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            for file in files:
+                sql = "DELETE FROM History WHERE filename='{}'".format(file)
+                connection.execute(sql)
+            connection.commit()
+            connection.close()
+    except Exception as error:
+        logging.error("Failed to connect to database: ".format(error), exc_info=True)
+        return None
+
+
 def create_Database():
     try:
         if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):

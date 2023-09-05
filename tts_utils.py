@@ -29,8 +29,8 @@ def speak(text=''):
     file = check_history(text)
     if file is not None and os.path.isfile(file):
         play_audio(file, file=True)
-        print("Speech synthesized for text [{}]".format(text))
-        logging.info("Speech synthesized for text [{}]".format(text))
+        print("Speech synthesized for text [{}] from cache.".format(text))
+        logging.info("Speech synthesized for text [{}] from cache.".format(text))
         return
     ttsengine = config.get('TTS', 'engine')
     if ttsengine == 'gspeak':
@@ -116,8 +116,8 @@ def ttsWrapperSpeak(text: str, tts, engine):
         raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
 
     play_audio(audio_bytes)
-    print("Speech synthesized for text [{}]".format(text))
-    logging.info("Speech synthesized for text [{}]".format(text))
+    print("Speech synthesized for text [{}].".format(text))
+    logging.info("Speech synthesized for text [{}].".format(text))
 
     if save_audio_file:
         save_audio(audio_bytes, text=text, engine=engine, format=fmt)

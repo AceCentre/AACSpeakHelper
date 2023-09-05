@@ -1,7 +1,7 @@
 import os
 import time
 import asyncio
-from utils import configure_app, config, args
+from utils import configure_app, config, args, msgbox, clear_history
 import utils
 import logging
 import pyperclip
@@ -51,7 +51,6 @@ def translatepb():
                                     base_url=None if url == "" else url)
             logging.info('Translation Provider is {}'.format(provider))
 
-        print(pyperclip.paste())
         translation = translator.translate(pyperclip.paste())
         logging.info('Clipboard [{}]: {}'.format(config.get('translate', 'startLang'), pyperclip.paste()))
         logging.info('Translation [{}]: {}'.format(config.get('translate', 'endLang'), translation))
@@ -81,18 +80,16 @@ async def mainrun(listvoices: bool):
             voices = engine.getProperty('voices')
             for voice in voices:
                 print(voice)
-        # finally:
-        #     # Code that will run regardless of whether an exception occurred
     else:
         try:
             start = time.perf_counter()
             if config.getboolean('translate', 'noTranslate'):
-                clipboard = str(pyperclip.paste())
+                clipboard = pyperclip.paste()
                 stop = time.perf_counter() - start
                 print(f"Clipboard runtime is {stop:0.2f} seconds.")
                 logging.info(f"Clipboard runtime is {stop:0.2f} seconds.")
             else:
-                clipboard = str(translatepb())
+                clipboard = translatepb()
                 stop = time.perf_counter() - start
                 print(f"Translation runtime is {stop:0.5f} seconds.")
                 logging.info(f"Translation runtime is {stop:0.5f} seconds.")
@@ -101,11 +98,11 @@ async def mainrun(listvoices: bool):
             stop = time.perf_counter() - start
             print(f"TTS runtime is {stop:0.5f} seconds.")
             logging.info(f"TTS runtime is {stop:0.5f} seconds.")
-            if config.getboolean('translate', 'replacepb') and type(clipboard) == str:
+            if config.getboolean('translate', 'replacepb') and clipboard is not None:
                 pyperclip.copy(clipboard)
             logging.info("------------------------------------------------------------------------")
         except Exception as e:
-            logging.error("Configuration Error {}".format(e), exc_info=True)
+            logging.error("Runtime Error: {}".format(e), exc_info=True)
             result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
             if result:
                 configure_app()
@@ -118,6 +115,7 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     current_time = time.time()
     day = int(config.get('appCache', 'threshold'))
     time_threshold = current_time - day * 24 * 60 * 60
+    file_list =[]
     for root, dirs, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
@@ -127,18 +125,20 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
             if file_modification_time < time_threshold:
                 try:
                     os.remove(file_path)
+                    file_list.append(os.path.basename(file_path))
                     print(f"Removed cache file: {file_path}")
                     logging.info(f"Removed cache file: {file_path}")
                 except Exception as e:
                     print(f"Error removing file {file_path}: {e}")
                     logging.error(f"Removed cache file: {file_path}", exc_info=True)
     stop = time.perf_counter() - start
+    clear_history(file_list)
     print(f"Cache clearing runtime is {stop:0.5f} seconds.")
     logging.info(f"Cache clearing is {stop:0.5f} seconds.")
 
 
 async def main(wav_files_path):
-    await asyncio.gather(mainrun(args['listvoices']), remove_stale_temp_files(wav_files_path, ".history"))
+    await asyncio.gather(mainrun(args['listvoices']), remove_stale_temp_files(wav_files_path))
 
 
 if __name__ == '__main__':
