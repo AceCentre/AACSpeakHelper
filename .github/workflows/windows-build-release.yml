@@ -21,9 +21,6 @@ jobs:
     - name: Build Apps
       run: |
        .\build_executable.bat
-    - name: Build Installer
-      run: |
-        iscc buildscript.iss
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
