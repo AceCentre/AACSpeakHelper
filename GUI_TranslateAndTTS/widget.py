@@ -1462,6 +1462,9 @@ class Widget(QWidget):
         self.config.set('kurdishTTS', 'latin', str(self.ui.checkBox_latin.isChecked()).lower())
         self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
 
+        self.config.add_section('appCache')
+        self.config.set('appCache', 'threshold', '7')
+
         start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
         end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
         prompt1 = False

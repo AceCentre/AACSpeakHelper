@@ -1,5 +1,4 @@
 import logging
-
 import os
 import sys
 import subprocess
@@ -11,12 +10,14 @@ import uuid
 import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
-from PySide6.QtGui import *
-import asyncio
+import sqlite3
 
+# Hide Pygame support prompt
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
 app = QApplication(sys.argv)
+pygame.mixer.init()
 
 
 def ynbox(message: str, header: str, timeout: int = 10000):
@@ -30,9 +31,8 @@ def ynbox(message: str, header: str, timeout: int = 10000):
         timer = QTimer(None)
         timer.singleShot(timeout, lambda: ynInstance.button(QMessageBox.StandardButton.No).animateClick())
         return ynInstance.exec() == QMessageBox.StandardButton.Yes
-
-    except Exception as e:
-        print(str(e))
+    except Exception as error:
+        logging.error("Message Error: {}".format(error), exc_info=True)
 
 
 def msgbox(message: str, header: str, timeout: int = 10000):
@@ -44,9 +44,8 @@ def msgbox(message: str, header: str, timeout: int = 10000):
         timer = QTimer(None)
         timer.singleShot(timeout, lambda: msgInstance.button(QMessageBox.StandardButton.Ok).animateClick())
         return msgInstance.exec() == QMessageBox.StandardButton.Ok
-
-    except Exception as e:
-        print(str(e))
+    except Exception as error:
+        logging.error("Message Error: {}".format(error), exc_info=True)
 
 
 def configure_app():
@@ -66,12 +65,11 @@ def configure_app():
     elif __file__:
         application_path = os.path.dirname(__file__)
         GUI_script_path = os.path.join(application_path, 'GUI_TranslateAndTTS', 'widget.py')
-        print(GUI_script_path)
         process = subprocess.run(["python", GUI_script_path])
 
 
 def get_paths(args: vars):
-    if (args['config'] != '' and os.path.exists(args['config'])):
+    if args['config'] != '' and os.path.exists(args['config']):
         config_path = args['config']
         audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
     else:
@@ -85,8 +83,6 @@ def get_paths(args: vars):
             application_path = os.path.dirname(__file__)
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-        # print(config_path, audio_files_path)
-
     # Check if the directory already exists
     if not os.path.exists(audio_files_path):
         # Create the "Audio Files" directory
@@ -94,40 +90,45 @@ def get_paths(args: vars):
 
     # Check if the file already exists
     if not os.path.exists(config_path):
-        msg = '\n\n Do You want to open the Configuration Setup?'
-        # result = easygui.ynbox("settings.cfg file not found." + msg, 'Error')
+        message = '\n\n Do You want to open the Configuration Setup?'
         try:
-            result = ynbox("settings.cfg file not found." + msg, 'Error')
-            pass
-        except Exception as e:
-            pass
-        if result:
-            configure_app()
-        else:
-            msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
-            result = msgbox("settings.cfg file not found. " + msg, 'Error')
-            sys.exit()
+            result = ynbox("settings.cfg file not found." + message, 'Error')
+            if result:
+                configure_app()
+            else:
+                message = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+                response = msgbox("settings.cfg file not found. " + message, 'Error')
+                sys.exit(response)
+        except Exception as error:
+            logging.error("Configuration Error: {}".format(error), exc_info=True)
 
     return config_path, audio_files_path
 
 
-def play_audio(audio_bytes: bytes):
-    audio_stream = io.BytesIO(audio_bytes)
-    # pygame.mixer.init()
+def play_audio(audio_bytes, file: bool = False):
+    if file:
+        audio_stream = audio_bytes
+    else:
+        audio_stream = io.BytesIO(audio_bytes)
     pygame.mixer.music.load(audio_stream)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         continue
 
 
-def save_audio(audio_bytes: bytes, format: str = 'wav'):
-    # save to .wav file
+def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav'):
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + format)
-
-    # Write the WAV bytes to the output file
+    sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, timestr + format, engine)
     with open(filename, 'wb') as out_file:
         out_file.write(audio_bytes)
+    try:
+        connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+        connection.execute(sql)
+        connection.commit()
+        connection.close()
+    except Exception as error:
+        logging.error("Database Error: {}".format(error), exc_info=True)
 
 
 def get_uuid():
@@ -160,6 +161,72 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
         pass
 
 
+def check_history(text: str):
+    try:
+        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+            sql = "SELECT filename FROM History WHERE text='{}'".format(text)
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            cursor = connection.execute(sql)
+            base_name = cursor.fetchone()[0]
+            if base_name is not None:
+                file = os.path.join(audio_files_path, base_name)
+                connection.close()
+                return file
+            else:
+                return None
+        else:
+            create_Database()
+            return None
+    except Exception as error:
+        logging.error("Failed to connect to database: ".format(error), exc_info=True)
+        return None
+
+
+def clear_history(files: list):
+    try:
+        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')) and len(files) > 0:
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            for file in files:
+                sql = "DELETE FROM History WHERE filename='{}'".format(file)
+                connection.execute(sql)
+            connection.commit()
+            connection.close()
+    except Exception as error:
+        logging.error("Failed to connect to database: ".format(error), exc_info=True)
+        return None
+
+
+def create_Database():
+    try:
+        if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+            sql1 = """CREATE TABLE IF NOT EXISTS "History" ("id"	INTEGER NOT NULL UNIQUE,
+                                                            "text"	TEXT NOT NULL,
+                                                            "filename"	TEXT NOT NULL,
+                                                            "engine"	TEXT NOT NULL,
+                                                            UNIQUE("id"),
+                                                            PRIMARY KEY("id" AUTOINCREMENT));"""
+            sql2 = """CREATE UNIQUE INDEX IF NOT EXISTS "id_text" ON "History" ("text");"""
+            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            connection.execute(sql1)
+            connection.execute(sql2)
+            connection.close()
+            logging.info("Cache database is created.")
+        else:
+            logging.info("Cache database is found")
+    except Exception as error:
+        logging.error("Failed to create database: ".format(error), exc_info=True)
+
+
+def update_Database(file):
+    try:
+        if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+            pass
+        else:
+            logging.info("Cache database is found: ")
+    except Exception as error:
+        logging.error("Failed to update database: ".format(error), exc_info=True)
+
+
 parser = argparse.ArgumentParser(
     description='Reads pasteboard. Translates it. Speaks it out. Or any variation of that')
 parser.add_argument(
@@ -174,7 +241,6 @@ current_path = os.path.dirname(config_path)
 
 # Need to set initial path if no config file was found.
 if os.path.isdir(current_path):
-    # print(os.path.join(current_path, 'app.log'))
     logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
                         filemode='a',
                         format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
