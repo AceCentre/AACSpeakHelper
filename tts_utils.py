@@ -97,7 +97,7 @@ def gSpeak(text: str, engine):
 
 
 def ttsWrapperSpeak(text: str, tts, engine):
-    save_audio_file = bool(config.get('TTS', 'save_audio_file'))
+    save_audio_file = config.getboolean('TTS', 'save_audio_file')
     fmt = 'wav'
     if isinstance(tts, SAPITTS):
         audio_bytes = tts.synth_to_bytes(text, 'wav')

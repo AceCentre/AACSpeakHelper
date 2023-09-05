@@ -12,6 +12,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 import sqlite3
 
+# Hide Pygame support prompt
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
@@ -166,11 +167,16 @@ def check_history(text: str):
             sql = "SELECT filename FROM History WHERE text='{}'".format(text)
             connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
             cursor = connection.execute(sql)
-            file = os.path.join(audio_files_path, cursor.fetchone()[0])
-            connection.close()
-            return file
+            base_name = cursor.fetchone()[0]
+            if base_name is not None:
+                file = os.path.join(audio_files_path, base_name)
+                connection.close()
+                return file
+            else:
+                return None
         else:
             create_Database()
+            return None
     except Exception as error:
         logging.error("Failed to connect to database: ".format(error), exc_info=True)
         return None
