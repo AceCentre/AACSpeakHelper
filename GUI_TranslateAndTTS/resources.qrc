@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="images">
+    <file>images/configure.ico</file>
+    <file>images/translate.ico</file>
+    <file>images/person.png</file>
+    <file>images/play-round-icon.png</file>
+  </qresource>
+  <qresource prefix="binary">
+    <file>azure_voices.json</file>
+  </qresource>
+</RCC>

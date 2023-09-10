@@ -16,3 +16,5 @@ PySide6==6.5.2
 #TTS-Wrapper==0.8.0
 TTS-Wrapper[google,microsoft,sapi]
 posthog==3.0.2
+requests~=2.31.0
+msrest~=0.7.1

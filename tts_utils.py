@@ -12,6 +12,9 @@ from tts_wrapper import SAPIClient, SAPITTS
 from KurdishTTS.kurdishTTS import KurdishTTS
 from utils import play_audio, save_audio, config, check_history
 
+import azure.cognitiveservices.speech as speechsdk
+import requests
+
 
 class GSPEAK:
 

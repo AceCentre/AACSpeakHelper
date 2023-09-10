@@ -8,6 +8,7 @@ import pyperclip
 import pyttsx3
 from tts_utils import speak
 from translate import Translator
+from PySide6.QtWidgets import *
 
 
 def translate_clipboard():
@@ -124,5 +125,6 @@ async def main(wav_files_path):
 
 
 if __name__ == '__main__':
+    app = QApplication(sys.argv)
     asyncio.run(main(utils.audio_files_path))
 

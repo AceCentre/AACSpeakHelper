@@ -16,7 +16,6 @@ import sqlite3
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-app = QApplication(sys.argv)
 pygame.mixer.init()
 
 
