@@ -910,6 +910,7 @@ class Widget(QWidget):
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.OnDiscardPressed)
 
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
+        self.ui.groupBox_translate.setVisible(self.ui.checkBox_translate.isChecked())
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
@@ -1163,6 +1164,12 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                 print(text)
                 break
+        if self.ui.lineEdit_key.text() == '':
+            self.ui.lineEdit_key.setFocus()
+            return
+        if self.ui.lineEdit_region == '':
+            self.ui.lineEdit_region.setFocus()
+            return
         self.OnSavePressed(False)
         # print(self.temp_config_file.name)
         pyperclip.copy("Hello World")
