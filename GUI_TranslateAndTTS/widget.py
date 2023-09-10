@@ -6,6 +6,7 @@ import configparser
 from PySide6.QtWidgets import *
 import PySide6.QtCore
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 import pyttsx3
 import uuid
@@ -23,10 +24,10 @@ import requests
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.voice_list = None
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
 
+        self.azure_row = None
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
@@ -823,6 +824,7 @@ class Widget(QWidget):
 
             # item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
             # self.ui.listWidget_voiceazure.setCurrentItem(item[0])
+            self.set_azure_voice(self.voiceidAzure)
             # TODO: Uncomment later
 
             item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
@@ -949,11 +951,12 @@ class Widget(QWidget):
         self.endLang = self.translate_languages[self.ui.comboBox_targetLang.currentText()]
         self.notranslate = not self.ui.checkBox_translate.isChecked()
 
-        id = self.get_uuid()
+        identifier = self.get_uuid()
+        # TODO: check this function later
         self.config.clear()
 
         self.config.add_section('App')
-        self.config.set('App', 'uuid', str(id))
+        self.config.set('App', 'uuid', str(identifier))
         self.config.set('App', 'collectstats', str(self.ui.checkBox_stats.isChecked()))
 
         self.config.add_section('translate')
@@ -997,7 +1000,8 @@ class Widget(QWidget):
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
         self.config.set('azureTTS', 'location', self.ui.lineEdit_region.text())
         # TODO: Set this data after finishing groupbox of azure
-        self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().text())
+        print(self.ui.listWidget_voiceazure.currentItem().toolTip())
+        self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().toolTip())
 
         self.config.add_section('googleTTS')
         self.config.set('googleTTS', 'creds_file', self.credsFilePath)
@@ -1074,15 +1078,15 @@ class Widget(QWidget):
         try:
             # Code that may raise an exception\
             if os.path.isfile(self.config_path) and self.config.has_section('App'):
-                id = uuid.UUID(self.config.get('App', 'uuid'))
-            else:
-                id = uuid.uuid4()
+                id = self.config.get('App', 'uuid')
+                identifier = uuid.UUID(id)
         except Exception as e:
             # Code to handle other exceptions
-            logging.error("UUID Error: {}".format(e), exc_info=True)
+            identifier = uuid.uuid4()
+            logging.error("UUID Error: {}".format(e), exc_info=False)
             pass
 
-        return str(id)
+        return identifier
 
     def setParameter(self, string):
         if string == 'MyMemoryProvider':
@@ -1119,32 +1123,58 @@ class Widget(QWidget):
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
 
+    def set_azure_voice(self, text):
+        for index in range(self.ui.listWidget_voiceazure.count()):
+            item = self.ui.listWidget_voiceazure.item(index)
+            if text == item.toolTip():
+                self.azure_row = self.ui.listWidget_voiceazure.row(item)
+                self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
+                # print(self.ui.listWidget_voiceazure.row(item))
+                break
+
     def preview_pressed(self):
         parent = self.sender().parent().parent()
         widget_page = parent.widget(1)
         child = widget_page.findChild(QLabel)
-        print(child.text())
-        print(type(self.sender()))
-        #self.ui.listWidget_voiceazure.setCurrentItem()
-        buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
-        for button in buttons:
-            button.setEnabled(False)
+        #print(child.text())
+        text = self.sender().parent().parent().parent().objectName()
+        for index in range(self.ui.listWidget_voiceazure.count()):
+            item = self.ui.listWidget_voiceazure.item(index)
+            if text == item.toolTip():
+                self.azure_row = self.ui.listWidget_voiceazure.row(item)
+                self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
+                print(text)
+                break
+        # buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+        # for button in buttons:
+        #     button.setEnabled(False)
 
     def print_data(self, item):
-        widget = self.ui.listWidget_voiceazure.itemWidget(item)
-        child = widget.findChild(QLabel)
-        print(child.text())
+        try:
+            widget = self.ui.listWidget_voiceazure.itemWidget(item)
+            # child = widget.findChild(QLabel)
+            # print(child.text())
+            self.ui.listWidget_voiceazure.setCurrentItem(item)
+            print(item.toolTip())
+        except Exception as error:
+            pass
+
+    def updateRow(self, row):
+        try:
+            if self.ui.listWidget_voiceazure.currentRow() == 0:
+                self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
+                self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
+        except Exception as error:
+            pass
 
     def generate_azure_voice_models(self):
         list_widget = QListWidget()
+        self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
         voices = self.get_azure_voices()
         voices.reverse()
-        # (voices)
-        country = []
         for index, voice in enumerate(voices):
             voice_country = voice['LocaleName']
-            # Check if current country is same with the next voice model or current voice model is the last on the list
             try:
                 if voice_country == voices[index + 1]['LocaleName']:
                     item_widget = QWidget()
@@ -1152,10 +1182,16 @@ class Widget(QWidget):
                     item_UI.setupUi(item_widget)
                     item_UI.data.setText(str(voice))
                     item_UI.name.setText(voice['DisplayName'] + " " + voice['VoiceType'])
+                    font = QFont()
+                    font.setBold(False)
+                    font.setPointSize(8)
+                    item_UI.gender.setFont(font)
                     item_UI.gender.setText(voice['Gender'])
                     item_UI.play.clicked.connect(self.preview_pressed)
+                    item_widget.setObjectName(voice['ShortName'])
 
                     item = QListWidgetItem()
+                    item.setToolTip(voice['ShortName'])
                     item.setSizeHint(item_widget.sizeHint())
                     self.ui.listWidget_voiceazure.insertItem(index, item)
                     self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
@@ -1165,10 +1201,16 @@ class Widget(QWidget):
                     item_UI.setupUi(item_widget)
                     item_UI.data.setText(str(voice))
                     item_UI.name.setText(voice['DisplayName'] + " " + voice['VoiceType'])
+                    font = QFont()
+                    font.setBold(False)
+                    font.setPointSize(8)
+                    item_UI.gender.setFont(font)
                     item_UI.gender.setText(voice['Gender'])
                     item_UI.play.clicked.connect(self.preview_pressed)
+                    item_widget.setObjectName(voice['ShortName'])
 
                     item = QListWidgetItem()
+                    item.setToolTip(voice['ShortName'])
                     item.setSizeHint(item_widget.sizeHint())
                     self.ui.listWidget_voiceazure.insertItem(index, item)
                     self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
@@ -1186,10 +1228,16 @@ class Widget(QWidget):
                 item_UI.setupUi(item_widget)
                 item_UI.data.setText(str(voice))
                 item_UI.name.setText(voice['DisplayName'] + " " + voice['VoiceType'])
+                font = QFont()
+                font.setBold(False)
+                font.setPointSize(8)
+                item_UI.gender.setFont(font)
                 item_UI.gender.setText(voice['Gender'])
                 item_UI.play.clicked.connect(self.preview_pressed)
+                item_widget.setObjectName(voice['ShortName'])
 
                 item = QListWidgetItem()
+                item.setToolTip(voice['ShortName'])
                 item.setSizeHint(item_widget.sizeHint())
                 self.ui.listWidget_voiceazure.insertItem(index, item)
                 self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
@@ -1201,7 +1249,6 @@ class Widget(QWidget):
                 item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
                 self.ui.listWidget_voiceazure.addItem(item)
                 self.ui.listWidget_voiceazure.setItemWidget(item, label_widget)
-
 
     def get_azure_voices(self):
         try:
