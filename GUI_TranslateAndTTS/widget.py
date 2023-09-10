@@ -906,7 +906,7 @@ class Widget(QWidget):
         self.ui.radioButton_sapi5.toggled.connect(self.onTTSEngineToggled)
         self.ui.radioButton_gspeak.toggled.connect(self.onTTSEngineToggled)
 
-        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(self.OnSavePressed)
+        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(lambda: self.OnSavePressed(True))
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.OnDiscardPressed)
 
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
@@ -952,7 +952,6 @@ class Widget(QWidget):
 
     def OnSavePressed(self, permanent=True):
         # Add sections and key-value pairs
-
         self.startLang = self.translate_languages[self.ui.comboBox_writeLang.currentText()]
         self.endLang = self.translate_languages[self.ui.comboBox_targetLang.currentText()]
         self.notranslate = not self.ui.checkBox_translate.isChecked()
@@ -1342,8 +1341,8 @@ class Player(QRunnable):
             GUI_path = os.path.join(application_path, exe_name)
             print(GUI_path)
             # Use subprocess.Popen to run the executable
-            # process = subprocess.Popen(GUI_path)
-            # process.wait()
+            process = subprocess.Popen(GUI_path)
+            process.wait()
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
             GUI_script_path = os.path.join(application_path, 'translatepb.py')
