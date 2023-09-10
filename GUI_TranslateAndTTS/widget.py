@@ -5,8 +5,8 @@ import configparser
 
 from PySide6.QtWidgets import *
 import PySide6.QtCore
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
+from PySide6.QtGui import QFont, QIcon, QMovie
 
 import pyttsx3
 import uuid
@@ -19,11 +19,17 @@ import json
 from ui_form import Ui_Widget
 from item import Ui_item
 import requests
+import tempfile
+import subprocess
+import pyperclip
 
 
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.movie = None
+        self.currentButton = None
+        self.temp_config_file = None
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
 
@@ -944,7 +950,7 @@ class Widget(QWidget):
             else:
                 self.ttsEngine = "azureTTS"
 
-    def OnSavePressed(self):
+    def OnSavePressed(self, permanent=True):
         # Add sections and key-value pairs
 
         self.startLang = self.translate_languages[self.ui.comboBox_writeLang.currentText()]
@@ -978,9 +984,15 @@ class Widget(QWidget):
         self.config.add_section('TTS')
         self.config.set('TTS', 'engine', self.ttsEngine)
         if self.ttsEngine == 'azureTTS':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio.isChecked()))
+            if permanent:
+                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio.isChecked()))
+            else:
+                self.config.set('TTS', 'save_audio_file', str(False))
         elif self.ttsEngine == 'gTTS':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_gTTS.isChecked()))
+            if permanent:
+                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_gTTS.isChecked()))
+            else:
+                self.config.set('TTS', 'save_audio_file', str(False))
         elif self.ttsEngine == 'sapi5':
             self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
         elif self.ttsEngine == 'kurdishTTS':
@@ -1000,7 +1012,7 @@ class Widget(QWidget):
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
         self.config.set('azureTTS', 'location', self.ui.lineEdit_region.text())
         # TODO: Set this data after finishing groupbox of azure
-        print(self.ui.listWidget_voiceazure.currentItem().toolTip())
+        # print(self.ui.listWidget_voiceazure.currentItem().toolTip())
         self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().toolTip())
 
         self.config.add_section('googleTTS')
@@ -1056,10 +1068,16 @@ class Widget(QWidget):
                 return
 
         # Write the configuration to a file
-        with open(self.config_path, 'w') as configfile:
-            self.config.write(configfile)
-            logging.info("Configuration file is saved on {}".format(self.config_path))
-        self.close()
+        if permanent:
+            with open(self.config_path, 'w') as configfile:
+                self.config.write(configfile)
+                logging.info("Configuration file is saved on {}".format(self.config_path))
+            self.close()
+        else:
+            self.temp_config_file = tempfile.NamedTemporaryFile(delete=False)
+            with open(self.temp_config_file.name, 'w') as configfile:
+                self.config.write(configfile)
+                logging.info("Configuration file is saved on {}".format(self.temp_config_file.name))
 
     def OnDiscardPressed(self):
         self.close()
@@ -1133,10 +1151,11 @@ class Widget(QWidget):
                 break
 
     def preview_pressed(self):
+        self.currentButton = self.sender()
         parent = self.sender().parent().parent()
         widget_page = parent.widget(1)
         child = widget_page.findChild(QLabel)
-        #print(child.text())
+        # print(child.text())
         text = self.sender().parent().parent().parent().objectName()
         for index in range(self.ui.listWidget_voiceazure.count()):
             item = self.ui.listWidget_voiceazure.item(index)
@@ -1145,9 +1164,37 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                 print(text)
                 break
-        # buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
-        # for button in buttons:
-        #     button.setEnabled(False)
+        self.OnSavePressed(False)
+        # print(self.temp_config_file.name)
+        pyperclip.copy("Hello World")
+        threadCount = QThreadPool.globalInstance().maxThreadCount()
+        print(f"Running {threadCount} Threads")
+        pool = QThreadPool.globalInstance()
+        runnable = Player(self.temp_config_file)
+        runnable.signals.completed.connect(self.enablePlayButtons)
+        buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+        self.movie = QMovie(":/images/images/loading.gif")
+        self.movie.updated.connect(self.update_Buttons)
+        self.movie.start()
+        for button in buttons:
+            button.setEnabled(False)
+        pool.start(runnable)
+    
+    def update_Buttons(self):
+        loading_icon = QIcon(self.movie.currentPixmap())
+        self.currentButton.setIcon(loading_icon)
+        
+    def enablePlayButtons(self):
+        buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+        for button in buttons:
+            button.setEnabled(True)
+        self.movie.stop()
+        icon = QIcon()
+        icon.addFile(":/images/images/play-round-icon.png")
+        self.currentButton.setIcon(icon)
+        self.temp_config_file.close()
+        self.azure_playback = False
+        os.unlink(self.temp_config_file.name)
 
     def print_data(self, item):
         try:
@@ -1270,6 +1317,39 @@ class Widget(QWidget):
 
         # print(voice_list)
         return self.voice_list
+
+
+class Signals(QObject):
+    started = Signal()
+    completed = Signal()
+
+
+class Player(QRunnable):
+
+    def __init__(self, file):
+        super().__init__()
+        self.temp_config_file = file
+        self.signals = Signals()
+
+    def run(self):
+        if getattr(sys, 'frozen', False):
+            application_path = os.path.dirname(sys.executable)
+            exe_name = ""
+            for root, dirs, files in os.walk(application_path):
+                for file in files:
+                    if "translatepb.exe" in file:
+                        exe_name = file
+            GUI_path = os.path.join(application_path, exe_name)
+            print(GUI_path)
+            # Use subprocess.Popen to run the executable
+            # process = subprocess.Popen(GUI_path)
+            # process.wait()
+        elif __file__:
+            application_path = os.path.dirname(os.path.dirname(__file__))
+            GUI_script_path = os.path.join(application_path, 'translatepb.py')
+            process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
+            process.wait()
+        self.signals.completed.emit()
 
 
 if __name__ == "__main__":

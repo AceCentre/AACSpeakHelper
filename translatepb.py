@@ -86,11 +86,14 @@ async def mainrun(listvoices: bool):
             logging.info("------------------------------------------------------------------------")
         except Exception as e:
             logging.error("Runtime Error: {}".format(e), exc_info=True)
-            result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
-            if result:
-                configure_app()
-            else:
+            if args['preview']:
                 return
+            else:
+                result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
+                if result:
+                    configure_app()
+                else:
+                    return
 
 
 async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):

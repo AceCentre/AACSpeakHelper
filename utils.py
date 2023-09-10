@@ -232,6 +232,8 @@ parser.add_argument(
     '-c', '--config', help='Path to a defined config file', required=False, default='')
 parser.add_argument(
     '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False, action="store_true")
+parser.add_argument(
+    '-p', '--preview', help='Preview Only', required=False, default=False, action="store_true")
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
