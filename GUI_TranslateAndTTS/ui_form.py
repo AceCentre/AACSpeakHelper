@@ -470,18 +470,20 @@ class Ui_Widget(object):
         self.groupBox_3.setAlignment(Qt.AlignCenter)
         self.verticalLayout_8 = QVBoxLayout(self.groupBox_3)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.lineEdit = QLineEdit(self.groupBox_3)
-        self.lineEdit.setObjectName(u"lineEdit")
-        self.lineEdit.setStyleSheet(u"border-style: outset;\n"
+        self.search_goggle = QLineEdit(self.groupBox_3)
+        self.search_goggle.setObjectName(u"search_goggle")
+        self.search_goggle.setStyleSheet(u"border-style: outset;\n"
 "border-width: 1px;\n"
 "border-radius: 10px;\n"
 "min-width: 10em;\n"
 "padding: 6px;")
 
-        self.verticalLayout_8.addWidget(self.lineEdit)
+        self.verticalLayout_8.addWidget(self.search_goggle)
 
         self.listWidget_voicegoogle = QListWidget(self.groupBox_3)
         self.listWidget_voicegoogle.setObjectName(u"listWidget_voicegoogle")
+        self.listWidget_voicegoogle.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.listWidget_voicegoogle.setSortingEnabled(True)
 
         self.verticalLayout_8.addWidget(self.listWidget_voicegoogle)
 

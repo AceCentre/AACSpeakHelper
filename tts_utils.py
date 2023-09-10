@@ -10,10 +10,45 @@ from tts_wrapper import GoogleClient, GoogleTTS
 from tts_wrapper import SAPIClient, SAPITTS
 
 from KurdishTTS.kurdishTTS import KurdishTTS
-from utils import play_audio, save_audio, config, check_history
+from utils import play_audio, save_audio, config, check_history, args
 
-import azure.cognitiveservices.speech as speechsdk
-import requests
+
+VALID_STYLES = [
+    "advertisement_upbeat",
+    "affectionate",
+    "angry",
+    "assistant",
+    "calm",
+    "chat",
+    "cheerful",
+    "customerservice",
+    "depressed",
+    "disgruntled",
+    "documentary-narration",
+    "embarrassed",
+    "empathetic",
+    "envious",
+    "excited",
+    "fearful",
+    "friendly",
+    "gentle",
+    "hopeful",
+    "lyrical",
+    "narration-professional",
+    "narration-relaxed",
+    "newscast",
+    "newscast-casual",
+    "newscast-formal",
+    "poetry-reading",
+    "sad",
+    "serious",
+    "shouting",
+    "sports_commentary",
+    "sports_commentary_excited",
+    "whispering",
+    "terrified",
+    "unfriendly"
+]
 
 
 class GSPEAK:
@@ -55,7 +90,7 @@ def speak(text=''):
         engine.runAndWait()
 
 
-def azureSpeak(text: str, engine):
+def azureSpeak(text: str, engine, style: str = None):
     # Add your key and endpoint
     key = config.get('azureTTS', 'key')
     location = config.get('azureTTS', 'location')
@@ -64,7 +99,19 @@ def azureSpeak(text: str, engine):
     client = MicrosoftClient(credentials=key, region=location)
     tts = MicrosoftTTS(client=client, voice=voiceid)
 
-    ttsWrapperSpeak(text, tts, engine)
+    if style:
+        # Check if the provided style is in the valid styles array
+        if style in VALID_STYLES:
+            # Construct SSML with the specified style
+            ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts"><voice name="{voiceid}"><mstts:express-as style="{style}">{text}</mstts:express-as></voice></speak>'
+        else:
+            # Style is not valid, use default SSML without style
+            ssml = text
+    else:
+        # Use default SSML without style
+        ssml = text
+
+    ttsWrapperSpeak(ssml, tts, engine)
 
 
 def googleSpeak(text: str, engine):

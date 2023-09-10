@@ -865,7 +865,7 @@ padding: 6px;</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_8">
              <item>
-              <widget class="QLineEdit" name="lineEdit">
+              <widget class="QLineEdit" name="search_goggle">
                <property name="styleSheet">
                 <string notr="true">border-style: outset;
 border-width: 1px;
@@ -876,7 +876,14 @@ padding: 6px;</string>
               </widget>
              </item>
              <item>
-              <widget class="QListWidget" name="listWidget_voicegoogle"/>
+              <widget class="QListWidget" name="listWidget_voicegoogle">
+               <property name="verticalScrollBarPolicy">
+                <enum>Qt::ScrollBarAsNeeded</enum>
+               </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>

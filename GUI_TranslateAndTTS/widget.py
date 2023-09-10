@@ -22,11 +22,17 @@ import requests
 import tempfile
 import subprocess
 import pyperclip
+from google.cloud import texttospeech
+from google.oauth2 import service_account
+from langcodes import Language
 
 
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.google_client = None
+        self.voice_google_list = None
+        self.voice_list = None
         self.movie = None
         self.currentButton = None
         self.temp_config_file = None
@@ -710,7 +716,8 @@ class Widget(QWidget):
         voices_google = voices_google.split("\n")
         voices_google = sorted(voices_google)  # Google voices
 
-        self.ui.listWidget_voicegoogle.addItems(voices_google)
+        # self.ui.listWidget_voicegoogle.addItems(voices_google)
+        # Todo: Check if still needed.
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
 
@@ -749,7 +756,7 @@ class Widget(QWidget):
         if os.path.exists(self.config_path):
             self.config.read(self.config_path)
             self.generate_azure_voice_models()
-
+            self.generate_google_voice_models()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
             self.endLang = self.config.get('translate', 'endLang')
@@ -833,8 +840,8 @@ class Widget(QWidget):
             self.set_azure_voice(self.voiceidAzure)
             # TODO: Uncomment later
 
-            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
-            self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
+            # item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
+            # self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
 
@@ -868,6 +875,7 @@ class Widget(QWidget):
 
         else:
             self.generate_azure_voice_models()
+            self.generate_google_voice_models()
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
 
@@ -1167,14 +1175,12 @@ class Widget(QWidget):
         if self.ui.lineEdit_key.text() == '':
             self.ui.lineEdit_key.setFocus()
             return
-        if self.ui.lineEdit_region == '':
+        if self.ui.lineEdit_region.text() == '':
             self.ui.lineEdit_region.setFocus()
             return
         self.OnSavePressed(False)
-        # print(self.temp_config_file.name)
         pyperclip.copy("Hello World")
-        threadCount = QThreadPool.globalInstance().maxThreadCount()
-        print(f"Running {threadCount} Threads")
+        # threadCount = QThreadPool.globalInstance().maxThreadCount()
         pool = QThreadPool.globalInstance()
         runnable = Player(self.temp_config_file)
         runnable.signals.completed.connect(self.enablePlayButtons)
@@ -1185,11 +1191,11 @@ class Widget(QWidget):
         for button in buttons:
             button.setEnabled(False)
         pool.start(runnable)
-    
+
     def update_Buttons(self):
         loading_icon = QIcon(self.movie.currentPixmap())
         self.currentButton.setIcon(loading_icon)
-        
+
     def enablePlayButtons(self):
         buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
         for button in buttons:
@@ -1199,29 +1205,38 @@ class Widget(QWidget):
         icon.addFile(":/images/images/play-round-icon.png")
         self.currentButton.setIcon(icon)
         self.temp_config_file.close()
-        self.azure_playback = False
         os.unlink(self.temp_config_file.name)
 
     def print_data(self, item):
         try:
-            widget = self.ui.listWidget_voiceazure.itemWidget(item)
+            # TODO: Uncomment when data is needed.
+            # widget = self.ui.listWidget_voiceazure.itemWidget(item)
             # child = widget.findChild(QLabel)
             # print(child.text())
-            self.ui.listWidget_voiceazure.setCurrentItem(item)
+            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page():
+                self.ui.listWidget_voiceazure.setCurrentItem(item)
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page():
+                self.ui.listWidget_voicegoogle.setCurrentItem(item)
             print(item.toolTip())
         except Exception as error:
             pass
 
     def updateRow(self, row):
         try:
-            if self.ui.listWidget_voiceazure.currentRow() == 0:
-                self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
-                self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
+            # Set the row when index become zero (no selected item)
+            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page():
+                if self.ui.listWidget_voiceazure.currentRow() == 0:
+                    self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
+                    self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page():
+                if self.ui.listWidget_voicegoogle.currentRow() == 0:
+                    self.ui.listWidget_voicegoogle.setCurrentRow(self.azure_row)
+                    self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.azure_row))
         except Exception as error:
             pass
 
     def generate_azure_voice_models(self):
-        list_widget = QListWidget()
+        self.ui.search_azure.hide()
         self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
         voices = self.get_azure_voices()
@@ -1323,6 +1338,134 @@ class Widget(QWidget):
 
         # print(voice_list)
         return self.voice_list
+
+    def get_google_voices(self):
+        try:
+            key = self.config.get('googleTTS', 'creds_file')
+            self.google_client = texttospeech.TextToSpeechClient(
+                credentials=service_account.Credentials.from_service_account_file(key))
+            google_list = self.google_client.list_voices()
+            self.voice_google_list = []
+            for voice in google_list.voices:
+                voice_dict = {}
+                voice_dict['name'] = voice.name
+                for language_code in voice.language_codes:
+                    voice_dict['country'] = Language.get(language_code).display_name()
+                    codes = []
+                    codes.append(language_code)
+                voice_dict['languageCodes'] = codes
+                ssml_gender = texttospeech.SsmlVoiceGender(voice.ssml_gender)
+                voice_dict['ssmlGender'] = ssml_gender.name.capitalize()
+                voice_dict['naturalSampleRateHertz'] = voice.natural_sample_rate_hertz
+                self.voice_google_list.append(voice_dict)
+            unique = []
+            for data in self.voice_google_list:
+                if data not in unique:
+                    unique.append(data)
+            self.voice_google_list = sorted(unique, key=lambda d: d['country'])
+            with open('google_voices.json', 'w') as json_file:
+                json.dump(self.voice_google_list, json_file)
+            print("Google voice list fetched from API.")
+            logging.info("Google voice list fetched from API.")
+        except Exception as error:
+            print(error)
+            file = PySide6.QtCore.QFile(":/binary/google_voices.json")
+            if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
+                text = PySide6.QtCore.QTextStream(file).readAll()
+                self.voice_google_list = json.loads(text.encode())
+                print("Google voice list fetched from Resource file.")
+                logging.info("Google voice list fetched from Resource file.")
+                file.close()
+
+        return self.voice_google_list
+
+    def generate_google_voice_models(self):
+        self.ui.search_goggle.hide()
+        self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
+        self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
+        voices = self.get_google_voices()
+
+        voices.reverse()
+        print(voices)
+        for index, voice in enumerate(voices):
+            voice_country = voice['country']
+            try:
+                if voice_country == voices[index + 1]['country']:
+                    print("If")
+                    item_widget = QWidget()
+                    item_UI = Ui_item()
+                    item_UI.setupUi(item_widget)
+                    item_UI.data.setText(str(voice))
+                    item_UI.name.setText(voice['name'])
+                    font = QFont()
+                    font.setBold(False)
+                    font.setPointSize(8)
+                    item_UI.gender.setFont(font)
+                    item_UI.gender.setText(voice['ssmlGender'])
+                    item_UI.play.clicked.connect(self.preview_pressed)
+                    item_widget.setObjectName(voice['name'])
+
+                    item = QListWidgetItem()
+                    item.setToolTip(voice['name'])
+                    item.setSizeHint(item_widget.sizeHint())
+                    self.ui.listWidget_voicegoogle.insertItem(index, item)
+                    self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+                else:
+                    print("else")
+                    item_widget = QWidget()
+                    item_UI = Ui_item()
+                    item_UI.setupUi(item_widget)
+                    item_UI.data.setText(str(voice))
+                    item_UI.name.setText(voice['name'])
+                    font = QFont()
+                    font.setBold(False)
+                    font.setPointSize(8)
+                    item_UI.gender.setFont(font)
+                    item_UI.gender.setText(voice['ssmlGender'])
+                    item_UI.play.clicked.connect(self.preview_pressed)
+                    item_widget.setObjectName(voice['name'])
+
+                    item = QListWidgetItem()
+                    item.setToolTip(voice['name'])
+                    item.setSizeHint(item_widget.sizeHint())
+                    self.ui.listWidget_voicegoogle.insertItem(index, item)
+                    self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+
+                    label_widget = QLabel(voice_country)
+                    label_widget.setObjectName(voice_country)
+                    label_widget.setAlignment(Qt.AlignCenter)
+                    item = QListWidgetItem()
+                    item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
+                    self.ui.listWidget_voicegoogle.addItem(item)
+                    self.ui.listWidget_voicegoogle.setItemWidget(item, label_widget)
+            except Exception as error:
+                print("error")
+                item_widget = QWidget()
+                item_UI = Ui_item()
+                item_UI.setupUi(item_widget)
+                item_UI.data.setText(str(voice))
+                item_UI.name.setText(voice['name'])
+                font = QFont()
+                font.setBold(False)
+                font.setPointSize(8)
+                item_UI.gender.setFont(font)
+                item_UI.gender.setText(voice['ssmlGender'])
+                item_UI.play.clicked.connect(self.preview_pressed)
+                item_widget.setObjectName(voice['name'])
+
+                item = QListWidgetItem()
+                item.setToolTip(voice['name'])
+                item.setSizeHint(item_widget.sizeHint())
+                self.ui.listWidget_voicegoogle.insertItem(index, item)
+                self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+
+                label_widget = QLabel(voice_country)
+                label_widget.setObjectName(voice_country)
+                label_widget.setAlignment(Qt.AlignCenter)
+                item = QListWidgetItem()
+                item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
+                self.ui.listWidget_voicegoogle.addItem(item)
+                self.ui.listWidget_voicegoogle.setItemWidget(item, label_widget)
 
 
 class Signals(QObject):
