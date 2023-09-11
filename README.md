@@ -1,4 +1,4 @@
-# TranslateAndTTS
+# AAC Online Speak & Translate Plug-in for Windows
 
 Copies the pasteboard. Translates to defined lang, Reads aloud and replaces pasteboard with translated text. You can can configure it all with our Configure app - and use multiple different settings files for different actions. Using Google or Azure Cloud TTS we have a greater range of languages and voices than any current AAC solution. 
 
