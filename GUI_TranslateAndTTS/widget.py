@@ -30,16 +30,16 @@ from langcodes import Language
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.google_row = None
         self.google_client = None
         self.voice_google_list = None
         self.voice_list = None
         self.movie = None
         self.currentButton = None
         self.temp_config_file = None
+        self.azure_row = None
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-
-        self.azure_row = None
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
@@ -835,13 +835,8 @@ class Widget(QWidget):
                 lang = lang[0]
             self.ui.comboBox_targetLang.setCurrentText(lang)
 
-            # item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
-            # self.ui.listWidget_voiceazure.setCurrentItem(item[0])
             self.set_azure_voice(self.voiceidAzure)
-            # TODO: Uncomment later
-
-            # item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
-            # self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
+            self.set_google_voice(self.voiceidGoogle)
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
 
@@ -870,6 +865,7 @@ class Widget(QWidget):
             self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
 
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
+            self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
             # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
             self.onTTSEngineToggled()
 
@@ -905,6 +901,7 @@ class Widget(QWidget):
 
             item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
             self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
+            self.ui.spinBox_threshold.setValue(7)
 
         self.ui.radioButton_azure.toggled.connect(self.onTTSEngineToggled)
         self.ui.radioButton_google.toggled.connect(self.onTTSEngineToggled)
@@ -1019,13 +1016,11 @@ class Widget(QWidget):
         self.config.add_section('azureTTS')
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
         self.config.set('azureTTS', 'location', self.ui.lineEdit_region.text())
-        # TODO: Set this data after finishing groupbox of azure
-        # print(self.ui.listWidget_voiceazure.currentItem().toolTip())
         self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().toolTip())
 
         self.config.add_section('googleTTS')
         self.config.set('googleTTS', 'creds_file', self.credsFilePath)
-        self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().text())
+        self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().toolTip())
 
         self.config.add_section('sapi5TTS')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
@@ -1035,7 +1030,7 @@ class Widget(QWidget):
         self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
 
         self.config.add_section('appCache')
-        self.config.set('appCache', 'threshold', '7')
+        self.config.set('appCache', 'threshold', str(self.ui.spinBox_threshold.value()))
 
         start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
         end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
@@ -1165,19 +1160,30 @@ class Widget(QWidget):
         child = widget_page.findChild(QLabel)
         # print(child.text())
         text = self.sender().parent().parent().parent().objectName()
-        for index in range(self.ui.listWidget_voiceazure.count()):
-            item = self.ui.listWidget_voiceazure.item(index)
-            if text == item.toolTip():
-                self.azure_row = self.ui.listWidget_voiceazure.row(item)
-                self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
-                print(text)
-                break
-        if self.ui.lineEdit_key.text() == '':
-            self.ui.lineEdit_key.setFocus()
-            return
-        if self.ui.lineEdit_region.text() == '':
-            self.ui.lineEdit_region.setFocus()
-            return
+        if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
+            for index in range(self.ui.listWidget_voiceazure.count()):
+                item = self.ui.listWidget_voiceazure.item(index)
+                if text == item.toolTip():
+                    self.azure_row = self.ui.listWidget_voiceazure.row(item)
+                    self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
+                    break
+            if self.ui.lineEdit_key.text() == '':
+                self.ui.lineEdit_key.setFocus()
+                return
+            if self.ui.lineEdit_region.text() == '':
+                self.ui.lineEdit_region.setFocus()
+                return
+        elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
+            for index in range(self.ui.listWidget_voicegoogle.count()):
+                item = self.ui.listWidget_voicegoogle.item(index)
+                if text == item.toolTip():
+                    self.google_row = self.ui.listWidget_voicegoogle.row(item)
+                    self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
+                    break
+            if self.ui.credsFilePathEdit.text() == '':
+                self.ui.credsFilePathEdit.setFocus()
+                return
+
         self.OnSavePressed(False)
         pyperclip.copy("Hello World")
         # threadCount = QThreadPool.globalInstance().maxThreadCount()
@@ -1188,6 +1194,7 @@ class Widget(QWidget):
         self.movie = QMovie(":/images/images/loading.gif")
         self.movie.updated.connect(self.update_Buttons)
         self.movie.start()
+        self.ui.groupBox_ttsEngine.setEnabled(False)
         for button in buttons:
             button.setEnabled(False)
         pool.start(runnable)
@@ -1197,7 +1204,12 @@ class Widget(QWidget):
         self.currentButton.setIcon(loading_icon)
 
     def enablePlayButtons(self):
-        buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+        if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
+            buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+        elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
+            buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
+
+        self.ui.groupBox_ttsEngine.setEnabled(True)
         for button in buttons:
             button.setEnabled(True)
         self.movie.stop()
@@ -1212,10 +1224,9 @@ class Widget(QWidget):
             # TODO: Uncomment when data is needed.
             # widget = self.ui.listWidget_voiceazure.itemWidget(item)
             # child = widget.findChild(QLabel)
-            # print(child.text())
-            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page():
+            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
                 self.ui.listWidget_voiceazure.setCurrentItem(item)
-            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page():
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 self.ui.listWidget_voicegoogle.setCurrentItem(item)
             print(item.toolTip())
         except Exception as error:
@@ -1224,14 +1235,14 @@ class Widget(QWidget):
     def updateRow(self, row):
         try:
             # Set the row when index become zero (no selected item)
-            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page():
+            if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
                 if self.ui.listWidget_voiceazure.currentRow() == 0:
                     self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                     self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
-            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page():
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 if self.ui.listWidget_voicegoogle.currentRow() == 0:
-                    self.ui.listWidget_voicegoogle.setCurrentRow(self.azure_row)
-                    self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.azure_row))
+                    self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
+                    self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.google_row))
         except Exception as error:
             pass
 
@@ -1335,8 +1346,6 @@ class Widget(QWidget):
                 print("Azure voice list fetched from Resource file.")
                 logging.info("Azure voice list fetched from Resource file.")
                 file.close()
-
-        # print(voice_list)
         return self.voice_list
 
     def get_google_voices(self):
@@ -1376,7 +1385,6 @@ class Widget(QWidget):
                 print("Google voice list fetched from Resource file.")
                 logging.info("Google voice list fetched from Resource file.")
                 file.close()
-
         return self.voice_google_list
 
     def generate_google_voice_models(self):
@@ -1384,14 +1392,11 @@ class Widget(QWidget):
         self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
         voices = self.get_google_voices()
-
         voices.reverse()
-        print(voices)
         for index, voice in enumerate(voices):
             voice_country = voice['country']
             try:
                 if voice_country == voices[index + 1]['country']:
-                    print("If")
                     item_widget = QWidget()
                     item_UI = Ui_item()
                     item_UI.setupUi(item_widget)
@@ -1411,7 +1416,6 @@ class Widget(QWidget):
                     self.ui.listWidget_voicegoogle.insertItem(index, item)
                     self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
                 else:
-                    print("else")
                     item_widget = QWidget()
                     item_UI = Ui_item()
                     item_UI.setupUi(item_widget)
@@ -1439,7 +1443,6 @@ class Widget(QWidget):
                     self.ui.listWidget_voicegoogle.addItem(item)
                     self.ui.listWidget_voicegoogle.setItemWidget(item, label_widget)
             except Exception as error:
-                print("error")
                 item_widget = QWidget()
                 item_UI = Ui_item()
                 item_UI.setupUi(item_widget)
@@ -1467,6 +1470,14 @@ class Widget(QWidget):
                 self.ui.listWidget_voicegoogle.addItem(item)
                 self.ui.listWidget_voicegoogle.setItemWidget(item, label_widget)
 
+    def set_google_voice(self, text):
+        for index in range(self.ui.listWidget_voicegoogle.count()):
+            item = self.ui.listWidget_voicegoogle.item(index)
+            if text == item.toolTip():
+                self.google_row = self.ui.listWidget_voicegoogle.row(item)
+                self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
+                break
+
 
 class Signals(QObject):
     started = Signal()
@@ -1491,10 +1502,11 @@ class Player(QRunnable):
             GUI_path = os.path.join(application_path, exe_name)
             print(GUI_path)
             # Use subprocess.Popen to run the executable
-            process = subprocess.Popen(GUI_path)
+            process = subprocess.Popen(GUI_path, "--config", self.temp_config_file.name, "--preview")
             process.wait()
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
+            # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, 'translatepb.py')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
