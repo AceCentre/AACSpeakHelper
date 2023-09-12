@@ -49,6 +49,7 @@ Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\Configure TranslateAndT
 Name: "{group}\Settings File"; Filename: "{userappdata}\TranslateAndTTS\settings.cfg"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\Configure TranslateAndTTS"; Filename: "{app}\Configure TranslateAndTTS.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent

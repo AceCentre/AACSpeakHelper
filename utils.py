@@ -162,11 +162,14 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
 
 def check_history(text: str):
     try:
+        if args['style']:
+            return None
         if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
             sql = "SELECT filename FROM History WHERE text='{}'".format(text)
             connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
             cursor = connection.execute(sql)
-            base_name = cursor.fetchone()[0]
+            results = cursor.fetchone()
+            base_name = results[0] if results is not None else None
             if base_name is not None:
                 file = os.path.join(audio_files_path, base_name)
                 connection.close()
