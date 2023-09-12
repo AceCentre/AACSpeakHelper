@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import asyncio
 from utils import configure_app, config, args, clear_history
@@ -8,6 +9,7 @@ import pyperclip
 import pyttsx3
 from tts_utils import speak
 from translate import Translator
+from PySide6.QtWidgets import *
 
 
 def translate_clipboard():
@@ -84,11 +86,14 @@ async def mainrun(listvoices: bool):
             logging.info("------------------------------------------------------------------------")
         except Exception as e:
             logging.error("Runtime Error: {}".format(e), exc_info=True)
-            result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
-            if result:
-                configure_app()
-            else:
+            if args['preview']:
                 return
+            else:
+                result = utils.ynbox(str(e) + '\n\n Do You want to open the Configuration Setup?', 'Runtime Error')
+                if result:
+                    configure_app()
+                else:
+                    return
 
 
 async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
@@ -124,5 +129,6 @@ async def main(wav_files_path):
 
 
 if __name__ == '__main__':
+    app = QApplication(sys.argv)
     asyncio.run(main(utils.audio_files_path))
 

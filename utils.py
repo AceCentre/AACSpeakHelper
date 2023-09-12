@@ -16,7 +16,6 @@ import sqlite3
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
-app = QApplication(sys.argv)
 pygame.mixer.init()
 
 
@@ -163,11 +162,14 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
 
 def check_history(text: str):
     try:
+        if args['style']:
+            return None
         if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
             sql = "SELECT filename FROM History WHERE text='{}'".format(text)
             connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
             cursor = connection.execute(sql)
-            base_name = cursor.fetchone()[0]
+            results = cursor.fetchone()
+            base_name = results[0] if results is not None else None
             if base_name is not None:
                 file = os.path.join(audio_files_path, base_name)
                 connection.close()
@@ -233,6 +235,10 @@ parser.add_argument(
     '-c', '--config', help='Path to a defined config file', required=False, default='')
 parser.add_argument(
     '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False, action="store_true")
+parser.add_argument(
+    '-p', '--preview', help='Preview Only', required=False, default=False, action="store_true")
+parser.add_argument(
+    '-s', '--style', help='Voice style for Azure TTS', required=False, default='')
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
