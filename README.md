@@ -1,4 +1,4 @@
-![Blue logo with translate icon](https://github.com/AceCentre/TranslateAndTTS/raw/master/src/assets/translatepb.png "Blue logo with translate icon")
+<img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/translatepb.png' alt="Blue logo with translate icon" width="200">
 
 # AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")
 
