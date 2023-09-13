@@ -11,8 +11,7 @@ AAC Speak Helper is designed to enhance your ability to communicate. It leverage
 
 Imagine you are a Ukrainian speaker with limited English skills, residing in a care facility. AAC Speak Helper acts as a bridge between you and your caregivers, translating your Ukrainian text into English. Moreover, it also supports people who need to speak in languages that are less commonly supported, by using TTS technology.
 
-![Overview Video](https://cdn.loom.com/sessions/thumbnails/dcd185df50224279a0c2630b6ca6b04f-1694639990490-with-play.gif)
-[Watch the Overview Video](https://www.loom.com/share/dcd185df50224279a0c2630b6ca6b04f)
+[![Overview Video](https://cdn.loom.com/sessions/thumbnails/dcd185df50224279a0c2630b6ca6b04f-1694639990490-with-play.gif)](https://www.loom.com/share/dcd185df50224279a0c2630b6ca6b04f)
 
 ## Compatibility
 
