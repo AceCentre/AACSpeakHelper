@@ -1,6 +1,7 @@
+# AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")
+
 <img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/translatepb.png' alt="Blue logo with translate icon" width="200">
 
-# AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")
 
 ## Introduction
 
@@ -274,5 +275,5 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 
 ## Troubleshooting
 
-As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that gTTS and translation services require an online connection. If you have any questions, suggestions, or contributions, feel free to create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
+As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, feel free to create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
 
