@@ -2,8 +2,6 @@
 
 <img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/translatepb.png' alt="Blue logo with translate icon" width="200">
 
-# Table of Contents
-
 1. [AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")](#aac-online-speak--translate-plug-in-for-windows-aac-speak-helper)
     - [Introduction](#introduction)
     - [Use Case](#use-case)
@@ -30,7 +28,6 @@
 7. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
 8. [Developer details](#developer-details)
 9. [Troubleshooting](#troubleshooting)
-
 
 
 ## Introduction
