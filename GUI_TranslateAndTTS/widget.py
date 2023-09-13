@@ -38,6 +38,7 @@ class Widget(QWidget):
         self.currentButton = None
         self.temp_config_file = None
         self.azure_row = None
+        self.cleaning = False
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
@@ -136,7 +137,9 @@ class Widget(QWidget):
             app_data_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
         elif __file__:
             app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-
+        self.audio_path = os.path.join(app_data_path, 'Audio Files')
+        self.ui.clear_cache.clicked.connect(self.cache_clear)
+        self.ui.open_cache.clicked.connect(self.cache_open)
         self.config_path = os.path.join(app_data_path, 'settings.cfg')
 
         self.config = configparser.ConfigParser()
@@ -425,15 +428,15 @@ class Widget(QWidget):
         end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
         prompt1 = False
         prompt2 = False
-        if self.notranslate:
-            if self.ttsEngine != "kurdishTTS":
-                if start_lang_is_Kurdish:
-                    prompt1 = True
-            else:
-                if not start_lang_is_Kurdish:
-                    prompt2 = True
+        # if self.notranslate:
+        #     if self.ttsEngine != "kurdishTTS":
+        #         if start_lang_is_Kurdish:
+        #             prompt1 = True
+        #     # else:
+        #     #     if not start_lang_is_Kurdish:
+        #     #         # prompt2 = True
 
-        else:
+        if not self.notranslate:
             if self.ttsEngine != "kurdishTTS":
                 if end_lang_is_Kurdish:
                     prompt1 = True
@@ -857,6 +860,19 @@ class Widget(QWidget):
                 self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                 break
 
+    def cache_open(self):
+        os.startfile(self.audio_path)
+
+    def cache_clear(self):
+        pool = QThreadPool.globalInstance()
+        runnable = Cleaner(self.audio_path)
+        runnable.signals.completed.connect(self.enableClearCache)
+        self.ui.clear_cache.setEnabled(False)
+        pool.start(runnable)
+
+    def enableClearCache(self):
+        self.ui.clear_cache.setEnabled(True)
+
 
 class Signals(QObject):
     started = Signal()
@@ -889,6 +905,27 @@ class Player(QRunnable):
             GUI_script_path = os.path.join(application_path, 'translatepb.py')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
+        self.signals.completed.emit()
+
+
+class Cleaner(QRunnable):
+
+    def __init__(self, path):
+        super().__init__()
+        self.path = path
+        self.signals = Signals()
+
+    def run(self):
+        try:
+            files = os.listdir(self.path)
+            for file in files:
+                file_path = os.path.join(self.path, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    print(f'{file_path} is deleted.')
+            print("All files deleted successfully.")
+        except OSError:
+            logging.error("Error occurred while deleting files.", exc_info=True)
         self.signals.completed.emit()
 
 
