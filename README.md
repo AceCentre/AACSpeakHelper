@@ -35,6 +35,21 @@ Run the installer. It will place the program in `C:\Program Files (x86)\Ace Cent
 
 After installation, navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a text editor or the `Configure TranslateAndTTS` app available in the Start Menu.
 
+Note: You can copy this settings file and have numerous versions of them - or make it and distribute to an end user. To run the application using a different config file you would use the ``--config filpath.cfg`` parameter
+
+### Step 4. Add in your support to your AAC software.
+
+See below for specific details but in short;
+
+- Add a button to *copy* the message bar (writing area)
+- Then have an action on this button to call the executable found at ``C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe``
+- Then its wise to wait around 5-10 seconds
+(and if translating text)
+- Clear the message bar
+- Paste the returning text back if you are translating
+
+You can of course test it out by running the app and having some text copied from a text file. Give it a go. 
+
 ## Supported Languages
 
 This tool supports a multitude of languages, provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
