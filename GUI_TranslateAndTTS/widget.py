@@ -925,7 +925,7 @@ class Cleaner(QRunnable):
                     print(f'{file_path} is deleted.')
             print("All files deleted successfully.")
         except OSError:
-            print("Error occurred while deleting files.")
+            logging.error("Error occurred while deleting files.", exc_info=True)
         self.signals.completed.emit()
 
 
