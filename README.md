@@ -2,6 +2,36 @@
 
 <img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/translatepb.png' alt="Blue logo with translate icon" width="200">
 
+# Table of Contents
+
+1. [AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")](#aac-online-speak--translate-plug-in-for-windows-aac-speak-helper)
+    - [Introduction](#introduction)
+    - [Use Case](#use-case)
+    - [Compatibility](#compatibility)
+    - [How it Works](#how-it-works)
+2. [Installation](#installation)
+    - [Step 1: Download](#step-1-download)
+    - [Step 2: Install](#step-2-install)
+    - [Step 3: Configure](#step-3-configure)
+    - [Step 4: Add in your support to your AAC software](#step-4-add-in-your-support-to-your-aac-software)
+3. [Supported Languages](#supported-languages)
+    - [Languages by Azure](#languages-by-azure)
+    - [Languages by Google Cloud](#languages-by-google-cloud)
+4. [Getting API Keys for TTS Services](#getting-api-keys-for-tts-services)
+    - [Azure TTS](#azure-tts)
+    - [Google Cloud TTS](#google-cloud-tts)
+5. [Using the style flag for Azure voices](#using-the-style-flag-for-azure-voices)
+6. [AAC Specific Guides](#aac-specific-guides)
+    - [Snap](#snap)
+    - [The Grid 3](#the-grid-3)
+    - [Communicator](#communicator)
+    - [NuVoice](#nuvoice)
+    - [MindExpress](#mindexpress)
+7. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
+8. [Developer details](#developer-details)
+9. [Troubleshooting](#troubleshooting)
+
+
 
 ## Introduction
 
