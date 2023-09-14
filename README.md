@@ -80,14 +80,66 @@ See below for specific details but in short;
 
 You can of course test it out by running the app and having some text copied from a text file. Give it a go. 
 
-## Command line arguments
 
-You can add a number of parameters to when you run translatepb.exe. You can use the short or long style -- parameter flags. 
+## Command-Line Flags
 
-    '-c', '--config' The Path to a defined config file. So follow it with a file path to the config file.
-    '-l', '--listvoices', List Voices to see whats available in the set TTS system
-    '-p', '--preview', Preview the voice only. Should be followed by a voice name
-    '-s', '--style', Add a style. Should be followed by one of the styles
+### General Usage
+	
+	`translatepb.exe [options]`
+
+
+### Options
+
+#### `-s, --style`
+- **Description**: Specifies the voice style for Azure Text-to-Speech.
+- **Type**: String
+- **Required**: No
+- **Default**: None
+- **Example**: `--style "sad"`
+
+#### `-sd, --styledegree`
+- **Description**: Specifies the degree of the style for Azure Text-to-Speech. This modifies the expressiveness of the voice style.
+- **Type**: Float
+- **Required**: No
+- **Range**: 0.01 to 2
+- **Default**: None
+- **Example**: `--styledegree 1.5`
+
+#### `-t, --text`
+- **Description**: The text you want to translate and/or speak.
+- **Type**: String
+- **Required**: No
+- **Default**: None
+- **Example**: `--text "Hello, world!"`
+
+#### `-l, --language`
+- **Description**: The language to which you want to translate the text.
+- **Type**: String
+- **Required**: No
+- **Default**: None
+- **Example**: `--language "fr"`
+
+#### `-e, --engine`
+- **Description**: The Text-to-Speech engine you want to use.
+- **Type**: String
+- **Required**: No
+- **Default**: None
+- **Example**: `--engine "azureTTS"`
+
+#### `-v, --voice`
+- **Description**: Specifies the voice ID for the Text-to-Speech engine.
+- **Type**: String
+- **Required**: No
+- **Default**: None
+- **Example**: `--voice "en-US-Guy24kRUS"`
+
+#### `-r, --rate`
+- **Description**: Specifies the rate/speed of the speech.
+- **Type**: Integer
+- **Required**: No
+- **Default**: None
+- **Example**: `--rate 500`
+
 
 ## Supported Languages
 
@@ -100,6 +152,9 @@ Please note. If you use any online TTS system the data is sent to a server and s
 
 
 ### Languages by Azure
+
+For the most up-to-date list see the list [here](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)
+
 - Afrikaans
 - Albanian
 - Amharic
