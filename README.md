@@ -116,6 +116,7 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 
 ## Languages by Azure
 
+|                   |                   |                   |
 |-------------------|-------------------|-------------------|
 | Afrikaans         | Armenian          | Azerbaijani       |
 | Albanian          | Amharic           | Bangla            |
@@ -149,6 +150,7 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 
 ## Languages by Google
 
+|                           |                           |                           |
 |---------------------------|---------------------------|---------------------------|
 | Afrikaans (South Africa)  | Arabic                    | Basque (Spain)            |
 | Bengali (India)           | Bulgarian (Bulgaria)      | Catalan (Spain)           |
