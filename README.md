@@ -59,7 +59,7 @@ Download the installer from [our latest release](https://github.com/AceCentre/Tr
 
 ### Step 2: Install
 
-Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\`.
+Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data etc are in  %AppData%\TranslateAndTTS` 
 
 ### Step 3: Configure
 
@@ -356,7 +356,7 @@ Sure. There are other tools - but sure.  Check out this powershell script
 
 	# Define the path to the text file and executable
 	$textFilePath = "C:\path\to\textfile.txt"
-	$executablePath = "C:\path\to\executable.exe"
+	$executablePath = "C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe"
 
 	# Check if text file exists
 	if (Test-Path $textFilePath) {
