@@ -12,22 +12,25 @@
     - [Step 2: Install](#step-2-install)
     - [Step 3: Configure](#step-3-configure)
     - [Step 4: Add in your support to your AAC software](#step-4-add-in-your-support-to-your-aac-software)
-3. [Supported Languages](#supported-languages)
+3, [Command line arguments](#command-line-arguments)
+4. [Supported Languages](#supported-languages)
     - [Languages by Azure](#languages-by-azure)
     - [Languages by Google Cloud](#languages-by-google-cloud)
-4. [Getting API Keys for TTS Services](#getting-api-keys-for-tts-services)
+5. [Getting API Keys for TTS Services](#getting-api-keys-for-tts-services)
     - [Azure TTS](#azure-tts)
     - [Google Cloud TTS](#google-cloud-tts)
-5. [Using the style flag for Azure voices](#using-the-style-flag-for-azure-voices)
-6. [AAC Specific Guides](#aac-specific-guides)
+6. [Using the style flag for Azure voices](#using-the-style-flag-for-azure-voices)
+7. [AAC Specific Guides](#aac-specific-guides)
     - [Snap](#snap)
     - [The Grid 3](#the-grid-3)
     - [Communicator](#communicator)
     - [NuVoice](#nuvoice)
     - [MindExpress](#mindexpress)
-7. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
-8. [Developer details](#developer-details)
-9. [Troubleshooting](#troubleshooting)
+8. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
+9. [Developer details](#developer-details)
+10. [Tips](#tips)
+	- [Can I use this to batch process a file of strings](#can-i-use-this-to-batch-process-a-file-of-strings)
+11. [Troubleshooting](#troubleshooting)
 
 
 ## Introduction
@@ -76,6 +79,15 @@ See below for specific details but in short;
 - Paste the returning text back if you are translating
 
 You can of course test it out by running the app and having some text copied from a text file. Give it a go. 
+
+## Command line arguments
+
+You can add a number of parameters to when you run translatepb.exe. You can use the short or long style -- parameter flags. 
+
+    '-c', '--config' The Path to a defined config file. So follow it with a file path to the config file.
+    '-l', '--listvoices', List Voices to see whats available in the set TTS system
+    '-p', '--preview', Preview the voice only. Should be followed by a voice name
+    '-s', '--style', Add a style. Should be followed by one of the styles
 
 ## Supported Languages
 
@@ -334,7 +346,37 @@ Use [this tool](https://www.lexilogos.com/keyboard/kurdish_conversion.htm) to co
 
 ## Developer details
 
-See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml)
+See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). Note it works on Python 3.10 or 3.11. The dependencies aren't well covered on all other versions (and there are a lot!)
+
+## Tips
+
+### Can I use this to batch process a file of strings?
+
+Sure. There are other tools - but sure.  Check out this powershell script
+
+	# Define the path to the text file and executable
+	$textFilePath = "C:\path\to\textfile.txt"
+	$executablePath = "C:\path\to\executable.exe"
+
+	# Check if text file exists
+	if (Test-Path $textFilePath) {
+		# Read each line of the text file
+		$lines = Get-Content $textFilePath
+	
+		# Iterate through each line
+		foreach ($line in $lines) {
+			# Copy the line to the clipboard
+			$line | Set-Clipboard
+		
+			# Run the executable
+			Start-Process $executablePath
+		
+			# Wait a bit before processing the next line (optional)
+			Start-Sleep -Seconds 2
+		}
+	} else {
+		Write-Host "Text file not found at $textFilePath"
+	}
 
 ## Troubleshooting
 
