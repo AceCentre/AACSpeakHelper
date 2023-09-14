@@ -81,6 +81,12 @@ You can of course test it out by running the app and having some text copied fro
 
 This tool supports a multitude of languages, provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
 
+*WARNING*
+
+Please note. If you use any online TTS system the data is sent to a server and sent back. These services do not store this data but it is up to you to check this and how it may work against your own IG policy.  The app does have a feature of 'caching' data too - but this is not sent to Ace or anyone else. Its all on device. 
+
+
+
 ### Languages by Azure
 - Afrikaans
 - Albanian
