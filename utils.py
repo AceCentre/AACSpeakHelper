@@ -239,6 +239,8 @@ parser.add_argument(
     '-p', '--preview', help='Preview Only', required=False, default=False, action="store_true")
 parser.add_argument(
     '-s', '--style', help='Voice style for Azure TTS', required=False, default='')
+parser.add_argument(
+    '-sd', '--styledegree', type=float, help='Degree of style for Azure TTS', required=False, default=None)
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
