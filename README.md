@@ -12,7 +12,7 @@
     - [Step 2: Install](#step-2-install)
     - [Step 3: Configure](#step-3-configure)
     - [Step 4: Add in your support to your AAC software](#step-4-add-in-your-support-to-your-aac-software)
-3, [Command line arguments](#command-line-arguments)
+3. [Command-Line Flags](#command-line-flags)
 4. [Supported Languages](#supported-languages)
     - [Languages by Azure](#languages-by-azure)
     - [Languages by Google Cloud](#languages-by-google-cloud)
@@ -29,8 +29,9 @@
 8. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
 9. [Developer details](#developer-details)
 10. [Tips](#tips)
-	- [Can I use this to batch process a file of strings](#can-i-use-this-to-batch-process-a-file-of-strings)
+    - [Can I use this to batch process a file of strings](#can-i-use-this-to-batch-process-a-file-of-strings)
 11. [Troubleshooting](#troubleshooting)
+
 
 
 ## Introduction
@@ -85,60 +86,20 @@ You can of course test it out by running the app and having some text copied fro
 
 ### General Usage
 	
-	`translatepb.exe [options]`
+	translatepb.exe [options]
 
 
 ### Options
 
-#### `-s, --style`
-- **Description**: Specifies the voice style for Azure Text-to-Speech.
-- **Type**: String
-- **Required**: No
-- **Default**: None
-- **Example**: `--style "sad"`
-
-#### `-sd, --styledegree`
-- **Description**: Specifies the degree of the style for Azure Text-to-Speech. This modifies the expressiveness of the voice style.
-- **Type**: Float
-- **Required**: No
-- **Range**: 0.01 to 2
-- **Default**: None
-- **Example**: `--styledegree 1.5`
-
-#### `-t, --text`
-- **Description**: The text you want to translate and/or speak.
-- **Type**: String
-- **Required**: No
-- **Default**: None
-- **Example**: `--text "Hello, world!"`
-
-#### `-l, --language`
-- **Description**: The language to which you want to translate the text.
-- **Type**: String
-- **Required**: No
-- **Default**: None
-- **Example**: `--language "fr"`
-
-#### `-e, --engine`
-- **Description**: The Text-to-Speech engine you want to use.
-- **Type**: String
-- **Required**: No
-- **Default**: None
-- **Example**: `--engine "azureTTS"`
-
-#### `-v, --voice`
-- **Description**: Specifies the voice ID for the Text-to-Speech engine.
-- **Type**: String
-- **Required**: No
-- **Default**: None
-- **Example**: `--voice "en-US-Guy24kRUS"`
-
-#### `-r, --rate`
-- **Description**: Specifies the rate/speed of the speech.
-- **Type**: Integer
-- **Required**: No
-- **Default**: None
-- **Example**: `--rate 500`
+| Flag           | Description                                               | Type   | Required | Default | Example            |
+|----------------|-----------------------------------------------------------|--------|----------|---------|--------------------|
+| `-s, --style`   | Specifies the voice style for Azure Text-to-Speech.       | String | No       | None    | `--style "sad"`    |
+| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--styledegree 1.5`|
+| `-t, --text`    | The text you want to translate and/or speak.              | String | No       | None    | `--text "Hello"`   |
+| `-l, --language`| The language to which you want to translate the text.     | String | No       | None    | `--language "fr"`  |
+| `-e, --engine`  | The Text-to-Speech engine you want to use.                | String | No       | None    | `--engine "azure"` |
+| `-v, --voice`   | Specifies the voice ID for the Text-to-Speech engine.     | String | No       | None    | `--voice "en-US"`  |
+| `-r, --rate`    | Specifies the rate/speed of the speech.                   | Int    | No       | None    | `--rate 500`       |
 
 
 ## Supported Languages
