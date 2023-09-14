@@ -116,121 +116,58 @@ Please note. If you use any online TTS system the data is sent to a server and s
 
 For the most up-to-date list see the list [here](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)
 
-- Afrikaans
-- Albanian
-- Amharic
-- Arabic
-- Armenian
-- Azerbaijani
-- Bangla
-- Bengali
-- Bosnian
-- Bulgarian
-- Burmese
-- Catalan
-- Chinese
-- Croatian
-- Czech
-- Danish
-- Dutch
-- English
-- Estonian
-- Filipino
-- Finnish
-- French
-- Galician
-- Georgian
-- German
-- Greek
-- Gujarati
-- Hebrew
-- Hindi
-- Hungarian
-- Icelandic
-- Indonesian
-- Irish
-- Italian
-- Japanese
-- Javanese
-- Kannada
-- Kazakh
-- Khmer
-- Korean
-- Lao
-- Latvian
-- Lithuanian
-- Macedonian
-- Malay
-- Malayalam
-- Maltese
-- Marathi
-- Mongolian
-- Nepali
-- Norwegian Bokmål
-- Pashto
-- Persian
-- Polish
-- Portuguese
-- Romanian
-- Russian
-- Serbian
-- Sinhala
-- Slovak
-- Slovenian
-- Somali
-- Spanish
-- Sundanese
-- Swahili
-- Swedish
-- Tamil
-- Telugu
-- Thai
-- Turkish
-- Ukrainian
-- Urdu
-- Uzbek
-- Vietnamese
-- Welsh
+## Languages by Azure
+
+|                   |                   |                   |
+|-------------------|-------------------|-------------------|
+| Afrikaans         | Armenian          | Azerbaijani       |
+| Albanian          | Amharic           | Bangla            |
+| Arabic            | Bengali           | Bosnian           |
+| Bulgarian         | Burmese           | Catalan           |
+| Chinese           | Croatian          | Czech             |
+| Danish            | Dutch             | English           |
+| Estonian          | Filipino          | Finnish           |
+| French            | Galician          | Georgian          |
+| German            | Greek             | Gujarati          |
+| Hebrew            | Hindi             | Hungarian         |
+| Icelandic         | Indonesian        | Irish             |
+| Italian           | Japanese          | Javanese          |
+| Kannada           | Kazakh            | Khmer             |
+| Korean            | Lao               | Latvian           |
+| Lithuanian        | Macedonian        | Malay             |
+| Malayalam         | Maltese           | Marathi           |
+| Mongolian         | Nepali            | Norwegian Bokmål  |
+| Pashto            | Persian           | Polish            |
+| Portuguese        | Romanian          | Russian           |
+| Serbian           | Sinhala           | Slovak            |
+| Slovenian         | Somali            | Spanish           |
+| Sundanese         | Swahili           | Swedish           |
+| Tamil             | Telugu            | Thai              |
+| Turkish           | Ukrainian         | Urdu              |
+| Uzbek             | Vietnamese        | Welsh             |
+
 
 ### Languages by Google Cloud
- - Afrikaans (South Africa)
- - Arabic
- - Basque (Spain)
- - Bengali (India)
- - Bulgarian (Bulgaria)
- - Catalan (Spain)
- - Chinese (Hong Kong)
- - Czech (Czech Republic)
- - Danish (Denmark)
- - Dutch (Belgium)
- - Dutch (Netherlands)
- - English (Australia)
- - English (India)
- - English (UK)
- - English (US)
- - Filipino (Philippines)
- - Finnish (Finland)
- - French (Canada)
- - French (France)
- - Galician (Spain)
- - German (Germany)
- - Greek (Greece)
- - Gujarati (India)
- - Hebrew (Israel)
- - Hindi (India)
- - Hungarian (Hungary)
- - Icelandic (Iceland)
- - Indonesian (Indonesia)
- - Italian (Italy)
- - Japanese (Japan)
- - Kannada (India)
- - Korean (South Korea)
- - Latvian (Latvia)
- - Lithuanian (Lithuania)
- - Malay (Malaysia)
- - Malayalam (India)
- - Mandarin Chinese
- - Marathi (India)
+
+
+## Languages by Google
+
+|                           |                           |                           |
+|---------------------------|---------------------------|---------------------------|
+| Afrikaans (South Africa)  | Arabic                    | Basque (Spain)            |
+| Bengali (India)           | Bulgarian (Bulgaria)      | Catalan (Spain)           |
+| Chinese (Hong Kong)       | Czech (Czech Republic)    | Danish (Denmark)          |
+| Dutch (Belgium)           | Dutch (Netherlands)       | English (Australia)       |
+| English (India)           | English (UK)              | English (US)              |
+| Filipino (Philippines)    | Finnish (Finland)         | French (Canada)           |
+| French (France)           | Galician (Spain)          | German (Germany)          |
+| Greek (Greece)            | Gujarati (India)          | Hebrew (Israel)           |
+| Hindi (India)             | Hungarian (Hungary)       | Icelandic (Iceland)       |
+| Indonesian (Indonesia)    | Italian (Italy)           | Japanese (Japan)          |
+| Kannada (India)           | Korean (South Korea)      | Latvian (Latvia)          |
+| Lithuanian (Lithuania)    | Malay (Malaysia)          | Malayalam (India)         |
+| Mandarin Chinese          | Marathi (India)           |                           |
+
 
 ## Getting API Keys for TTS Services
 
@@ -284,7 +221,7 @@ Enable the APIs that your service account will be using. For example, if you're 
 
 ## Using the style flag for Azure voices
 
-Note: You can use the ``--style`` flag on the command line for Azure voices. If you do this follow it by one of these style flags. 
+Note: You can use the ``--style`` flag on the command line for Azure voices. If you do this follow it by one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. 
 
 - advertisement_upbeat
 - affectionate
