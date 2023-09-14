@@ -95,11 +95,9 @@ You can of course test it out by running the app and having some text copied fro
 |----------------|-----------------------------------------------------------|--------|----------|---------|--------------------|
 | `-s, --style`   | Specifies the voice style for Azure Text-to-Speech.       | String | No       | None    | `--style "sad"`    |
 | `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--styledegree 1.5`|
-| `-t, --text`    | The text you want to translate and/or speak.              | String | No       | None    | `--text "Hello"`   |
-| `-l, --language`| The language to which you want to translate the text.     | String | No       | None    | `--language "fr"`  |
-| `-e, --engine`  | The Text-to-Speech engine you want to use.                | String | No       | None    | `--engine "azure"` |
-| `-v, --voice`   | Specifies the voice ID for the Text-to-Speech engine.     | String | No       | None    | `--voice "en-US"`  |
-| `-r, --rate`    | Specifies the rate/speed of the speech.                   | Int    | No       | None    | `--rate 500`       |
+| `-c, --config`    | Path to a defined config file            .              | String | No       | None    | `--text "C:\somepath\some.cfg"`   |
+| `-l, --listvoices`| List Voices to see whats available    				  | Bool   | No       | None    |                    |
+| `-p, --preview`  | Only preview the voice                                   | Book   | No       | None    |                    |
 
 
 ## Supported Languages
