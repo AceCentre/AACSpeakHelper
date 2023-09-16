@@ -219,42 +219,24 @@ Enable the APIs that your service account will be using. For example, if you're 
 
 ## Using the style flag for Azure voices
 
-Note: You can use the ``--style`` flag on the command line for Azure voices. If you do this follow it by one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. 
+Note: You can use the ``--style`` flag on the command line for Azure voices. If you do this follow it by one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. Be warned. Some voices don't have all styles. [Read the Azure docs for more info](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice#use-speaking-styles-and-roles). 
 
-- advertisement_upbeat
-- affectionate
-- angry
-- assistant
-- calm
-- chat
-- cheerful
-- customerservice
-- depressed
-- disgruntled
-- documentary-narration
-- embarrassed
-- empathetic
-- envious
-- excited
-- fearful
-- friendly
-- gentle
-- hopeful
-- lyrical
-- narration-professional
-- narration-relaxed
-- newscast
-- newscast-casual
-- newscast-formal
-- poetry-reading
-- sad
-- serious
-- shouting
-- sports_commentary
-- sports_commentary_excited
-- whispering
-- terrified
-- unfriendly
+
+|                   |                   |                   |
+|-------------------|-------------------|-------------------|
+| advertisement_upbeat | affectionate   | angry            |
+| assistant         | calm             | chat             |
+| cheerful          | customerservice  | depressed        |
+| disgruntled       | documentary-narration | embarrassed  |
+| empathetic        | envious          | excited          |
+| fearful           | friendly         | gentle           |
+| hopeful           | lyrical          | narration-professional |
+| narration-relaxed | newscast         | newscast-casual  |
+| newscast-formal   | poetry-reading   | sad              |
+| serious           | shouting         | sports_commentary |
+| sports_commentary_excited | whispering | terrified      |
+| unfriendly        |                   |                   |
+
 
 
 ## AAC Specific Guides
