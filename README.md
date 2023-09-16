@@ -36,21 +36,21 @@
 
 ## Introduction
 
-AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages, and uses Text-to-Speech (TTS) technology from a range of providers to read aloud the translated text. You can easily configure all these functionalities through our Configure app, and even maintain multiple settings files for different tasks.
+AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages. It uses multiple providers' Text-to-Speech (TTS) technology to read aloud the translated text. You can easily configure all these functionalities through our Configure app and maintain numerous settings files for different tasks.
 
 ## Use Case
 
-Imagine you are a Ukrainian speaker with limited English skills, residing in a care facility. AAC Speak Helper acts as a bridge between you and your caregivers, translating your Ukrainian text into English. Moreover, it also supports people who need to speak in languages that are less commonly supported, by using TTS technology.
+Imagine you are a Ukrainian speaker with limited English skills residing in a care facility. AAC Speak Helper bridges you and your caregivers, translating Ukrainian text into English. Moreover, it supports people who need to speak languages less commonly supported by TTS technology.
 
 [![Overview Video](https://cdn.loom.com/sessions/thumbnails/dcd185df50224279a0c2630b6ca6b04f-1694639990490-with-play.gif)](https://www.loom.com/share/dcd185df50224279a0c2630b6ca6b04f)
 
 ## Compatibility
 
-AAC Speak Helper is a lightweight Windows executable. It can be called from any AAC app on Windows that has the capability to run external programs.
+AAC Speak Helper is a lightweight Windows executable. It can be called from any AAC app on Windows that can run external programs.
 
 ## How it Works
 
-Once text is copied to the clipboard (using Ctrl+C), AAC Speak Helper reads that text. Depending on the configuration settings, it either translates the text using the selected service and speaks it aloud or simply reads the text. There are additional features such as putting intonation (or style) onto some voices.  We have a little graphical application that can configure the app. The main application though has no interface. 
+AAC Speak Helper reads the text once the text is copied to the clipboard (using Ctrl+C). Depending on the configuration settings, it either translates the text using the selected service, speaks it aloud, or reads it. There are additional features, such as putting intonation (or style) onto some voices. We have a graphical application that can configure the app. The main application, though, has no interface. 
 
 ## Installation
 
@@ -60,35 +60,35 @@ Download the installer from [our latest release](https://github.com/AceCentre/Tr
 
 ### Step 2: Install
 
-Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data etc are in  `%AppData%\TranslateAndTTS` 
+Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data, etc., are in  `%AppData%\TranslateAndTTS` 
 
 ### Step 3: Configure
 
-After installation you need to configure the application. If you don't it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS` which you can find in your start menu and Desktop. 
+After installation, you need to configure the application. If you don't, it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS`, which you can find in your start menu and Desktop. 
 
 <img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png' alt="Screenshot of Configure App" width="400">
 
 A few things to note:
-- Choose your TTS engine. Note only SAPI is fully offline. The others will cache their data as you use it. Azure and Google you will need keys for ([see below](#getting-api-keys-for-tts-services)). gTTS is free but limited. If you go to https://translate.google.com and you choose a language to translate to - if a voice is available for that language it will use that. There is no choice in voice - its set by the Target Language found when you tick the "translate" box. Kurdish TTS is a special case. See notes on that [below](#specific-notes-on-kurdish-tts). 
-- Stats we collect is minimal. We do not identify the user personally. Just each time its run and what TTS engine you use. (Interested to see what exactly? See our code [here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271))
-- Translate. You can use the free service - which is [myMemory](http://mymemory.translated.net). If you find this poor coverage for your language pair then you can use a paid tier by putting in your keys into the app. [DeepL](https://www.deepl.com/translator) has good all round coverage and is well regarded. 
+- Choose your TTS engine. Note only SAPI is entirely offline. The others will cache their data as you use it. Azure and Google, you will need keys for ([see below](#getting-api-keys-for-tts-services)). gTTS is free but limited. If you go to https://translate.google.com and choose a language to translate to, it will use that language if a voice is available. There is no choice in voice - it's set by the Target Language found when you tick the "translate" box. Kurdish TTS is a particular case. See notes on that [below](#specific-notes-on-kurdish-tts). 
+- The stats we collect are minimal. We do not identify the user personally. Just each time it's run and what TTS engine you use. (Interested to see what exactly? See our code [here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271))
+- Translate. You can use the free service - which is [myMemory](http://mymemory.translated.net). If you find this poor coverage for your language pair, you can use a paid tier by putting your keys into the app. [DeepL](https://www.deepl.com/translator) has an excellent all-round range and is well regarded. 
 
-You can edit the settings file by hand if you wish. To do this navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
+You can edit the settings file by hand if you wish. To do this, navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
 
-**Note: You can copy this settings file and have numerous versions of them - or make it and distribute to an end user. To run the application using a different config file you would use the ``--config filpath.cfg`` parameter**
+**Note: You can copy this settings file and have numerous versions of them - or make it and distribute it to an end user. You would use the ``--config file path to run the application using a different config file.cfg`` parameter**
 
-### Step 4. Add in your support to your AAC software.
+### Step 4. Add your support to your AAC software.
 
-See below for specific details but in short;
+See below for specific details, but in short;
 
 - Add a button to *copy* the message bar (writing area)
 - Then have an action on this button to call the executable found at ``C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe``
-- Then its wise to wait around 5-10 seconds
+- Then it's wise to wait around 5-10 seconds
 (and if translating text)
 - Clear the message bar
 - Paste the returning text back if you are translating
 
-You can of course test it out by running the app and having some text copied from a text file. Give it a go. 
+You can test it by copying some text from a text file and running the app. Give it a go. 
 
 
 ## Command-Line Flags
@@ -103,19 +103,19 @@ You can of course test it out by running the app and having some text copied fro
 | Flag           | Description                                               | Type   | Required | Default | Example            |
 |----------------|-----------------------------------------------------------|--------|----------|---------|--------------------|
 | `-s, --style`   | Specifies the voice style for Azure Text-to-Speech.       | String | No       | None    | `--style "sad"`    |
-| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--styledegree 1.5`|
+| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--style degree 1.5`|
 | `-c, --config`    | Path to a defined config file            .              | String | No       | None    | `--text "C:\somepath\some.cfg"`   |
-| `-l, --listvoices`| List Voices to see whats available    				  | Bool   | No       | None    |                    |
+| `-l, --listvoices`| List Voices to see what's available    				  | Bool   | No       | None    |                    |
 | `-p, --preview`  | Only preview the voice                                   | Book   | No       | None    |                    |
 
 
 ## Supported Languages
 
-This tool supports a multitude of languages, provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
+This tool supports a multitude of languages provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
 
 *WARNING*
 
-Please note. If you use any online TTS system the data is sent to a server and sent back. These services do not store this data but it is up to you to check this and how it may work against your own IG policy.  The app does have a feature of 'caching' data too - but this is not sent to Ace or anyone else. Its all on device. 
+Please note. If you use any online TTS system, the data is sent to a server and sent back. These services do not store this data, but it is up to you to check this and how it may work against your own IG policy. The app does have a feature of 'caching' data, too - but this is not sent to Ace or anyone else. It's all on the device. 
 
 
 
@@ -180,7 +180,7 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 
 ### Azure TTS
 
-- You first need Azure subscription - [Create one for free](https://azure.microsoft.com/free/cognitive-services).
+- You first need an Azure subscription - [Create one for free](https://azure.microsoft.com/free/cognitive-services).
 - [Create a Speech resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeechServices) in the Azure portal.
 - Your Speech resource key and region. After your Speech resource is deployed, select Go to resource to view and manage keys. For more information about Azure AI services resources, see [Get the keys for your resource](https://learn.microsoft.com/en-us/azure/ai-services/multi-service-resource?pivots=azportal#get-the-keys-for-your-resource)
 
@@ -194,7 +194,7 @@ Create a Service Account:
 Visit the [Google Cloud Console](https://console.cloud.google.com/).
 
 2. Create a New Project:
-If you don't have a project already, create a new project in the developer console.
+If you don't already have a project, create a new one in the developer console.
 
 3. Enable APIs:
 Enable the APIs that your service account will be using. For example, if you're using Google Drive API, enable that API for your project.
@@ -207,7 +207,7 @@ Enable the APIs that your service account will be using. For example, if you're 
 - Click "Continue" to proceed.
 
 5. Create and Download Credentials:
-- On the next screen, you can choose to grant the service account a role on your project. You can also skip this step and grant roles later.
+- On the next screen, you can grant the service account a role in your project. You can also skip this step and grant roles later.
 - Click "Create Key" to create and download the JSON key file. This file contains the credentials for your service account.
 - Keep this JSON file secure and do not expose it publicly.
 
@@ -219,7 +219,7 @@ Enable the APIs that your service account will be using. For example, if you're 
 
 ## Using the style flag for Azure voices
 
-Note: You can use the ``--style`` flag on the command line for Azure voices. If you do this follow it by one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. Be warned. Some voices don't have all styles. [Read the Azure docs for more info](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice#use-speaking-styles-and-roles). 
+You can use the command line's ``--style`` flag for Azure voices. If you do this, follow it with one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. Be warned. Some voices don't have all styles. [Read the Azure docs for more info](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice#use-speaking-styles-and-roles). 
 
 
 |                   |                   |                   |
@@ -259,23 +259,23 @@ See the demo pageset [here](https://github.com/AceCentre/TranslateAndTTS/tree/ma
 
 ### MindExpress
 
-Don't bother - MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
+Don't bother: MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
 
 ## Specific notes on Kurdish TTS
 
 We are using the web system found at http://tts.kurdishspeech.com
 
 - Maximum characters is 2000 characters per entry
-- The Web endpoint can deal with latin characters or Arabic. You need to use the setting to allow latin characters if the text is in latin characters. It cant deal with mixed input
-- Its typical for Kurdish speakers to use a latin (QWERTY - US English layoout) 
-- You can have a Kurdish layout too - or use the language input of your computer to do the conversion
+- The Web endpoint can deal with Latin characters or Arabic. You must use the setting to allow Latin characters if the text is in Latin. It can deal with mixed input
+- It's typical for Kurdish speakers to use a Latin (QWERTY - US English layout) 
+- You can have a Kurdish layout, too - or use the language input of your computer to do the conversion
 
 See [here](https://kurdishcentral.org/sorani-keyboard-layout/) for some details on the layout. 
 
 Use [this tool](https://www.lexilogos.com/keyboard/kurdish_conversion.htm) to convert arabic to Latin characters
 
-- You need to have the settings set for latin or not
-- It is wise to  cache results. You may ned to set your cache to 0 to clear the cache if there is audio that goes wrong 
+- You need to have the settings set for Latin or not
+- It is wise to cache results. You may need to set your cache to 0 to clear the cache if there is audio that goes wrong 
 
 ## Developer details
 
@@ -283,9 +283,9 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 
 ## Tips
 
-### Can I use this to batch process a file of strings?
+### Can I use this to batch-process a file of strings?
 
-Sure. You may want to do this for example to create a audio files for some phrases for a bilingual speaker. There are other tools to do this but this is possible. You can just copy your text and run the main application - then look at the cache directory for the audio file. But if you want to autoate this check out this powershell script
+Sure. You may want to do this, for example, to create audio files for some phrases for a bilingual speaker. There are other tools to do this, but this is possible. You can just copy your text and run the main application - then look at the cache directory for the audio file. But if you want to automate this, check out this Powershell script
 
 	# Define the path to the text file and executable
 	$textFilePath = "C:\path\to\textfile.txt"
@@ -313,5 +313,5 @@ Sure. You may want to do this for example to create a audio files for some phras
 
 ## Troubleshooting
 
-As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, feel free to create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
+As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, please create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
 
