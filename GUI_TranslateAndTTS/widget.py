@@ -231,9 +231,12 @@ class Widget(QWidget):
             self.set_google_voice(self.voiceidGoogle)
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
-
-            item = self.ui.listWidget_sapi.findItems(item[0], PySide6.QtCore.Qt.MatchExactly)
-            self.ui.listWidget_sapi.setCurrentItem(item[0])
+            if len(item) > 0:
+                item = self.ui.listWidget_sapi.findItems(item[0], PySide6.QtCore.Qt.MatchExactly)
+                self.ui.listWidget_sapi.setCurrentItem(item[0])
+            elif self.ui.listWidget_sapi.count() > 0:
+                self.ui.listWidget_sapi.setCurrentRow(0)
+                self.ui.listWidget_sapi.setCurrentItem(self.ui.listWidget_sapi.item(0))
 
             self.ui.checkBox_translate.setChecked(not self.notranslate)
             self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
