@@ -285,7 +285,7 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 
 ### Can I use this to batch process a file of strings?
 
-Sure. There are other tools - but sure.  Check out this powershell script
+Sure. You may want to do this for example to create a audio files for some phrases for a bilingual speaker. There are other tools to do this but this is possible. You can just copy your text and run the main application - then look at the cache directory for the audio file. But if you want to autoate this check out this powershell script
 
 	# Define the path to the text file and executable
 	$textFilePath = "C:\path\to\textfile.txt"
