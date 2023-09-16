@@ -147,7 +147,7 @@ def get_uuid():
 
 def notify_posthog(id: str, event_name: str, properties: dict = {}):
     try:
-        posthog_client = posthog.Posthog(project_api_key='phc_L5wgGTFZYVC1q8Hk7Qu0dp3YKuU1OUPSPGAx7kADWcs',
+        posthog_client = posthog.Posthog(project_api_key='phc_q37FBcmTQD1hHtNBgqvs9wid45gKjGKEJGduRkPog0t',
                                          host='https://app.posthog.com')
         # Attempt to send the event to PostHog
         posthog_client.capture(distinct_id=id, event=event_name, properties=properties)
