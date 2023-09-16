@@ -116,8 +116,8 @@ You can test it by copying some text from a text file and running the app. Give 
 | Flag           | Description                                               | Type   | Required | Default | Example            |
 |----------------|-----------------------------------------------------------|--------|----------|---------|--------------------|
 | `-s, --style`   | Specifies the voice style for Azure Text-to-Speech.       | String | No       | None    | `--style "sad"`    |
-| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--style degree 1.5`|
-| `-c, --config`    | Path to a defined config file            .              | String | No       | None    | `--text "C:\somepath\some.cfg"`   |
+| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--styledegree 1.5`|
+| `-c, --config`    | Path to a defined config file            .              | String | No       | None    | `--config "C:\somepath\some.cfg"`   |
 | `-l, --listvoices`| List Voices to see what's available    				  | Bool   | No       | None    |                    |
 | `-p, --preview`  | Only preview the voice                                   | Book   | No       | None    |                    |
 
@@ -126,9 +126,9 @@ You can test it by copying some text from a text file and running the app. Give 
 
 This tool supports a multitude of languages provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
 
-*WARNING*
+***WARNING***
 
-Please note. If you use any online TTS system, the data is sent to a server and sent back. These services do not store this data, but it is up to you to check this and how it may work against your own IG policy. The app does have a feature of 'caching' data, too - but this is not sent to Ace or anyone else. It's all on the device. 
+#### Please note. If you use any online TTS system, the data is sent to a server and sent back. These services do not store this data, but it is up to you to check this and how it may work against your own IG policy. The app does have a feature of 'caching' data, too - but this is not sent to Ace or anyone else. It's all on the device. 
 
 
 
