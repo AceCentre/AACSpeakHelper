@@ -274,7 +274,8 @@ if Allow_Collecting_Stats:
     event_name = 'App Run'
     event_properties = {
         'uuid': distinct_id,
-        'source': 'app',
+        'source': 'helperApp',
+        'version': '1.1',
         'fromLang': config.get('translate', 'startlang'),
         'toLang': config.get('translate', 'endlang'),
         'ttsengine': config.get('TTS', 'engine'),
