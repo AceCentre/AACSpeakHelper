@@ -68,10 +68,23 @@ After installation, you need to configure the application. If you don't, it will
 
 <img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png' alt="Screenshot of Configure App" width="400">
 
-A few things to note:
-- Choose your TTS engine. Note only SAPI is entirely offline. The others will cache their data as you use it. Azure and Google, you will need keys for ([see below](#getting-api-keys-for-tts-services)). gTTS is free but limited. If you go to https://translate.google.com and choose a language to translate to, it will use that language if a voice is available. There is no choice in voice - it's set by the Target Language found when you tick the "translate" box. Kurdish TTS is a particular case. See notes on that [below](#specific-notes-on-kurdish-tts). 
-- The stats we collect are minimal. We do not identify the user personally. Just each time it's run and what TTS engine you use. (Interested to see what exactly? See our code [here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271))
-- Translate. You can use the free service - which is [myMemory](http://mymemory.translated.net). If you find this poor coverage for your language pair, you can use a paid tier by putting your keys into the app. [DeepL](https://www.deepl.com/translator) has an excellent all-round range and is well regarded. 
+#### Notes on the configuration options
+
+##### Text-to-Speech (TTS) Engine Selection
+- **Offline Support**: Only the SAPI engine operates entirely offline.
+- **API Keys**: For Azure and Google TTS, you'll need to obtain API keys. [Learn how to get them](#getting-api-keys-for-tts-services).
+- **gTTS**: This is a free but limited option. The voice and language are determined by your **target lang** in translate. The way this works is it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So not all languages are supported. 
+- **Kurdish TTS**: This engine has specific requirements. [See details](#specific-notes-on-kurdish-tts).
+
+##### Data Collection
+- **Minimal Tracking**: We collect basic usage statistics but do not personally identify users.
+- **Transparency**: To see the exact data we collect, [view our code here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271).
+
+##### Translation Services
+- **Setting Languages**: The most crucial step is to set both the **Writing** and **Target** languages.
+- **Free Tier**: The default free service is [myMemory](http://mymemory.translated.net). If you find it lacking for your language pair, you can switch to a paid service.
+- **Paid Tier**: [DeepL](https://www.deepl.com/translator) offers comprehensive language coverage and is highly recommended. But you may want to try the others. 
+- **AAC Software Integration**: To make the translated string available in your AAC software, check the box to overwrite the clipboard. 
 
 You can edit the settings file by hand if you wish. To do this, navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
 
