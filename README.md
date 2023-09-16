@@ -36,7 +36,7 @@
 
 ## Introduction
 
-AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard, offers translation services in various languages, and uses Text-to-Speech (TTS) technology to read aloud the translated text. This tool uses either Google or Azure Cloud TTS to provide a wide range of languages and voices. You can easily configure all these functionalities through our Configure app, and even maintain multiple settings files for different tasks.
+AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages, and uses Text-to-Speech (TTS) technology from a range of providers to read aloud the translated text. You can easily configure all these functionalities through our Configure app, and even maintain multiple settings files for different tasks.
 
 ## Use Case
 
@@ -50,7 +50,7 @@ AAC Speak Helper is a lightweight Windows executable. It can be called from any 
 
 ## How it Works
 
-Once text is copied to the clipboard (using Ctrl+C), AAC Speak Helper reads that text. Depending on the configuration settings, it either translates the text using the selected service and speaks it aloud or simply reads the text.
+Once text is copied to the clipboard (using Ctrl+C), AAC Speak Helper reads that text. Depending on the configuration settings, it either translates the text using the selected service and speaks it aloud or simply reads the text. There are additional features such as putting intonation (or style) onto some voices.  We have a little graphical application that can configure the app. The main application though has no interface. 
 
 ## Installation
 
@@ -60,13 +60,22 @@ Download the installer from [our latest release](https://github.com/AceCentre/Tr
 
 ### Step 2: Install
 
-Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data etc are in  %AppData%\TranslateAndTTS` 
+Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data etc are in  `%AppData%\TranslateAndTTS` 
 
 ### Step 3: Configure
 
-After installation, navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a text editor or the `Configure TranslateAndTTS` app available in the Start Menu.
+After installation you need to configure the application. If you don't it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS` which you can find in your start menu and Desktop. 
 
-Note: You can copy this settings file and have numerous versions of them - or make it and distribute to an end user. To run the application using a different config file you would use the ``--config filpath.cfg`` parameter
+<img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png' alt="Screenshot of Configure App" width="400">
+
+A few things to note:
+- Choose your TTS engine. Note only SAPI is fully offline. The others will cache their data as you use it. Azure and Google you will need keys for (see below). gTTS is free but limited. If you go to https://translate.google.com and you choose a language to translate to - if a voice is available for that language it will use that. There is no choice in voice - its set by the Target Language found when you tick the "translate" box. Kurdish TTS is a special case. See notes on that below. 
+- Stats we collect is minimal. We do not identify the user personally. Just each time its run and what TTS engine you use. 
+- Translate. 
+
+You can edit the settings file by hand if you wish. To do this navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
+
+**Note: You can copy this settings file and have numerous versions of them - or make it and distribute to an end user. To run the application using a different config file you would use the ``--config filpath.cfg`` parameter**
 
 ### Step 4. Add in your support to your AAC software.
 
@@ -178,15 +187,6 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 ### Google Cloud TTS
 
 Creating a service account for OAuth 2.0 involves generating credentials for a non-human user, often used in server-to-server interactions. Here's how you can create OAuth 2.0 credentials using a service account for Google APIs:
-
-Go to the Google Cloud Console:
-Visit the Google Cloud Console.
-
-Create a New Project:
-If you don't have a project already, create a new project in the developer console.
-
-Enable APIs:
-Enable the APIs that your service account will be using. For example, if you're using Google Drive API, enable that API for your project.
 
 Create a Service Account:
 
