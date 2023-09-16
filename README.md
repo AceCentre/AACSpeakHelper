@@ -71,7 +71,7 @@ After installation you need to configure the application. If you don't it will d
 A few things to note:
 - Choose your TTS engine. Note only SAPI is fully offline. The others will cache their data as you use it. Azure and Google you will need keys for (see below). gTTS is free but limited. If you go to https://translate.google.com and you choose a language to translate to - if a voice is available for that language it will use that. There is no choice in voice - its set by the Target Language found when you tick the "translate" box. Kurdish TTS is a special case. See notes on that below. 
 - Stats we collect is minimal. We do not identify the user personally. Just each time its run and what TTS engine you use. 
-- Translate. 
+- Translate. You can use the free service - which is [myMemory](http://mymemory.translated.net). If you find this poor coverage for your language pair then you can use a paid tier by putting in your keys into the app. [DeepL](https://www.deepl.com/translator) has good all round coverage and is well regarded. 
 
 You can edit the settings file by hand if you wish. To do this navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
 
