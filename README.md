@@ -30,6 +30,7 @@
 9. [Developer details](#developer-details)
 10. [Tips](#tips)
     - [Can I use this to batch process a file of strings](#can-i-use-this-to-batch-process-a-file-of-strings)
+    - [Using RHVoice for minority Languages offline](#using-rhvoice-for-minority-languages-offline)
 11. [Troubleshooting](#troubleshooting)
 
 
@@ -323,6 +324,22 @@ Sure. You may want to do this, for example, to create audio files for some phras
 	} else {
 		Write-Host "Text file not found at $textFilePath"
 	}
+
+### Using RHVoice for minority languages offline
+
+[RHVoice](https://rhvoice.org) is a great project creating TTS Systems for minority languages. Its also great because they work offline. This isnt so much of a tip but a reminder that the project exists. To install SAPI voices for this system see the [prebuilt binaries here](https://github.com/RHVoice/RHVoice/blob/master/doc/en/Binaries.md). RHVoice supports:
+
+- American and Scottish English
+- Brazilian Portuguese
+- Esperanto
+- Georgian
+- Ukrainian
+- Kyrgyz
+- Tatar
+- Macedonian
+- Albanian
+- Polish
+
 
 ## Troubleshooting
 
