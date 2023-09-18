@@ -26,6 +26,12 @@ from google.cloud import texttospeech
 from google.oauth2 import service_account
 from langcodes import Language
 
+logging.basicConfig(filename=os.path.join(os.getenv('APPDATA'), "TranslateAndTTS", 'debug.log'),
+                    filemode='a',
+                    format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+                    level=logging.DEBUG,
+                    force=True)
+
 
 class Widget(QWidget):
     def __init__(self, parent=None):
@@ -110,8 +116,10 @@ class Widget(QWidget):
 
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-
-        voices_sapi = pyttsx3.init('sapi5').getProperty('voices')
+        try:
+            voices_sapi = pyttsx3.init('sapi5').getProperty('voices')
+        except Exception as error:
+            logging.info(f"{error}", exc_info=True)
         self.voices_sapi_dict = {}
         for voice in voices_sapi:
             import re
@@ -128,8 +136,9 @@ class Widget(QWidget):
                 name = name_match.group(1).strip()
 
                 self.voices_sapi_dict[name] = voice_id
-
+        logging.info(f"SAPI5 voice list: {self.voices_sapi_dict}")
         self.ui.listWidget_sapi.addItems(self.voices_sapi_dict.keys())
+        logging.info(f"SAPI5 voice count: {self.ui.listWidget_sapi.count()}")
         self.ui.listWidget_sapi.setCurrentRow(0)
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
@@ -231,14 +240,17 @@ class Widget(QWidget):
             self.set_google_voice(self.voiceidGoogle)
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
-
+            logging.info(f"SAPI5 voice current item: {item}")
             if len(item) > 0:
                 item = self.ui.listWidget_sapi.findItems(item[0], PySide6.QtCore.Qt.MatchExactly)
                 self.ui.listWidget_sapi.setCurrentItem(item[0])
+                logging.info(f"SAPI5 voice is detected.")
             elif self.ui.listWidget_sapi.count() > 0:
                 self.ui.listWidget_sapi.setCurrentRow(0)
                 self.ui.listWidget_sapi.setCurrentItem(self.ui.listWidget_sapi.item(0))
-
+                logging.info(f"SAPI5 voice is detected but different voice is chosen as default.")
+            else:
+                logging.info(f"SAPI5 voice is not detected.")
             self.ui.checkBox_translate.setChecked(not self.notranslate)
             self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
             self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
@@ -634,7 +646,7 @@ class Widget(QWidget):
             pass
 
     def generate_azure_voice_models(self):
-        self.ui.search_azure.hide()
+        #self.ui.search_azure.hide()
         self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
         voices = self.get_azure_voices()
@@ -774,7 +786,7 @@ class Widget(QWidget):
         return self.voice_google_list
 
     def generate_google_voice_models(self):
-        self.ui.search_goggle.hide()
+        #self.ui.search_goggle.hide()
         self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
         voices = self.get_google_voices()
