@@ -147,7 +147,7 @@ def get_uuid():
 
 def notify_posthog(id: str, event_name: str, properties: dict = {}):
     try:
-        posthog_client = posthog.Posthog(project_api_key='phc_L5wgGTFZYVC1q8Hk7Qu0dp3YKuU1OUPSPGAx7kADWcs',
+        posthog_client = posthog.Posthog(project_api_key='phc_q37FBcmTQD1hHtNBgqvs9wid45gKjGKEJGduRkPog0t',
                                          host='https://app.posthog.com')
         # Attempt to send the event to PostHog
         posthog_client.capture(distinct_id=id, event=event_name, properties=properties)
@@ -239,6 +239,8 @@ parser.add_argument(
     '-p', '--preview', help='Preview Only', required=False, default=False, action="store_true")
 parser.add_argument(
     '-s', '--style', help='Voice style for Azure TTS', required=False, default='')
+parser.add_argument(
+    '-sd', '--styledegree', type=float, help='Degree of style for Azure TTS', required=False, default=None)
 args = vars(parser.parse_args())
 logging.info(str(args))
 (config_path, audio_files_path) = get_paths(args=args)
@@ -272,7 +274,8 @@ if Allow_Collecting_Stats:
     event_name = 'App Run'
     event_properties = {
         'uuid': distinct_id,
-        'source': 'app',
+        'source': 'helperApp',
+        'version': '1.1',
         'fromLang': config.get('translate', 'startlang'),
         'toLang': config.get('translate', 'endlang'),
         'ttsengine': config.get('TTS', 'engine'),

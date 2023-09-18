@@ -75,7 +75,7 @@ def speak(text=''):
         gSpeak(text, ttsengine)
     elif ttsengine == 'azureTTS':
         if args['style']:
-            azureSpeak(text, ttsengine, args['style'])
+            azureSpeak(text, ttsengine, args['style'], args['styledegree'])
         else:
             azureSpeak(text, ttsengine)
     elif ttsengine == 'gTTS':
@@ -93,7 +93,7 @@ def speak(text=''):
         engine.runAndWait()
 
 
-def azureSpeak(text: str, engine, style: str = None):
+def azureSpeak(text: str, engine, style: str = None,  styledegree: float = None):
     # Add your key and endpoint
     key = config.get('azureTTS', 'key')
     location = config.get('azureTTS', 'location')
@@ -106,7 +106,10 @@ def azureSpeak(text: str, engine, style: str = None):
         # Check if the provided style is in the valid styles array
         if style in VALID_STYLES:
             # Construct SSML with the specified style
-            ssml = f"""<mstts:express-as style="{style}">{text}</mstts:express-as>"""
+            ssml = f'<mstts:express-as style="{style}"'
+            if styledegree:
+                ssml += f' styledegree="{styledegree}"'
+            ssml += f'>{text}</mstts:express-as>'
         else:
             # Style is not valid, use default SSML without style
             ssml = text

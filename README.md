@@ -1,104 +1,200 @@
-# TranslateAndTTS
+# AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")
 
-Copies the pasteboard. Translates to defined lang, Reads aloud and replaces pasteboard with translated text. You can can configure it all with our Configure app - and use multiple different settings files for different actions. Using Google or Azure Cloud TTS we have a greater range of languages and voices than any current AAC solution. 
+<img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/translatepb.png' alt="Blue logo with translate icon" width="200">
 
-## Who needs this
-
-Imagine the scenario. You rely on technology to communicate, but you only speak in Ukranian and have little expressive skills in English. You are in a care setting. We need a quick translation tool using your existing technology to translate from your known language to English so you can communicate with your carers. This does that. 
-
-It also allows people who natively need to speak in less well supported languages  a way of using text to speech. 
-
-![Short demo video](https://img.youtube.com/vi/c6zSPYZ4T10/maxresdefault.jpg)(https://www.youtube.com/watch?v=c6zSPYZ4T10)
-
-## What does it work with?
-
-It's a small windows executable. You call it from your Windows AAC app if it has a way of running external programs. Most Windows AAC apps can. 
-
-## How does it work?
-
-So as long as some text is in the copy buffer (e.g. ctrl+c) - it will then read that text. Depending on the settings file it will then either translate that text using the preferred service and then speak it out loud - or just speak out loud the passed string. 
-
-## Where do I download it?
-
-We have an installer - which you can find [here](https://github.com/AceCentre/TranslateAndTTS/releases/latest). Our instructions and demo pages for devices are using the installer. 
-
-## How do I install it?
-
-Run the installer. It will put the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\`
-
-Next, you will need to edit the *settings.cfg* file. Find this at  `%AppData%\TranslateAndTTS` (NB: Put this path into the file explorer) - However its easiest setting this up with the `Configure TranslateAndTTS` app which is found in your Start Menu
-
-You can also edit do this in a plain text editor such as Notepad. It Looks like this:
-
-	[App]
-	uuid = ce79bca5-691d-4cb2-8a8c-6fb7b74d4ce6
-	# We collect anonymous aggregrate stats. Like how many times it was installed. To turn this off set to false
-	collectstats = True
-
-	[translate]
-	# Want to JUST speak  - set this to true
-	notranslate = False
-	# What language do you write in?
-	startlang = en
-	# What language do you translate to?
-	endlang = es
-	# If you do not want to overwrite the pasteboard with the translated text set to False
-	replacepb = True
-	# MyMemoryProvider is free - but if you want to increase the amount of translations place here a key for one of the services
-	# Set provider to the name of the service
-	provider = MyMemoryProvider
-	mymemoryprovider_secret_key = 
-	email = 
-	libreprovider_secret_key = 
-	url = 
-	deeplprovider_secret_key = 
-	deepl_pro = false
-	microsoftprovider_secret_key = 
-	region = 
-
-	[TTS]
-	# We can use quite a wide array of Text to Speech engines 
-	# Engine = azureTTS, googleTTS, kurdishTTS, sapi5 (windows), coqui_ai_tts nsss (mac), espeak, gTTS (Free - voice that comes from Google Translate), Google cloud and Azure both need API keys
-	engine = gTTS
-	save_audio_file = True
-	voiceid = 
-	rate = 100
-	volume = 100
-
-	[azureTTS]
-	key = 
-	location = 
-	voiceid = en-US-JennyNeural
-
-	[googleTTS]
-	creds_file = //mac/Home/Downloads/ttsandtranslate-d51533198395.json
-	voiceid = en-US-Wavenet-C
-
-	[sapi5TTS]
-	voiceid = HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0
-
-	[kurdishTTS]
-	latin = true
-	punctuation = false
+1. [AAC Online Speak & Translate Plug-in for Windows ("AAC Speak Helper")](#aac-online-speak--translate-plug-in-for-windows-aac-speak-helper)
+    - [Introduction](#introduction)
+    - [Use Case](#use-case)
+    - [Compatibility](#compatibility)
+    - [How it Works](#how-it-works)
+2. [Installation](#installation)
+    - [Step 1: Download](#step-1-download)
+    - [Step 2: Install](#step-2-install)
+    - [Step 3: Configure](#step-3-configure)
+    - [Step 4: Add in your support to your AAC software](#step-4-add-in-your-support-to-your-aac-software)
+3. [Command-Line Flags](#command-line-flags)
+4. [Supported Languages](#supported-languages)
+    - [Languages by Azure](#languages-by-azure)
+    - [Languages by Google Cloud](#languages-by-google-cloud)
+5. [Getting API Keys for TTS Services](#getting-api-keys-for-tts-services)
+    - [Azure TTS](#azure-tts)
+    - [Google Cloud TTS](#google-cloud-tts)
+6. [Using the style flag for Azure voices](#using-the-style-flag-for-azure-voices)
+7. [AAC Specific Guides](#aac-specific-guides)
+    - [Snap](#snap)
+    - [The Grid 3](#the-grid-3)
+    - [Communicator](#communicator)
+    - [NuVoice](#nuvoice)
+    - [MindExpress](#mindexpress)
+8. [Specific notes on Kurdish TTS](#specific-notes-on-kurdish-tts)
+9. [Developer details](#developer-details)
+10. [Tips](#tips)
+    - [Can I use this to batch process a file of strings](#can-i-use-this-to-batch-process-a-file-of-strings)
+    - [Using RHVoice for minority Languages offline](#using-rhvoice-for-minority-languages-offline)
+11. [Troubleshooting](#troubleshooting)
 
 
-Edit any of the items here - the essential one is what is your Start Language (What do you write in) - and what is your End Language? (What you want it translated to). See below for what Language codes are available. Note the TTS options. You can use SAPI - just make sure the VoiceID is listed. You can find this out by running the app with a flag of `--listvoices` in the command line. gTTS is using Google's TTS system. At this time you can't choose your voice - it will just pick the first one that matches the language code. We might change this at some point. 
 
-*Note* - if you just want to use this tool to act as a bridge to the other TTS systems - mark noTranslate as True - and it will just read out the messaagebar text
+## Introduction
 
-Next, in your AAC software, you need to create a button. This button needs to 
+AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages. It uses multiple providers' Text-to-Speech (TTS) technology to read aloud the translated text. You can easily configure all these functionalities through our Configure app and maintain numerous settings files for different tasks.
 
-1. Copy the message bar.
-2. Call the application found in the folder you created earlier e.g `C:\translatepb\translatepb.exe`
-3. Wait (e.g. 5-10 secs)
-4. Paste (this pastes the translated text back into the message bar). You can look at this example gridset for some help 
+## Use Case
 
-## How do I get keys for Azure or Google Cloud TTS?
+Imagine you are a Ukrainian speaker with limited English skills residing in a care facility. AAC Speak Helper bridges you and your caregivers, translating Ukrainian text into English. Moreover, it supports people who need to speak languages less commonly supported by TTS technology.
 
+[![Overview Video](https://cdn.loom.com/sessions/thumbnails/dcd185df50224279a0c2630b6ca6b04f-1694639990490-with-play.gif)](https://www.loom.com/share/dcd185df50224279a0c2630b6ca6b04f)
+
+## Compatibility
+
+AAC Speak Helper is a lightweight Windows executable. It can be called from any AAC app on Windows that can run external programs.
+
+## How it Works
+
+AAC Speak Helper reads the text once the text is copied to the clipboard (using Ctrl+C). Depending on the configuration settings, it either translates the text using the selected service, speaks it aloud, or reads it. There are additional features, such as putting intonation (or style) onto some voices. We have a graphical application that can configure the app. The main application, though, has no interface. 
+
+## Installation
+
+### Step 1: Download
+
+Download the installer from [our latest release](https://github.com/AceCentre/TranslateAndTTS/releases/latest).
+
+### Step 2: Install
+
+Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data, etc., are in  `%AppData%\TranslateAndTTS` 
+
+### Step 3: Configure
+
+After installation, you need to configure the application. If you don't, it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS`, which you can find in your start menu and Desktop. 
+
+<img src='https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png' alt="Screenshot of Configure App" width="400">
+
+#### Notes on the configuration options
+
+##### Text-to-Speech (TTS) Engine Selection
+- **Offline Support**: Only the SAPI engine operates entirely offline.
+- **API Keys**: For Azure and Google TTS, you'll need to obtain API keys. [Learn how to get them](#getting-api-keys-for-tts-services).
+- **gTTS**: This is a free but limited option. The voice and language are determined by your **target lang** in translate. The way this works is it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So not all languages are supported. 
+- **Kurdish TTS**: This engine has specific requirements. [See details](#specific-notes-on-kurdish-tts).
+
+##### Data Collection
+- **Minimal Tracking**: We collect basic usage statistics but do not personally identify users.
+- **Transparency**: To see the exact data we collect, [view our code here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271).
+
+##### Translation Services
+- **Setting Languages**: The most crucial step is to set both the **Writing** and **Target** languages.
+- **Free Tier**: The default free service is [myMemory](http://mymemory.translated.net). If you find it lacking for your language pair, you can switch to a paid service.
+- **Paid Tier**: [DeepL](https://www.deepl.com/translator) offers comprehensive language coverage and is highly recommended. But you may want to try the others. 
+- **AAC Software Integration**: To make the translated string available in your AAC software, check the box to overwrite the clipboard. 
+
+You can edit the settings file by hand if you wish. To do this, navigate to `%AppData%\TranslateAndTTS` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
+
+**Note: You can copy this settings file and have numerous versions of them - or make it and distribute it to an end user. You would use the ``--config file path to run the application using a different config file.cfg`` parameter**
+
+### Step 4. Add your support to your AAC software.
+
+See below for specific details, but in short;
+
+- Add a button to *copy* the message bar (writing area)
+- Then have an action on this button to call the executable found at ``C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe``
+- Then it's wise to wait around 5-10 seconds
+(and if translating text)
+- Clear the message bar
+- Paste the returning text back if you are translating
+
+You can test it by copying some text from a text file and running the app. Give it a go. 
+
+
+## Command-Line Flags
+
+### General Usage
+	
+	translatepb.exe [options]
+
+
+### Options
+
+| Flag           | Description                                               | Type   | Required | Default | Example            |
+|----------------|-----------------------------------------------------------|--------|----------|---------|--------------------|
+| `-s, --style`   | Specifies the voice style for Azure Text-to-Speech.       | String | No       | None    | `--style "sad"`    |
+| `-sd, --styledegree` | Specifies the degree of the style for Azure TTS.     | Float  | No       | None    | `--styledegree 1.5`|
+| `-c, --config`    | Path to a defined config file            .              | String | No       | None    | `--config "C:\somepath\some.cfg"`   |
+| `-l, --listvoices`| List Voices to see what's available    				  | Bool   | No       | None    |                    |
+| `-p, --preview`  | Only preview the voice                                   | Book   | No       | None    |                    |
+
+
+## Supported Languages
+
+This tool supports a multitude of languages provided through Azure and Google Cloud. For a detailed list, please refer to the respective sections below.
+
+***WARNING***
+
+#### Please note. If you use any online TTS system, the data is sent to a server and sent back. These services do not store this data, but it is up to you to check this and how it may work against your own IG policy. The app does have a feature of 'caching' data, too - but this is not sent to Ace or anyone else. It's all on the device. 
+
+
+
+### Languages by Azure
+
+For the most up-to-date list see the list [here](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)
+
+## Languages by Azure
+
+|                   |                   |                   |
+|-------------------|-------------------|-------------------|
+| Afrikaans         | Armenian          | Azerbaijani       |
+| Albanian          | Amharic           | Bangla            |
+| Arabic            | Bengali           | Bosnian           |
+| Bulgarian         | Burmese           | Catalan           |
+| Chinese           | Croatian          | Czech             |
+| Danish            | Dutch             | English           |
+| Estonian          | Filipino          | Finnish           |
+| French            | Galician          | Georgian          |
+| German            | Greek             | Gujarati          |
+| Hebrew            | Hindi             | Hungarian         |
+| Icelandic         | Indonesian        | Irish             |
+| Italian           | Japanese          | Javanese          |
+| Kannada           | Kazakh            | Khmer             |
+| Korean            | Lao               | Latvian           |
+| Lithuanian        | Macedonian        | Malay             |
+| Malayalam         | Maltese           | Marathi           |
+| Mongolian         | Nepali            | Norwegian Bokmål  |
+| Pashto            | Persian           | Polish            |
+| Portuguese        | Romanian          | Russian           |
+| Serbian           | Sinhala           | Slovak            |
+| Slovenian         | Somali            | Spanish           |
+| Sundanese         | Swahili           | Swedish           |
+| Tamil             | Telugu            | Thai              |
+| Turkish           | Ukrainian         | Urdu              |
+| Uzbek             | Vietnamese        | Welsh             |
+
+
+### Languages by Google Cloud
+
+
+## Languages by Google
+
+|                           |                           |                           |
+|---------------------------|---------------------------|---------------------------|
+| Afrikaans (South Africa)  | Arabic                    | Basque (Spain)            |
+| Bengali (India)           | Bulgarian (Bulgaria)      | Catalan (Spain)           |
+| Chinese (Hong Kong)       | Czech (Czech Republic)    | Danish (Denmark)          |
+| Dutch (Belgium)           | Dutch (Netherlands)       | English (Australia)       |
+| English (India)           | English (UK)              | English (US)              |
+| Filipino (Philippines)    | Finnish (Finland)         | French (Canada)           |
+| French (France)           | Galician (Spain)          | German (Germany)          |
+| Greek (Greece)            | Gujarati (India)          | Hebrew (Israel)           |
+| Hindi (India)             | Hungarian (Hungary)       | Icelandic (Iceland)       |
+| Indonesian (Indonesia)    | Italian (Italy)           | Japanese (Japan)          |
+| Kannada (India)           | Korean (South Korea)      | Latvian (Latvia)          |
+| Lithuanian (Lithuania)    | Malay (Malaysia)          | Malayalam (India)         |
+| Mandarin Chinese          | Marathi (India)           |                           |
+
+
+## Getting API Keys for TTS Services
 
 ### Azure TTS
 
-- You first need Azure subscription - [Create one for free](https://azure.microsoft.com/free/cognitive-services).
+- You first need an Azure subscription - [Create one for free](https://azure.microsoft.com/free/cognitive-services).
 - [Create a Speech resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeechServices) in the Azure portal.
 - Your Speech resource key and region. After your Speech resource is deployed, select Go to resource to view and manage keys. For more information about Azure AI services resources, see [Get the keys for your resource](https://learn.microsoft.com/en-us/azure/ai-services/multi-service-resource?pivots=azportal#get-the-keys-for-your-resource)
 
@@ -106,22 +202,13 @@ Next, in your AAC software, you need to create a button. This button needs to
 
 Creating a service account for OAuth 2.0 involves generating credentials for a non-human user, often used in server-to-server interactions. Here's how you can create OAuth 2.0 credentials using a service account for Google APIs:
 
-Go to the Google Cloud Console:
-Visit the Google Cloud Console.
-
-Create a New Project:
-If you don't have a project already, create a new project in the developer console.
-
-Enable APIs:
-Enable the APIs that your service account will be using. For example, if you're using Google Drive API, enable that API for your project.
-
 Create a Service Account:
 
 1. Go to the Google Cloud Console:
 Visit the [Google Cloud Console](https://console.cloud.google.com/).
 
 2. Create a New Project:
-If you don't have a project already, create a new project in the developer console.
+If you don't already have a project, create a new one in the developer console.
 
 3. Enable APIs:
 Enable the APIs that your service account will be using. For example, if you're using Google Drive API, enable that API for your project.
@@ -134,7 +221,7 @@ Enable the APIs that your service account will be using. For example, if you're 
 - Click "Continue" to proceed.
 
 5. Create and Download Credentials:
-- On the next screen, you can choose to grant the service account a role on your project. You can also skip this step and grant roles later.
+- On the next screen, you can grant the service account a role in your project. You can also skip this step and grant roles later.
 - Click "Create Key" to create and download the JSON key file. This file contains the credentials for your service account.
 - Keep this JSON file secure and do not expose it publicly.
 
@@ -144,12 +231,28 @@ Enable the APIs that your service account will be using. For example, if you're 
 7. Grant Required Permissions:
 - If you skipped assigning roles during the service account creation, you can now grant roles to the service account by navigating to "IAM & Admin" > "IAM" and adding the service account's email address with the appropriate roles.
 
-## What if I have a problem?
+## Using the style flag for Azure voices
 
-Right now, this is a very, very quick (and dirty) example. We dare say there will be *SIGNIFICANT* problems using this. Remember if you use the gTTS option, it must be online. Translating too. We have put no logic in the script to deal with this failure. 
+You can use the command line's ``--style`` flag for Azure voices. If you do this, follow it with one of these style flags. You can change the strength of these with `--styledegree` being 0.1 to 2. By default it is 1. So 2 would double it. Be warned. Some voices don't have all styles. [Read the Azure docs for more info](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice#use-speaking-styles-and-roles). 
 
-If you wish to improve the code and have the skills to, please fork and PR. Or consider [donating](https://acecentre.org.uk/get-involved/donate) to us and asking for specific support for this.
- 
+
+|                   |                   |                   |
+|-------------------|-------------------|-------------------|
+| advertisement_upbeat | affectionate   | angry            |
+| assistant         | calm             | chat             |
+| cheerful          | customerservice  | depressed        |
+| disgruntled       | documentary-narration | embarrassed  |
+| empathetic        | envious          | excited          |
+| fearful           | friendly         | gentle           |
+| hopeful           | lyrical          | narration-professional |
+| narration-relaxed | newscast         | newscast-casual  |
+| newscast-formal   | poetry-reading   | sad              |
+| serious           | shouting         | sports_commentary |
+| sports_commentary_excited | whispering | terrified      |
+| unfriendly        |                   |                   |
+
+
+
 ## AAC Specific Guides
 
 ### Snap
@@ -166,15 +269,79 @@ See the demo pageset [here](https://github.com/AceCentre/TranslateAndTTS/tree/ma
 
 ![Screenshot of how to call a program](assets/AAC-Screen-Communicator.png)
 
-
-
 ### NuVoice
 
 ### MindExpress
 
-Don't bother - MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
+Don't bother: MEX already can do this. See [here for a demo](https://www.jabbla.co.uk/vocab/translation-tool/)
+
+## Specific notes on Kurdish TTS
+
+We are using the web system found at http://tts.kurdishspeech.com
+
+- Maximum characters is 2000 characters per entry
+- The Web endpoint can deal with Latin characters or Arabic. You must use the setting to allow Latin characters if the text is in Latin. It can deal with mixed input
+- It's typical for Kurdish speakers to use a Latin (QWERTY - US English layout) 
+- You can have a Kurdish layout, too - or use the language input of your computer to do the conversion
+
+See [here](https://kurdishcentral.org/sorani-keyboard-layout/) for some details on the layout. 
+
+Use [this tool](https://www.lexilogos.com/keyboard/kurdish_conversion.htm) to convert arabic to Latin characters
+
+- You need to have the settings set for Latin or not
+- It is wise to cache results. You may need to set your cache to 0 to clear the cache if there is audio that goes wrong 
 
 ## Developer details
 
-- See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml)
-- 
+See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). Note it works on Python 3.10 or 3.11. The dependencies aren't well covered on all other versions (and there are a lot!)
+
+## Tips
+
+### Can I use this to batch-process a file of strings?
+
+Sure. You may want to do this, for example, to create audio files for some phrases for a bilingual speaker. There are other tools to do this, but this is possible. You can just copy your text and run the main application - then look at the cache directory for the audio file. But if you want to automate this, check out this Powershell script
+
+	# Define the path to the text file and executable
+	$textFilePath = "C:\path\to\textfile.txt"
+	$executablePath = "C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe"
+
+	# Check if text file exists
+	if (Test-Path $textFilePath) {
+		# Read each line of the text file
+		$lines = Get-Content $textFilePath
+	
+		# Iterate through each line
+		foreach ($line in $lines) {
+			# Copy the line to the clipboard
+			$line | Set-Clipboard
+		
+			# Run the executable
+			Start-Process $executablePath
+		
+			# Wait a bit before processing the next line (optional)
+			Start-Sleep -Seconds 2
+		}
+	} else {
+		Write-Host "Text file not found at $textFilePath"
+	}
+
+### Using RHVoice for minority languages offline
+
+[RHVoice](https://rhvoice.org) is a great project creating TTS Systems for minority languages. Its also great because they work offline. This isnt so much of a tip but a reminder that the project exists. To install SAPI voices for this system see the [prebuilt binaries here](https://github.com/RHVoice/RHVoice/blob/master/doc/en/Binaries.md). RHVoice supports:
+
+- American and Scottish English
+- Brazilian Portuguese
+- Esperanto
+- Georgian
+- Ukrainian
+- Kyrgyz
+- Tatar
+- Macedonian
+- Albanian
+- Polish
+
+
+## Troubleshooting
+
+As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, please create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
+
