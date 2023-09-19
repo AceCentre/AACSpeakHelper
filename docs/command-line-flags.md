@@ -1,5 +1,7 @@
 # Command Line Flags
 
+#### The app (translatepb.exe) is designed to be called by a AAC application - and relys on some text being available in the copy buffer (
+
 #### General Usage
 
 ```

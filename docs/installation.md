@@ -16,7 +16,7 @@ Keep a note of the location of the Program Installation Directory. You need this
 
 After installation, you need to configure the application. If you don't, it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS`, which you can find in your start menu and Desktop.
 
-![Screenshot of Configure App](https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png)
+<figure><img src="https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png" alt=""><figcaption></figcaption></figure>
 
 **Notes on the configuration options**
 
