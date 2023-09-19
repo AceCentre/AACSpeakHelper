@@ -6,7 +6,11 @@ Download the installer from [our latest release](https://github.com/AceCentre/Tr
 
 #### Step 2: Install
 
-Run the installer. It will place the program in `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`. All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
+Run the installer. It will place the program in your local App Directory. This can be found by going to `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` your File Explorer (or right-clicking on the desktop shortcut and selecting "Open File Location". All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
+
+{% hint style="info" %}
+Keep a note of the location of the Program Installation Directory. You need this for the AAC software integration
+{% endhint %}
 
 #### Step 3: Configure
 
@@ -18,20 +22,20 @@ After installation, you need to configure the application. If you don't, it will
 
 **Text-to-Speech (TTS) Engine Selection**
 
-* **Offline Support**: Only the SAPI engine operates entirely offline.
-* **API Keys**: For Azure and Google TTS, you'll need to obtain API keys. Learn how to get them.
-* **gTTS**: This is a free but limited option. The voice and language are determined by your **target lang** in translate. The way this works is it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So not all languages are supported.
-* **Kurdish TTS**: This engine has specific requirements. See details.
+* **Offline Support**: Only the SAPI engine operates entirely offline. We plan to support other future engines that do have offline support. Note that we do cache data, which can help.&#x20;
+* **API Keys**: You'll need to obtain API keys for Azure and Google TTS. [Learn how to get them here](getting-keys-for-azure-or-google.md).
+* **gTTS**: This is a free but limited option. Your target language determines the voice and language in translation. This works because it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So, not all languages are supported.
+* **Kurdish TTS**: This engine has specific requirements. [See details.](specific-notes-on-kurdish-tts.md)
 
 **Data Collection**
 
 * **Minimal Tracking**: We collect basic usage statistics but do not personally identify users.
-* **Transparency**: To see the exact data we collect, [view our code here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271).
+* **Transparency**: [View our code here](https://github.com/AceCentre/TranslateAndTTS/blob/05e1f68e287ef5a653aaeb2e21d2e89f4f7a3d85/utils.py#L271) to see the exact data we collect.
 
 **Translation Services**
 
 * **Setting Languages**: The most crucial step is to set both the **Writing** and **Target** languages.
-* **Free Tier**: The default free service is [myMemory](http://mymemory.translated.net). If you find it lacking for your language pair, you can switch to a paid service.
+* **Free Tier**: The default free service is [myMemory](http://mymemory.translated.net). You can switch to a paid service if you find it lacking for your language pair.
 * **Paid Tier**: [DeepL](https://www.deepl.com/translator) offers comprehensive language coverage and is highly recommended. But you may want to try the others.
 * **AAC Software Integration**: To make the translated string available in your AAC software, check the box to overwrite the clipboard.
 
@@ -41,10 +45,10 @@ You can edit the settings file by hand if you wish. To do this, navigate to `%Ap
 
 #### Step 4. Add your support to your AAC software.
 
-See below for specific details, but in short;
+See [the specific guides](aac-guides.md) for your AAC software  but in short;
 
 * Add a button to _copy_ the message bar (writing area)
-* Then have an action on this button to call the executable found at `C:\Program Files (x86)\Ace Centre\TranslateAndTTS\translatepb.exe`
+* Then, have an action on this button to call the executable found at `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\ (`**`Note: You will need to browse for the app. You can paste this link into the file explorer but you need to find the exact path on your own computer)`**
 * Then it's wise to wait around 5-10 seconds (and if translating text)
 * Clear the message bar
 * Paste the returning text back if you are translating
