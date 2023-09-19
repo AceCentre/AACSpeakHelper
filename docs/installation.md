@@ -2,11 +2,11 @@
 
 #### Step 1: Download
 
-Download the installer from [our latest release](https://github.com/AceCentre/TranslateAndTTS/releases/latest).
+Download the installer from [our latest release.](https://github.com/AceCentre/TranslateAndTTS/releases/latest/download/TranslateAndTTS.exe)
 
 #### Step 2: Install
 
-Run the installer. It will place the program in your local App Directory. This can be found by going to `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` your File Explorer (or right-clicking on the desktop shortcut and selecting "Open File Location". All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
+Run the installer. It will place the program in your local App Directory. This can be found by going to `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` your File Explorer (or right-clicking on the desktop shortcut and selecting "**Open File Location**". All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
 
 {% hint style="info" %}
 Keep a note of the location of the Program Installation Directory. You need this for the AAC software integration
@@ -48,7 +48,7 @@ You can edit the settings file by hand if you wish. To do this, navigate to `%Ap
 See [the specific guides](aac-guides.md) for your AAC software  but in short;
 
 * Add a button to _copy_ the message bar (writing area)
-* Then, have an action on this button to call the executable found at `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\ (`**`Note: You will need to browse for the app. You can paste this link into the file explorer but you need to find the exact path on your own computer)`**
+* Then, have an action on this button to call the executable found at `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` (**Note: You will need to browse for the app. You can paste this link into the file explorer but you need to find the exact path on your own computer)**
 * Then it's wise to wait around 5-10 seconds (and if translating text)
 * Clear the message bar
 * Paste the returning text back if you are translating

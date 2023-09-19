@@ -1,6 +1,6 @@
 # Command Line Flags
 
-#### The app (translatepb.exe) is designed to be called by a AAC application - and relys on some text being available in the copy buffer (
+#### The app (translatepb.exe) is designed to be called by a AAC application - and relies on some text being available in the copy buffer. You can use these parameters/flags to control aspects like which settings file is loaded or other aspects. Read below for all the flags.&#x20;
 
 #### General Usage
 
