@@ -69,17 +69,18 @@ async def mainrun(listvoices: bool):
             if config.getboolean('translate', 'noTranslate'):
                 clipboard = pyperclip.paste()
                 stop = time.perf_counter() - start
-                print(f"Clipboard runtime is {stop:0.2f} seconds.")
+                # print(f"Clipboard runtime is {stop:0.2f} seconds.")
                 logging.info(f"Clipboard runtime is {stop:0.2f} seconds.")
             else:
                 clipboard = translate_clipboard()
                 stop = time.perf_counter() - start
-                print(f"Translation runtime is {stop:0.5f} seconds.")
+                # print(f"Translation runtime is {stop:0.5f} seconds.")
                 logging.info(f"Translation runtime is {stop:0.5f} seconds.")
             start = time.perf_counter()
+            print(f"Text: [{clipboard}].")
             speak(clipboard)
             stop = time.perf_counter() - start
-            print(f"TTS runtime is {stop:0.5f} seconds.")
+            # print(f"TTS runtime is {stop:0.5f} seconds.")
             logging.info(f"TTS runtime is {stop:0.5f} seconds.")
             if config.getboolean('translate', 'replacepb') and clipboard is not None:
                 pyperclip.copy(clipboard)
@@ -119,7 +120,7 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
                     logging.error(f"Removed cache file: {file_path}", exc_info=True)
     stop = time.perf_counter() - start
     clear_history(file_list)
-    print(f"Cache clearing runtime is {stop:0.5f} seconds.")
+    # print(f"Cache clearing runtime is {stop:0.5f} seconds.")
     logging.info(f"Cache clearing is {stop:0.5f} seconds.")
     logging.info("------------------------------------------------------------------------")
 

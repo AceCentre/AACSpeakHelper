@@ -283,5 +283,5 @@ if Allow_Collecting_Stats:
 
     notify_posthog(distinct_id, event_name, event_properties)
     stop = time.perf_counter() - start
-    print(f"Posthog runtime is {stop:0.5f} seconds.")
+    # print(f"Posthog runtime is {stop:0.5f} seconds.")
     logging.info(f"Posthog runtime is {stop:0.5f} seconds.")

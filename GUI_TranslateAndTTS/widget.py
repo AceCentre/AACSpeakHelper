@@ -30,6 +30,7 @@ from langcodes import Language
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.language_azure_list = None
         self.google_row = None
         self.google_client = None
         self.voice_google_list = None
@@ -149,6 +150,7 @@ class Widget(QWidget):
             self.config.read(self.config_path)
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
+            self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
             self.endLang = self.config.get('translate', 'endLang')
@@ -268,6 +270,7 @@ class Widget(QWidget):
         else:
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
+            self.get_microsoft_language()
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
 
@@ -292,11 +295,13 @@ class Widget(QWidget):
 
             self.saveAudio_sapi5 = True
 
-            item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
-            self.ui.listWidget_voiceazure.setCurrentItem(item[0])
-
-            item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
-            self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
+            self.set_azure_voice(self.voiceidAzure)
+            self.set_google_voice(self.voiceidGoogle)
+            # item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
+            # self.ui.listWidget_voiceazure.setCurrentItem(item[0])
+            #
+            # item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
+            # self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
             self.ui.spinBox_threshold.setValue(7)
 
         self.ui.radioButton_azure.toggled.connect(self.onTTSEngineToggled)
@@ -723,7 +728,7 @@ class Widget(QWidget):
             endpoint = f'https://{location}.tts.speech.microsoft.com/cognitiveservices/voices/list'
             response = requests.get(url=endpoint, headers={"Ocp-Apim-Subscription-Key": key})
             self.voice_list = response.json()
-            print("Azure voice list fetched from API.")
+            # print("Azure voice list fetched from API.")
             logging.info("Azure voice list fetched from API.")
         except Exception as error:
             file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
@@ -761,7 +766,7 @@ class Widget(QWidget):
             self.voice_google_list = sorted(unique, key=lambda d: d['country'])
             with open('google_voices.json', 'w') as json_file:
                 json.dump(self.voice_google_list, json_file)
-            print("Google voice list fetched from API.")
+            # print("Google voice list fetched from API.")
             logging.info("Google voice list fetched from API.")
         except Exception as error:
             file = PySide6.QtCore.QFile(":/binary/google_voices.json")
@@ -876,6 +881,41 @@ class Widget(QWidget):
 
     def enableClearCache(self):
         self.ui.clear_cache.setEnabled(True)
+
+    def get_microsoft_language(self):
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebit/535.19'
+                                     '(KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
+            headers.update({"Ocp-Apim-Subscription-Key": self.config.get('translate', 'microsoftprovider_secret_key')})
+            headers.update({"Ocp-Apim-Subscription-Region": self.config.get('translate', 'region')})
+            headers.update({"Content-type": "application/json"})
+            base_url = 'https://api.cognitive.microsofttranslator.com/languages'
+            params = {'api-version': '3.0', 'scope': 'translation'}
+            session = requests.Session()
+            response = session.get(base_url, params=params, headers=headers)
+            language_azure_list = json.loads(response.text)['translation']
+            # language_azure_list = json.dumps(translation_list)
+            # with open("azure_translation.json", "w") as outfile:
+            #     outfile.write(file)
+            print("Azure Translation list fetched from API file.")
+            logging.info("Azure Translation list fetched from API file.")
+        except Exception as error:
+            print(error)
+            file = PySide6.QtCore.QFile(":/binary/azure_translation.json")
+            if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
+                text = PySide6.QtCore.QTextStream(file).readAll()
+                language_azure_list = json.loads(text.encode())
+                print("Azure Translation list fetched from Resource file.")
+                logging.info("Azure Translation list fetched from Resource file.")
+                file.close()
+        self.language_azure_list = {}
+        for value in language_azure_list:
+            self.language_azure_list[language_azure_list[value]['name']] = value
+        # print(self.language_azure_list)
+        return self.language_azure_list
+        # print(translation_list)
+        # for value in translation_list:
+        #     print(value, translation_list[value])
 
 
 class Signals(QObject):
