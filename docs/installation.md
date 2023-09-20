@@ -6,7 +6,7 @@ Download the installer from [our latest release.](https://github.com/AceCentre/T
 
 #### Step 2: Install
 
-Run the installer. It will place the program in your local App Directory. This can be found by going to `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` your File Explorer (or right-clicking on the desktop shortcut and selecting "**Open File Location**". All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
+Run the installer. It will place the program in your local App Directory. This can be found by going to [`%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\`](file:///%UserProfile%/AppData/Local/Programs/TranslateAndTTS) your File Explorer (or right-clicking on the desktop shortcut and selecting "**Open File Location**". All settings, cache data, etc., are in `%AppData%\TranslateAndTTS`
 
 {% hint style="info" %}
 Keep a note of the location of the Program Installation Directory. You need this for the AAC software integration
