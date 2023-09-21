@@ -25,6 +25,7 @@ import pyperclip
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 from langcodes import Language
+from gtts import lang as gtts_language_list
 
 
 class Widget(QWidget):
@@ -46,6 +47,7 @@ class Widget(QWidget):
         self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
 
+        # self.generate_translate_list()
         # Translate Language Dictionary
         self.translate_languages = {"Afrikaans": "af",
                                     "Arabic": "ar",
@@ -75,8 +77,6 @@ class Widget(QWidget):
                                     "Khmer": "km",
                                     "Kannada": "kn",
                                     "Korean": "ko",
-                                    "Kurdish (Kurmanji)": "ku",
-                                    "Kurdish (Sorani)": "ckb",
                                     "Latin": "la",
                                     "Latvian": "lv",
                                     "Malayalam": "ml",
@@ -297,11 +297,6 @@ class Widget(QWidget):
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
-            # item = self.ui.listWidget_voiceazure.findItems(self.voiceidAzure, PySide6.QtCore.Qt.MatchExactly)
-            # self.ui.listWidget_voiceazure.setCurrentItem(item[0])
-            #
-            # item = self.ui.listWidget_voicegoogle.findItems(self.voiceidGoogle, PySide6.QtCore.Qt.MatchExactly)
-            # self.ui.listWidget_voicegoogle.setCurrentItem(item[0])
             self.ui.spinBox_threshold.setValue(7)
 
         self.ui.radioButton_azure.toggled.connect(self.onTTSEngineToggled)
@@ -516,6 +511,11 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryProvider_secret_key'))
                     self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
@@ -524,6 +524,11 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreProvider_secret_key'))
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(
@@ -533,6 +538,11 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplProvider_secret_key'))
                     self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
@@ -541,6 +551,11 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftProvider_secret_key'))
                     self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_writeLang.addItems(sorted(self.language_azure_list.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.language_azure_list.keys()))
+                self.set_Translate_dropdown(self.language_azure_list)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
@@ -894,10 +909,10 @@ class Widget(QWidget):
             session = requests.Session()
             response = session.get(base_url, params=params, headers=headers)
             language_azure_list = json.loads(response.text)['translation']
-            # language_azure_list = json.dumps(translation_list)
+            # file = json.dumps(language_azure_list)
             # with open("azure_translation.json", "w") as outfile:
             #     outfile.write(file)
-            print("Azure Translation list fetched from API file.")
+            print("Azure Translation list fetched from API.")
             logging.info("Azure Translation list fetched from API file.")
         except Exception as error:
             print(error)
@@ -913,9 +928,25 @@ class Widget(QWidget):
             self.language_azure_list[language_azure_list[value]['name']] = value
         # print(self.language_azure_list)
         return self.language_azure_list
-        # print(translation_list)
-        # for value in translation_list:
-        #     print(value, translation_list[value])
+
+    def generate_translate_list(self):
+        # TODO : Add Kurdish later "Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"
+        gtts_list = {v: k for k, v in gtts_language_list.tts_langs().items()}
+        # print(str(gtts_list))
+        # file = json.dumps(gtts_list)
+        # with open("gspeak_voices.json", "w") as outfile:
+        #     outfile.write(file)
+
+    def set_Translate_dropdown(self, source):
+        lang = [key for key, value in source.items() if value == self.startLang]
+        if not len(lang) == 0:
+            lang = lang[0]
+        self.ui.comboBox_writeLang.setCurrentText(lang)
+
+        lang = [key for key, value in source.items() if value == self.endLang]
+        if not len(lang) == 0:
+            lang = lang[0]
+        self.ui.comboBox_targetLang.setCurrentText(lang)
 
 
 class Signals(QObject):
