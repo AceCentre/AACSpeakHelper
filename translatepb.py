@@ -10,6 +10,7 @@ import pyttsx3
 from tts_utils import speak
 from translate import Translator
 from PySide6.QtWidgets import *
+from deep_translator import GoogleTranslator
 
 
 def translate_clipboard():
@@ -35,7 +36,11 @@ def translate_clipboard():
         clipboard_text = pyperclip.paste()
         logging.info(f'Clipboard [{config.get("translate", "startLang")}]: {clipboard_text}')
 
-        translation = translator.translate(clipboard_text)
+        # translation = translator.translate(clipboard_text)
+        translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
+        translation = translate_instance.translate(clipboard_text)
+        langs_dict = translate_instance.get_supported_languages(as_dict=True)
+        print(langs_dict)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
         return translation
     except Exception as e:

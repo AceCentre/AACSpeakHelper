@@ -901,8 +901,6 @@ class Widget(QWidget):
         try:
             headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebit/535.19'
                                      '(KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
-            headers.update({"Ocp-Apim-Subscription-Key": self.config.get('translate', 'microsoftprovider_secret_key')})
-            headers.update({"Ocp-Apim-Subscription-Region": self.config.get('translate', 'region')})
             headers.update({"Content-type": "application/json"})
             base_url = 'https://api.cognitive.microsofttranslator.com/languages'
             params = {'api-version': '3.0', 'scope': 'translation'}
