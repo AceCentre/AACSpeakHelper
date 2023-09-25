@@ -46,7 +46,10 @@ class Widget(QWidget):
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-
+        self.ui.tabWidget.setTabText(0, "TTS Engine")
+        self.ui.tabWidget.setTabText(1, "Translate Settings")
+        self.ui.tabWidget.setTabText(2, "Application Settings")
+        self.tts_dict = {}
         # self.generate_translate_list()
         # Translate Language Dictionary
         self.translate_languages = {"Afrikaans": "af",
@@ -193,31 +196,31 @@ class Widget(QWidget):
 
             if self.ttsEngine == "azureTTS":
                 self.ui.stackedWidget.setCurrentIndex(0)
-                self.ui.radioButton_azure.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('Azure TTS')
             elif self.ttsEngine == "gTTS":
                 self.ui.stackedWidget.setCurrentIndex(1)
-                self.ui.radioButton_google.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('Google TTS')
             elif self.ttsEngine == "gspeak":
                 self.ui.stackedWidget.setCurrentIndex(2)
-                self.ui.radioButton_gspeak.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('GSpeak')
             elif self.ttsEngine == "sapi5":
                 self.ui.stackedWidget.setCurrentIndex(3)
-                self.ui.radioButton_sapi5.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
             elif self.ttsEngine == "kurdishTTS":
                 self.ui.stackedWidget.setCurrentIndex(4)
-                self.ui.radioButton_kurdish.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
             elif self.ttsEngine == "espeak":
                 self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.radioButton_espeak.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
             elif self.ttsEngine == "nsss":
                 self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.radioButton_nsss.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('espeak (Unsupported)')
             elif self.ttsEngine == "coqui":
                 self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.radioButton_coqui.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('Kurdish TTS')
             else:
                 self.ui.stackedWidget.setCurrentIndex(0)
-                self.ui.radioButton_azure.setChecked(True)
+                self.ui.ttsEngineBox.setCurrentText('Azure TTS')
 
             lang = [key for key, value in self.translate_languages.items() if value == self.startLang]
             if not len(lang) == 0:
@@ -265,7 +268,7 @@ class Widget(QWidget):
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
             # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-            self.onTTSEngineToggled()
+            #self.onTTSEngineToggled()
 
         else:
             self.generate_azure_voice_models()
@@ -299,13 +302,7 @@ class Widget(QWidget):
             self.set_google_voice(self.voiceidGoogle)
             self.ui.spinBox_threshold.setValue(7)
 
-        self.ui.radioButton_azure.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_google.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_nsss.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_coqui.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_espeak.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_sapi5.toggled.connect(self.onTTSEngineToggled)
-        self.ui.radioButton_gspeak.toggled.connect(self.onTTSEngineToggled)
+        self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
 
         self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(lambda: self.OnSavePressed(True))
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.OnDiscardPressed)
@@ -315,39 +312,40 @@ class Widget(QWidget):
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-        self.onTTSEngineToggled()
+        self.onTTSEngineToggled(self.ttsEngine)
 
-    def onTTSEngineToggled(self):
+    def onTTSEngineToggled(self, text):
+        print(text)
         # move this on every TTS "if" condition if necessary.
         index = self.ui.comboBox_targetLang.currentIndex()
         self.ui.comboBox_targetLang.clear()
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.setCurrentIndex(index)
 
-        if self.ui.radioButton_azure.isChecked():
-            self.ui.stackedWidget.setCurrentIndex(0)
+        if text == "Azure TTS":
             self.ttsEngine = "azureTTS"
-        elif self.ui.radioButton_google.isChecked():
+            self.ui.stackedWidget.setCurrentIndex(0)
+        elif text == "Google TTS":
             self.ttsEngine = "gTTS"
             self.ui.stackedWidget.setCurrentIndex(1)
-        elif self.ui.radioButton_gspeak.isChecked():
+        elif text == "GSpeak":
             self.ttsEngine = "gspeak"
             self.ui.stackedWidget.setCurrentIndex(2)
-        elif self.ui.radioButton_sapi5.isChecked():
+        elif text == "Sapi5 (Windows)":
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
-        elif self.ui.radioButton_kurdish.isChecked():
+        elif text == "Kurdish TTS":
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
             self.ui.comboBox_targetLang.clear()
             self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
             self.ui.stackedWidget.setCurrentIndex(5)
-            if self.ui.radioButton_espeak.isChecked():
+            if text == "espeak (Unsupported)":
                 self.ttsEngine = "espeak"
-            elif self.ui.radioButton_espeak.isChecked():
+            elif text == "NSS (Mac Only)":
                 self.ttsEngine = "nsss"
-            elif self.ui.radioButton_espeak.isChecked():
+            elif text == "coqui_ai_tts (Unsupported)":
                 self.ttsEngine = "coqui"
             else:
                 self.ttsEngine = "azureTTS"
@@ -654,7 +652,6 @@ class Widget(QWidget):
             pass
 
     def generate_azure_voice_models(self):
-        self.ui.search_azure.hide()
         self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
         voices = self.get_azure_voices()
@@ -794,7 +791,6 @@ class Widget(QWidget):
         return self.voice_google_list
 
     def generate_google_voice_models(self):
-        self.ui.search_goggle.hide()
         self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
         self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
         voices = self.get_google_voices()
@@ -1004,6 +1000,11 @@ class Cleaner(QRunnable):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    screen = app.primaryScreen()
+    size = screen.size()
+    print('Size: %d x %d' % (size.width(), size.height()))
     widget = Widget()
+    if size.height() > 800:
+        widget.resize(588, 667)
     widget.show()
     sys.exit(app.exec())
