@@ -26,11 +26,13 @@ from google.cloud import texttospeech
 from google.oauth2 import service_account
 from langcodes import Language
 from gtts import lang as gtts_language_list
+from deep_translator import __all__ as providers
 
 
 class Widget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, size, parent=None):
         super().__init__(parent)
+        self.screenSize = size
         self.language_azure_list = None
         self.google_row = None
         self.google_client = None
@@ -44,7 +46,14 @@ class Widget(QWidget):
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
-        self.ui.comboBox_provider.addItems(translate.providers.__all__)
+        self.provider = []
+        for translator in providers:
+            # print(translator)
+            if "Translator" in translator:
+                self.provider.append(translator)
+        # print(self.provider)
+        # self.ui.comboBox_provider.addItems(translate.providers.__all__)
+        self.ui.comboBox_provider.addItems(self.provider)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
@@ -195,30 +204,39 @@ class Widget(QWidget):
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
 
             if self.ttsEngine == "azureTTS":
+                self.comboBox = 'Azure TTS'
                 self.ui.stackedWidget.setCurrentIndex(0)
                 self.ui.ttsEngineBox.setCurrentText('Azure TTS')
             elif self.ttsEngine == "gTTS":
+                self.comboBox = 'Google TTS'
                 self.ui.stackedWidget.setCurrentIndex(1)
                 self.ui.ttsEngineBox.setCurrentText('Google TTS')
             elif self.ttsEngine == "gspeak":
+                self.comboBox = 'GSpeak'
                 self.ui.stackedWidget.setCurrentIndex(2)
                 self.ui.ttsEngineBox.setCurrentText('GSpeak')
             elif self.ttsEngine == "sapi5":
+                self.comboBox = 'Sapi5 (Windows)'
                 self.ui.stackedWidget.setCurrentIndex(3)
                 self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
             elif self.ttsEngine == "kurdishTTS":
+                self.comboBox = 'Kurdish TTS'
                 self.ui.stackedWidget.setCurrentIndex(4)
-                self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
+                self.ui.ttsEngineBox.setCurrentText('Kurdish TTS')
             elif self.ttsEngine == "espeak":
-                self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
-            elif self.ttsEngine == "nsss":
+                self.comboBox = 'espeak (Unsupported)'
                 self.ui.stackedWidget.setCurrentIndex(5)
                 self.ui.ttsEngineBox.setCurrentText('espeak (Unsupported)')
-            elif self.ttsEngine == "coqui":
+            elif self.ttsEngine == "nsss":
+                self.comboBox = 'NSS (Mac Only)'
                 self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.ttsEngineBox.setCurrentText('Kurdish TTS')
+                self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
+            elif self.ttsEngine == "coqui":
+                self.comboBox = 'coqui_ai_tts (Unsupported)'
+                self.ui.stackedWidget.setCurrentIndex(5)
+                self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
             else:
+                self.comboBox = 'Azure TTS'
                 self.ui.stackedWidget.setCurrentIndex(0)
                 self.ui.ttsEngineBox.setCurrentText('Azure TTS')
 
@@ -268,13 +286,14 @@ class Widget(QWidget):
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
             # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-            #self.onTTSEngineToggled()
+            # self.onTTSEngineToggled()
 
         else:
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.get_microsoft_language()
             self.ttsEngine = "azureTTS"
+            self.comboBox = 'Azure TTS'
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
@@ -312,10 +331,9 @@ class Widget(QWidget):
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-        self.onTTSEngineToggled(self.ttsEngine)
+        self.onTTSEngineToggled(self.comboBox)
 
     def onTTSEngineToggled(self, text):
-        print(text)
         # move this on every TTS "if" condition if necessary.
         index = self.ui.comboBox_targetLang.currentIndex()
         self.ui.comboBox_targetLang.clear()
@@ -325,21 +343,29 @@ class Widget(QWidget):
         if text == "Azure TTS":
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
+            if self.screenSize.height() > 800:
+                self.resize(588, 667)
         elif text == "Google TTS":
             self.ttsEngine = "gTTS"
             self.ui.stackedWidget.setCurrentIndex(1)
+            if self.screenSize.height() > 800:
+                self.resize(588, 667)
         elif text == "GSpeak":
+            self.resize(588, 400)
             self.ttsEngine = "gspeak"
             self.ui.stackedWidget.setCurrentIndex(2)
         elif text == "Sapi5 (Windows)":
+            self.resize(588, 400)
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
         elif text == "Kurdish TTS":
+            self.resize(588, 400)
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
             self.ui.comboBox_targetLang.clear()
             self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
+            self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
             if text == "espeak (Unsupported)":
                 self.ttsEngine = "espeak"
@@ -430,13 +456,6 @@ class Widget(QWidget):
         end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
         prompt1 = False
         prompt2 = False
-        # if self.notranslate:
-        #     if self.ttsEngine != "kurdishTTS":
-        #         if start_lang_is_Kurdish:
-        #             prompt1 = True
-        #     # else:
-        #     #     if not start_lang_is_Kurdish:
-        #     #         # prompt2 = True
 
         if not self.notranslate:
             if self.ttsEngine != "kurdishTTS":
@@ -1002,9 +1021,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
-    print('Size: %d x %d' % (size.width(), size.height()))
-    widget = Widget()
-    if size.height() > 800:
-        widget.resize(588, 667)
+    # print('Size: %d x %d' % (size.width(), size.height()))
+    widget = Widget(size)
     widget.show()
     sys.exit(app.exec())
