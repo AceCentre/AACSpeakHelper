@@ -24,14 +24,16 @@ import subprocess
 import pyperclip
 from google.cloud import texttospeech
 from google.oauth2 import service_account
-from langcodes import Language
+from langcodes import *
 from gtts import lang as gtts_language_list
 from deep_translator import __all__ as providers
-
+from deep_translator import *
 
 class Widget(QWidget):
     def __init__(self, size, parent=None):
         super().__init__(parent)
+        self.translate_instance = None
+        self.available_language = None
         self.screenSize = size
         self.language_azure_list = None
         self.google_row = None
@@ -46,14 +48,14 @@ class Widget(QWidget):
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
-        self.provider = []
+        self.ui.copyApp.clicked.connect(self.copyAppPath)
+        self.providers = []
         for translator in providers:
-            # print(translator)
             if "Translator" in translator:
-                self.provider.append(translator)
+                self.providers.append(translator)
         # print(self.provider)
         # self.ui.comboBox_provider.addItems(translate.providers.__all__)
-        self.ui.comboBox_provider.addItems(self.provider)
+        self.ui.comboBox_provider.addItems(self.providers)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
@@ -147,13 +149,15 @@ class Widget(QWidget):
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            app_data_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
+            self.app_data_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
+            self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.exe"))
         elif __file__:
-            app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-        self.audio_path = os.path.join(app_data_path, 'Audio Files')
+            self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+            self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
+        self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
-        self.config_path = os.path.join(app_data_path, 'settings.cfg')
+        self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
 
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
@@ -169,21 +173,21 @@ class Widget(QWidget):
             self.overwritePb = self.config.getboolean('translate', 'replacepb')
             self.provider = self.config.get('translate', 'provider')
             self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
-            if self.provider == 'MyMemoryProvider':
-                self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryProvider_secret_key'))
+            if self.provider == 'MyMemoryTranslator':
+                self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
                 self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
                 self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-            if self.provider == 'LibreProvider':
-                self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreProvider_secret_key'))
+            if self.provider == 'LibreTranslator':
+                self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
                 self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-            if self.provider == 'DeeplProvider':
-                self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplProvider_secret_key'))
+            if self.provider == 'DeeplTranslator':
+                self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
                 self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
                 self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-            if self.provider == 'MicrosoftProvider':
-                self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftProvider_secret_key'))
+            if self.provider == 'MicrosoftTranslator':
+                self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
                 self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
@@ -397,13 +401,13 @@ class Widget(QWidget):
         self.config.set('translate', 'replacepb', str(self.ui.checkBox_overwritepb.isChecked()))
         self.config.set('translate', 'provider', str(self.ui.comboBox_provider.currentText()))
 
-        self.config.set('translate', 'MyMemoryProvider_secret_key', self.ui.mymemory_secret_key.text())
+        self.config.set('translate', 'MyMemoryTranslator_secret_key', self.ui.mymemory_secret_key.text())
         self.config.set('translate', 'email', self.ui.email_mymemory.text())
-        self.config.set('translate', 'LibreProvider_secret_key', self.ui.LibreTranslate_secret_key.text())
+        self.config.set('translate', 'LibreTranslator_secret_key', self.ui.LibreTranslate_secret_key.text())
         self.config.set('translate', 'url', self.ui.LibreTranslate_url.text())
-        self.config.set('translate', 'DeeplProvider_secret_key', self.ui.deepl_secret_key.text())
+        self.config.set('translate', 'DeeplTranslator_secret_key', self.ui.deepl_secret_key.text())
         self.config.set('translate', 'deepL_pro', str(self.ui.checkBox_pro.isChecked()).lower())
-        self.config.set('translate', 'MicrosoftProvider_secret_key', self.ui.microsoft_secret_key.text())
+        self.config.set('translate', 'MicrosoftTranslator_secret_key', self.ui.microsoft_secret_key.text())
         self.config.set('translate', 'region', self.ui.microsoft_region.text())
 
         self.config.add_section('TTS')
@@ -523,26 +527,34 @@ class Widget(QWidget):
         return identifier
 
     def setParameter(self, string):
-        if string == 'MyMemoryProvider':
+        if string == 'MyMemoryTranslator':
             try:
                 if os.path.exists(self.config_path):
-                    self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryProvider_secret_key'))
+                    self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
                     self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
+                self.translate_instance = GoogleTranslator()
+                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
+                print(self.translate_languages)
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-        if string == 'LibreProvider':
+        if string == 'LibreTranslator':
             try:
                 if os.path.exists(self.config_path):
-                    self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreProvider_secret_key'))
+                    self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
+                self.translate_instance = GoogleTranslator()
+                self.translate_languages = self.translate_instance.get_supported_languages()
+                count = {}
+                for x in self.translate_languages:
+                    count[x.capitalize()] = str(Language.find(x))
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -550,10 +562,10 @@ class Widget(QWidget):
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(
                 self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-        if string == 'DeeplProvider':
+        if string == 'DeeplTranslator':
             try:
                 if os.path.exists(self.config_path):
-                    self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplProvider_secret_key'))
+                    self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
                     self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
@@ -563,10 +575,10 @@ class Widget(QWidget):
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-        if string == 'MicrosoftProvider':
+        if string == 'MicrosoftTranslator':
             try:
                 if os.path.exists(self.config_path):
-                    self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftProvider_secret_key'))
+                    self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
                     self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
@@ -920,7 +932,7 @@ class Widget(QWidget):
             base_url = 'https://api.cognitive.microsofttranslator.com/languages'
             params = {'api-version': '3.0', 'scope': 'translation'}
             session = requests.Session()
-            response = session.get(base_url, params=params, headers=headers)
+            response = session.get(base_url, params=params, headers=headers, timeout=5)
             language_azure_list = json.loads(response.text)['translation']
             # file = json.dumps(language_azure_list)
             # with open("azure_translation.json", "w") as outfile:
@@ -960,6 +972,9 @@ class Widget(QWidget):
         if not len(lang) == 0:
             lang = lang[0]
         self.ui.comboBox_targetLang.setCurrentText(lang)
+
+    def copyAppPath(self):
+        pyperclip.copy(self.ui.appPath.text())
 
 
 class Signals(QObject):

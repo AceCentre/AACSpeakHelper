@@ -35,15 +35,6 @@ class Ui_Widget(object):
         self.gridLayout.setSpacing(2)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(2, 2, 2, 2)
-        self.buttonBox = QDialogButtonBox(Widget)
-        self.buttonBox.setObjectName(u"buttonBox")
-        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
-        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
-        self.buttonBox.setCenterButtons(True)
-
-        self.gridLayout.addWidget(self.buttonBox, 3, 0, 1, 2)
-
         self.tabWidget = QTabWidget(Widget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setTabShape(QTabWidget.Triangular)
@@ -597,6 +588,10 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addWidget(self.label_15, 1, 0, 1, 1)
 
+        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_5, 1, 4, 1, 1)
+
         self.spinBox_threshold = QSpinBox(self.ApplicationSettings)
         self.spinBox_threshold.setObjectName(u"spinBox_threshold")
         self.spinBox_threshold.setFont(font3)
@@ -608,18 +603,7 @@ class Ui_Widget(object):
 
         self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.gridLayout_9.addItem(self.verticalSpacer_5, 4, 1, 1, 1)
-
-        self.checkBox_stats = QCheckBox(self.ApplicationSettings)
-        self.checkBox_stats.setObjectName(u"checkBox_stats")
-        self.checkBox_stats.setFont(font3)
-        self.checkBox_stats.setChecked(True)
-
-        self.gridLayout_9.addWidget(self.checkBox_stats, 0, 0, 1, 1)
-
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.gridLayout_9.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
+        self.gridLayout_9.addItem(self.verticalSpacer_5, 6, 1, 1, 1)
 
         self.frame = QFrame(self.ApplicationSettings)
         self.frame.setObjectName(u"frame")
@@ -642,11 +626,83 @@ class Ui_Widget(object):
         self.horizontalLayout.addItem(self.horizontalSpacer_4)
 
 
-        self.gridLayout_9.addWidget(self.frame, 2, 0, 1, 2)
+        self.gridLayout_9.addWidget(self.frame, 4, 0, 1, 2)
+
+        self.checkBox_stats = QCheckBox(self.ApplicationSettings)
+        self.checkBox_stats.setObjectName(u"checkBox_stats")
+        self.checkBox_stats.setFont(font3)
+        self.checkBox_stats.setChecked(True)
+
+        self.gridLayout_9.addWidget(self.checkBox_stats, 0, 0, 1, 1)
+
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_3, 3, 4, 1, 1)
+
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.gridLayout_9.addItem(self.horizontalSpacer_7, 1, 3, 1, 1)
+
+        self.frame_2 = QFrame(self.ApplicationSettings)
+        self.frame_2.setObjectName(u"frame_2")
+        sizePolicy6 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
+        self.frame_2.setSizePolicy(sizePolicy6)
+        self.frame_2.setFrameShape(QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_2 = QHBoxLayout(self.frame_2)
+        self.horizontalLayout_2.setSpacing(4)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.label_11 = QLabel(self.frame_2)
+        self.label_11.setObjectName(u"label_11")
+
+        self.horizontalLayout_2.addWidget(self.label_11)
+
+        self.appPath = QLineEdit(self.frame_2)
+        self.appPath.setObjectName(u"appPath")
+        sizePolicy3.setHeightForWidth(self.appPath.sizePolicy().hasHeightForWidth())
+        self.appPath.setSizePolicy(sizePolicy3)
+        self.appPath.setMinimumSize(QSize(350, 0))
+        self.appPath.setMaximumSize(QSize(350, 16777215))
+
+        self.horizontalLayout_2.addWidget(self.appPath)
+
+        self.copyApp = QPushButton(self.frame_2)
+        self.copyApp.setObjectName(u"copyApp")
+        sizePolicy7 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy7.setHorizontalStretch(0)
+        sizePolicy7.setVerticalStretch(0)
+        sizePolicy7.setHeightForWidth(self.copyApp.sizePolicy().hasHeightForWidth())
+        self.copyApp.setSizePolicy(sizePolicy7)
+
+        self.horizontalLayout_2.addWidget(self.copyApp)
+
+        self.horizontalSpacer_6 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer_6)
+
+
+        self.gridLayout_9.addWidget(self.frame_2, 3, 0, 1, 4)
 
         self.tabWidget.addTab(self.ApplicationSettings, "")
 
         self.gridLayout.addWidget(self.tabWidget, 0, 1, 1, 1)
+
+        self.buttonBox = QDialogButtonBox(Widget)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
+        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
+        self.buttonBox.setCenterButtons(True)
+
+        self.gridLayout.addWidget(self.buttonBox, 3, 0, 1, 2)
 
 
         self.retranslateUi(Widget)
@@ -749,9 +805,12 @@ class Ui_Widget(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TranslationSettings), QCoreApplication.translate("Widget", u"Tab 2", None))
         self.label_15.setText(QCoreApplication.translate("Widget", u"Application Cache Threshold: ", None))
         self.spinBox_threshold.setSuffix(QCoreApplication.translate("Widget", u" day(s)", None))
-        self.checkBox_stats.setText(QCoreApplication.translate("Widget", u"Allow The Application to Collecting Stats", None))
         self.clear_cache.setText(QCoreApplication.translate("Widget", u"Clear Cache", None))
         self.open_cache.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
+        self.checkBox_stats.setText(QCoreApplication.translate("Widget", u"Allow The Application to Collecting Stats", None))
+        self.label_11.setText(QCoreApplication.translate("Widget", u"Application Path: ", None))
+        self.appPath.setText("")
+        self.copyApp.setText(QCoreApplication.translate("Widget", u"Copy Path of Main app", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.ApplicationSettings), QCoreApplication.translate("Widget", u"Page", None))
     # retranslateUi
 
