@@ -19,4 +19,4 @@ posthog==3.0.2
 requests~=2.31.0
 msrest~=0.7.1
 langcodes[data]
-deep_translator[ai]
+deep-translator[ai]
