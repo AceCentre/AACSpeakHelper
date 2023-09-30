@@ -53,16 +53,15 @@ class Widget(QWidget):
         for translator in providers:
             if "Translator" in translator:
                 self.providers.append(translator)
-        # print(self.provider)
-        # self.ui.comboBox_provider.addItems(translate.providers.__all__)
         self.ui.comboBox_provider.addItems(self.providers)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
+        self.ui.deepl_secret_key.textChanged.connect(self.updateLanguage)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
         self.tts_dict = {}
         # self.generate_translate_list()
-        # Translate Language Dictionary
+        # TODO: removed this translation list later
         self.translate_languages = {"Afrikaans": "af",
                                     "Arabic": "ar",
                                     "Bulgarian": "bg",
@@ -191,7 +190,7 @@ class Widget(QWidget):
                 self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-
+            # TODO: Add other translators
             self.ttsEngine = self.config.get('TTS', 'engine')
             self.voiceid = self.config.get('TTS', 'voiceid')
             self.rate = self.config.getint('TTS', 'rate')
@@ -409,6 +408,7 @@ class Widget(QWidget):
         self.config.set('translate', 'deepL_pro', str(self.ui.checkBox_pro.isChecked()).lower())
         self.config.set('translate', 'MicrosoftTranslator_secret_key', self.ui.microsoft_secret_key.text())
         self.config.set('translate', 'region', self.ui.microsoft_region.text())
+        # TODO: Add other translators
 
         self.config.add_section('TTS')
         self.config.set('TTS', 'engine', self.ttsEngine)
@@ -536,7 +536,6 @@ class Widget(QWidget):
                 self.ui.comboBox_targetLang.clear()
                 self.translate_instance = GoogleTranslator()
                 self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
-                print(self.translate_languages)
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -550,11 +549,8 @@ class Widget(QWidget):
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = GoogleTranslator()
-                self.translate_languages = self.translate_instance.get_supported_languages()
-                count = {}
-                for x in self.translate_languages:
-                    count[x.capitalize()] = str(Language.find(x))
+                self.translate_instance = LibreTranslator()
+                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -569,6 +565,9 @@ class Widget(QWidget):
                     self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
+                self.translate_instance = DeeplTranslator(api_key=self.ui.deepl_secret_key.text(),
+                                                          use_free_api=not self.ui.checkBox_pro.isChecked())
+                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -582,12 +581,26 @@ class Widget(QWidget):
                     self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
+                self.translate_languages = self.language_azure_list
                 self.ui.comboBox_writeLang.addItems(sorted(self.language_azure_list.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.language_azure_list.keys()))
                 self.set_Translate_dropdown(self.language_azure_list)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
+        # TODO: Add other translators
+
+    def updateLanguage(self, text):
+        if self.ui.comboBox_provider.currentText() == "DeeplTranslator":
+            self.ui.comboBox_writeLang.clear()
+            self.ui.comboBox_targetLang.clear()
+            self.translate_instance = DeeplTranslator(api_key=self.ui.deepl_secret_key.text(),
+                                                      use_free_api=not self.ui.checkBox_pro.isChecked())
+            self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
+            self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+            self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+            self.set_Translate_dropdown(self.translate_languages)
+        # TODO: Add other translators
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
@@ -634,7 +647,7 @@ class Widget(QWidget):
         self.movie = QMovie(":/images/images/loading.gif")
         self.movie.updated.connect(self.update_Buttons)
         self.movie.start()
-        self.ui.groupBox_ttsEngine.setEnabled(False)
+        self.ui.ttsEngineBox.setEnabled(False)
         for button in buttons:
             button.setEnabled(False)
         pool.start(runnable)
@@ -649,7 +662,7 @@ class Widget(QWidget):
         elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
             buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
 
-        self.ui.groupBox_ttsEngine.setEnabled(True)
+        self.ui.ttsEngineBox.setEnabled(True)
         for button in buttons:
             button.setEnabled(True)
         self.movie.stop()
@@ -769,7 +782,7 @@ class Widget(QWidget):
             key = self.config.get('azureTTS', 'key')
             location = self.config.get('azureTTS', 'location')
             endpoint = f'https://{location}.tts.speech.microsoft.com/cognitiveservices/voices/list'
-            response = requests.get(url=endpoint, headers={"Ocp-Apim-Subscription-Key": key})
+            response = requests.get(url=endpoint, headers={"Ocp-Apim-Subscription-Key": key}, timeout=5)
             self.voice_list = response.json()
             # print("Azure voice list fetched from API.")
             logging.info("Azure voice list fetched from API.")

@@ -10,37 +10,57 @@ import pyttsx3
 from tts_utils import speak
 from translate import Translator
 from PySide6.QtWidgets import *
-from deep_translator import GoogleTranslator
+from deep_translator import *
 
 
 def translate_clipboard():
     try:
-        provider = config.get('translate', 'provider')
-        alias = provider.replace("Provider", "").lower()
-        key = config.get('translate', f'{alias}provider_secret_key')
-        email = config.get('translate', 'email') if provider == 'MyMemoryProvider' else None
-        region = config.get('translate', 'region') if provider == 'MicrosoftProvider' else None
-        pro = config.getboolean('translate', 'deepl_pro') if provider == 'DeeplProvider' else None
-        url = config.get('translate', 'url') if provider == 'LibreProvider' else None
-
-        translator = Translator(to_lang=config.get('translate', 'endLang'),
-                                from_lang=config.get('translate', 'startLang'),
-                                provider=alias,
-                                secret_access_key=None if key == "" else key,
-                                email=None if email == "" else email,
-                                region=None if region == "" else region,
-                                pro=False if pro == "" else pro,
-                                base_url=None if url == "" else url)
-        logging.info('Translation Provider is {}'.format(provider))
+        translator = config.get('translate', 'provider')
+        key = config.get('translate', f'{translator}_secret_key')
+        email = config.get('translate', 'email') if translator == 'MyMemoryTranslator' else None
+        region = config.get('translate', 'region') if translator == 'MicrosoftTranslator' else None
+        pro = config.getboolean('translate', 'deepl_pro') if translator == 'DeeplTranslator' else None
+        url = config.get('translate', 'url') if translator == 'LibreProvider' else None
+        if translator == "GoogleTranslator":
+            translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "PonsTranslator":
+            translate_instance = PonsTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "LingueeTranslator":
+            translate_instance = LingueeTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "MyMemoryTranslator":
+            translate_instance = MyMemoryTranslator(source='auto',
+                                                    target=config.get('translate', 'endLang'),
+                                                    email=email)
+        elif translator == "YandexTranslator":
+            translate_instance = YandexTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "MicrosoftTranslator":
+            translate_instance = MicrosoftTranslator(source=config.get('translate', 'startLang'),
+                                                     target=config.get('translate', 'endLang'),
+                                                     api_key=key,
+                                                     region=region)
+        elif translator == "QcriTranslator":
+            translate_instance = QcriTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "DeeplTranslator":
+            translate_instance = DeeplTranslator(source='auto',
+                                                 target=config.get('translate', 'endLang'),
+                                                 api_key=key,
+                                                 use_free_api=not pro)
+        elif translator == "LibreTranslator":
+            translate_instance = LibreTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "PapagoTranslator":
+            translate_instance = PapagoTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "ChatGptTranslator":
+            translate_instance = ChatGptTranslator(source='auto', target=config.get('translate', 'endLang'))
+        elif translator == "BaiduTranslator":
+            translate_instance = BaiduTranslator(source='auto', target=config.get('translate', 'endLang'))
+        logging.info('Translation Provider is {}'.format(translator))
 
         clipboard_text = pyperclip.paste()
         logging.info(f'Clipboard [{config.get("translate", "startLang")}]: {clipboard_text}')
 
         # translation = translator.translate(clipboard_text)
-        translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
+
         translation = translate_instance.translate(clipboard_text)
-        langs_dict = translate_instance.get_supported_languages(as_dict=True)
-        print(langs_dict)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
         return translation
     except Exception as e:
@@ -137,4 +157,3 @@ async def main(wav_files_path):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     asyncio.run(main(utils.audio_files_path))
-
