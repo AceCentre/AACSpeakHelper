@@ -27,7 +27,9 @@ from google.oauth2 import service_account
 from langcodes import *
 from gtts import lang as gtts_language_list
 from deep_translator import __all__ as providers
+from deep_translator import constants as language_codes_list
 from deep_translator import *
+
 
 class Widget(QWidget):
     def __init__(self, size, parent=None):
@@ -242,16 +244,16 @@ class Widget(QWidget):
                 self.comboBox = 'Azure TTS'
                 self.ui.stackedWidget.setCurrentIndex(0)
                 self.ui.ttsEngineBox.setCurrentText('Azure TTS')
-
-            lang = [key for key, value in self.translate_languages.items() if value == self.startLang]
-            if not len(lang) == 0:
-                lang = lang[0]
-            self.ui.comboBox_writeLang.setCurrentText(lang)
-
-            lang = [key for key, value in self.translate_languages.items() if value == self.endLang]
-            if not len(lang) == 0:
-                lang = lang[0]
-            self.ui.comboBox_targetLang.setCurrentText(lang)
+            self.set_Translate_dropdown(self.translate_languages)
+            # lang = [key for key, value in self.translate_languages.items() if value == self.startLang]
+            # if not len(lang) == 0:
+            #     lang = lang[0]
+            # self.ui.comboBox_writeLang.setCurrentText(lang)
+            #
+            # lang = [key for key, value in self.translate_languages.items() if value == self.endLang]
+            # if not len(lang) == 0:
+            #     lang = lang[0]
+            # self.ui.comboBox_targetLang.setCurrentText(lang)
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
@@ -330,7 +332,6 @@ class Widget(QWidget):
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.OnDiscardPressed)
 
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
-        self.ui.groupBox_translate.setVisible(self.ui.checkBox_translate.isChecked())
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
@@ -534,8 +535,9 @@ class Widget(QWidget):
                     self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = GoogleTranslator()
-                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
+                self.translate_instance = MyMemoryTranslator(source='af-ZA', target='en-GB')
+                self.translate_languages = {k.capitalize(): v for k, v in
+                                            self.translate_instance.get_supported_languages(as_dict=True).items()}
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -545,7 +547,8 @@ class Widget(QWidget):
         if string == 'LibreTranslator':
             try:
                 if os.path.exists(self.config_path):
-                    self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
+                    self.ui.LibreTranslate_secret_key.setText(
+                        self.config.get('translate', 'LibreTranslator_secret_key'))
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
@@ -976,15 +979,18 @@ class Widget(QWidget):
         #     outfile.write(file)
 
     def set_Translate_dropdown(self, source):
-        lang = [key for key, value in source.items() if value == self.startLang]
-        if not len(lang) == 0:
-            lang = lang[0]
-        self.ui.comboBox_writeLang.setCurrentText(lang)
+        try:
+            lang = [key for key, value in source.items() if value == self.startLang]
+            if not len(lang) == 0:
+                lang = lang[0]
+            self.ui.comboBox_writeLang.setCurrentText(lang)
 
-        lang = [key for key, value in source.items() if value == self.endLang]
-        if not len(lang) == 0:
-            lang = lang[0]
-        self.ui.comboBox_targetLang.setCurrentText(lang)
+            lang = [key for key, value in source.items() if value == self.endLang]
+            if not len(lang) == 0:
+                lang = lang[0]
+            self.ui.comboBox_targetLang.setCurrentText(lang)
+        except Exception as error:
+            logging.error("Error setting current text.", exc_info=False)
 
     def copyAppPath(self):
         pyperclip.copy(self.ui.appPath.text())

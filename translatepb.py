@@ -28,7 +28,7 @@ def translate_clipboard():
         elif translator == "LingueeTranslator":
             translate_instance = LingueeTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "MyMemoryTranslator":
-            translate_instance = MyMemoryTranslator(source='auto',
+            translate_instance = MyMemoryTranslator(source=config.get('translate', 'startLang'),
                                                     target=config.get('translate', 'endLang'),
                                                     email=email)
         elif translator == "YandexTranslator":
@@ -41,7 +41,7 @@ def translate_clipboard():
         elif translator == "QcriTranslator":
             translate_instance = QcriTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "DeeplTranslator":
-            translate_instance = DeeplTranslator(source='auto',
+            translate_instance = DeeplTranslator(source=config.get('translate', 'startang'),
                                                  target=config.get('translate', 'endLang'),
                                                  api_key=key,
                                                  use_free_api=not pro)
