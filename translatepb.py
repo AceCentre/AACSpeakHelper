@@ -16,7 +16,7 @@ from deep_translator import *
 def translate_clipboard():
     try:
         translator = config.get('translate', 'provider')
-        key = config.get('translate', f'{translator}_secret_key')
+        key = config.get('translate', f'{translator}_secret_key') if not "GoogleTranslator" else None
         email = config.get('translate', 'email') if translator == 'MyMemoryTranslator' else None
         region = config.get('translate', 'region') if translator == 'MicrosoftTranslator' else None
         pro = config.getboolean('translate', 'deepl_pro') if translator == 'DeeplTranslator' else None

@@ -245,15 +245,6 @@ class Widget(QWidget):
                 self.ui.stackedWidget.setCurrentIndex(0)
                 self.ui.ttsEngineBox.setCurrentText('Azure TTS')
             self.set_Translate_dropdown(self.translate_languages)
-            # lang = [key for key, value in self.translate_languages.items() if value == self.startLang]
-            # if not len(lang) == 0:
-            #     lang = lang[0]
-            # self.ui.comboBox_writeLang.setCurrentText(lang)
-            #
-            # lang = [key for key, value in self.translate_languages.items() if value == self.endLang]
-            # if not len(lang) == 0:
-            #     lang = lang[0]
-            # self.ui.comboBox_targetLang.setCurrentText(lang)
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
@@ -528,6 +519,19 @@ class Widget(QWidget):
         return identifier
 
     def setParameter(self, string):
+        if string == 'GoogleTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_instance = GoogleTranslator()
+                self.translate_languages = {k.capitalize(): v for k, v in
+                                            self.translate_instance.get_supported_languages(as_dict=True).items()}
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.google))
         if string == 'MyMemoryTranslator':
             try:
                 if os.path.exists(self.config_path):
