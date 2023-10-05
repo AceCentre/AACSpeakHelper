@@ -150,8 +150,9 @@ class Widget(QWidget):
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            self.app_data_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
-            self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.exe"))
+            self.app_data_path = os.path.join(home_directory,
+                                              'AppData', 'Local', 'Programs', 'Ace Centre','TranslateAndTTS')
+            self.ui.appPath.setText(self.app_data_path)
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
             self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
@@ -484,7 +485,7 @@ class Widget(QWidget):
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
                 logging.info("Configuration file is saved on {}".format(self.config_path))
-            self.close()
+            # self.close()
         else:
             self.temp_config_file = tempfile.NamedTemporaryFile(delete=False)
             with open(self.temp_config_file.name, 'w') as configfile:

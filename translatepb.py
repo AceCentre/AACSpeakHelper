@@ -16,7 +16,7 @@ from deep_translator import *
 def translate_clipboard():
     try:
         translator = config.get('translate', 'provider')
-        key = config.get('translate', f'{translator}_secret_key') if not "GoogleTranslator" else None
+        key = config.get('translate', f'{translator}_secret_key') if not translator == "GoogleTranslator" else None
         email = config.get('translate', 'email') if translator == 'MyMemoryTranslator' else None
         region = config.get('translate', 'region') if translator == 'MicrosoftTranslator' else None
         pro = config.getboolean('translate', 'deepl_pro') if translator == 'DeeplTranslator' else None
@@ -34,9 +34,9 @@ def translate_clipboard():
         elif translator == "YandexTranslator":
             translate_instance = YandexTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "MicrosoftTranslator":
-            translate_instance = MicrosoftTranslator(source=config.get('translate', 'startLang'),
+            translate_instance = MicrosoftTranslator(api_key=key,
+                                                     source=config.get('translate', 'startLang'),
                                                      target=config.get('translate', 'endLang'),
-                                                     api_key=key,
                                                      region=region)
         elif translator == "QcriTranslator":
             translate_instance = QcriTranslator(source='auto', target=config.get('translate', 'endLang'))
