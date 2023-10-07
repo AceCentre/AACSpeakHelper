@@ -242,9 +242,9 @@ class Widget(QWidget):
                 self.ui.stackedWidget.setCurrentIndex(5)
                 self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
             else:
-                self.comboBox = 'Azure TTS'
-                self.ui.stackedWidget.setCurrentIndex(0)
-                self.ui.ttsEngineBox.setCurrentText('Azure TTS')
+                self.comboBox = 'GSpeak'
+                self.ui.stackedWidget.setCurrentIndex(2)
+                self.ui.ttsEngineBox.setCurrentText('GSpeak')
             self.set_Translate_dropdown(self.translate_languages)
 
             self.set_azure_voice(self.voiceidAzure)
