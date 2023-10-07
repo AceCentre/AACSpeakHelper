@@ -98,10 +98,18 @@ def azureSpeak(text: str, engine, style: str = None,  styledegree: float = None)
     key = config.get('azureTTS', 'key')
     location = config.get('azureTTS', 'location')
     voiceid = config.get('azureTTS', 'voiceid')
-    lang = voiceid.split('-')[0] + '-' + voiceid.split('-')[1]
+    
+    if not voiceid:
+        raise ValueError("voiceid is empty or None")
+    if '-' not in voiceid:
+        raise ValueError("voiceid does not contain a hyphen")
+    parts = voiceid.split('-')
+    if len(parts) < 2:
+        raise ValueError("voiceid does not have enough parts separated by hyphens")
+    lang = parts[0] + '-' + parts[1]
     client = MicrosoftClient(credentials=key, region=location)
     tts = MicrosoftTTS(client=client, voice=voiceid, lang=lang)
-
+    
     if style:
         # Check if the provided style is in the valid styles array
         if style in VALID_STYLES:
