@@ -275,7 +275,7 @@ if Allow_Collecting_Stats:
     event_properties = {
         'uuid': distinct_id,
         'source': 'helperApp',
-        'version': '1.1',
+        'version': '1.3',
         'fromLang': config.get('translate', 'startlang'),
         'toLang': config.get('translate', 'endlang'),
         'ttsengine': config.get('TTS', 'engine'),
