@@ -786,60 +786,23 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setItemWidget(item, label_widget)
 
     def get_azure_voices(self):
-        try:
-            key = self.config.get('azureTTS', 'key')
-            location = self.config.get('azureTTS', 'location')
-            endpoint = f'https://{location}.tts.speech.microsoft.com/cognitiveservices/voices/list'
-            response = requests.get(url=endpoint, headers={"Ocp-Apim-Subscription-Key": key}, timeout=5)
-            self.voice_list = response.json()
-            # print("Azure voice list fetched from API.")
-            logging.info("Azure voice list fetched from API.")
-        except Exception as error:
-            file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
-            if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
-                text = PySide6.QtCore.QTextStream(file).readAll()
-                self.voice_list = json.loads(text.encode())
-                print("Azure voice list fetched from Resource file.")
-                logging.info("Azure voice list fetched from Resource file.")
-                file.close()
+        file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
+        if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
+            text = PySide6.QtCore.QTextStream(file).readAll()
+            self.voice_list = json.loads(text.encode())
+            print("Azure voice list fetched from Resource file.")
+            logging.info("Azure voice list fetched from Resource file.")
+            file.close()
         return self.voice_list
 
     def get_google_voices(self):
-        try:
-            key = self.config.get('googleTTS', 'creds_file')
-            self.google_client = texttospeech.TextToSpeechClient(
-                credentials=service_account.Credentials.from_service_account_file(key))
-            google_list = self.google_client.list_voices()
-            self.voice_google_list = []
-            for voice in google_list.voices:
-                voice_dict = {}
-                voice_dict['name'] = voice.name
-                for language_code in voice.language_codes:
-                    voice_dict['country'] = Language.get(language_code).display_name()
-                    codes = []
-                    codes.append(language_code)
-                voice_dict['languageCodes'] = codes
-                ssml_gender = texttospeech.SsmlVoiceGender(voice.ssml_gender)
-                voice_dict['ssmlGender'] = ssml_gender.name.capitalize()
-                voice_dict['naturalSampleRateHertz'] = voice.natural_sample_rate_hertz
-                self.voice_google_list.append(voice_dict)
-            unique = []
-            for data in self.voice_google_list:
-                if data not in unique:
-                    unique.append(data)
-            self.voice_google_list = sorted(unique, key=lambda d: d['country'])
-            with open('google_voices.json', 'w') as json_file:
-                json.dump(self.voice_google_list, json_file)
-            # print("Google voice list fetched from API.")
-            logging.info("Google voice list fetched from API.")
-        except Exception as error:
-            file = PySide6.QtCore.QFile(":/binary/google_voices.json")
-            if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
-                text = PySide6.QtCore.QTextStream(file).readAll()
-                self.voice_google_list = json.loads(text.encode())
-                print("Google voice list fetched from Resource file.")
-                logging.info("Google voice list fetched from Resource file.")
-                file.close()
+        file = PySide6.QtCore.QFile(":/binary/google_voices.json")
+        if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
+            text = PySide6.QtCore.QTextStream(file).readAll()
+            self.voice_google_list = json.loads(text.encode())
+            print("Google voice list fetched from Resource file.")
+            logging.info("Google voice list fetched from Resource file.")
+            file.close()
         return self.voice_google_list
 
     def generate_google_voice_models(self):
@@ -947,32 +910,16 @@ class Widget(QWidget):
 
     def get_microsoft_language(self):
         try:
-            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebit/535.19'
-                                     '(KHTML, like Gecko) Chrome/18.0.1025.168 Safari/535.19'}
-            headers.update({"Content-type": "application/json"})
-            base_url = 'https://api.cognitive.microsofttranslator.com/languages'
-            params = {'api-version': '3.0', 'scope': 'translation'}
-            session = requests.Session()
-            response = session.get(base_url, params=params, headers=headers, timeout=5)
-            language_azure_list = json.loads(response.text)['translation']
-            # file = json.dumps(language_azure_list)
-            # with open("azure_translation.json", "w") as outfile:
-            #     outfile.write(file)
-            print("Azure Translation list fetched from API.")
-            logging.info("Azure Translation list fetched from API file.")
-        except Exception as error:
-            print(error)
             file = PySide6.QtCore.QFile(":/binary/azure_translation.json")
             if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
                 text = PySide6.QtCore.QTextStream(file).readAll()
                 language_azure_list = json.loads(text.encode())
-                print("Azure Translation list fetched from Resource file.")
-                logging.info("Azure Translation list fetched from Resource file.")
                 file.close()
+        except Exception as error:
+            print(error)
         self.language_azure_list = {}
         for value in language_azure_list:
             self.language_azure_list[language_azure_list[value]['name']] = value
-        # print(self.language_azure_list)
         return self.language_azure_list
 
     def generate_translate_list(self):

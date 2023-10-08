@@ -27,7 +27,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(588, 400)
+        Widget.resize(641, 400)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -35,6 +35,20 @@ class Ui_Widget(object):
         self.gridLayout.setSpacing(2)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(2, 2, 2, 2)
+        self.buttonBox = QDialogButtonBox(Widget)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
+        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
+        self.buttonBox.setCenterButtons(True)
+
+        self.gridLayout.addWidget(self.buttonBox, 3, 2, 1, 1)
+
+        self.statusBar = QLabel(Widget)
+        self.statusBar.setObjectName(u"statusBar")
+
+        self.gridLayout.addWidget(self.statusBar, 4, 2, 1, 1)
+
         self.tabWidget = QTabWidget(Widget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setTabShape(QTabWidget.Triangular)
@@ -693,16 +707,7 @@ class Ui_Widget(object):
 
         self.tabWidget.addTab(self.ApplicationSettings, "")
 
-        self.gridLayout.addWidget(self.tabWidget, 0, 1, 1, 1)
-
-        self.buttonBox = QDialogButtonBox(Widget)
-        self.buttonBox.setObjectName(u"buttonBox")
-        self.buttonBox.setLayoutDirection(Qt.LeftToRight)
-        self.buttonBox.setInputMethodHints(Qt.ImhPreferUppercase)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Discard|QDialogButtonBox.Save)
-        self.buttonBox.setCenterButtons(True)
-
-        self.gridLayout.addWidget(self.buttonBox, 3, 0, 1, 2)
+        self.gridLayout.addWidget(self.tabWidget, 0, 0, 1, 3)
 
 
         self.retranslateUi(Widget)
@@ -718,6 +723,7 @@ class Ui_Widget(object):
 
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
+        self.statusBar.setText("")
         self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Azure TTS", None))
         self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Google TTS", None))
         self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"GSpeak", None))
