@@ -27,7 +27,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(641, 400)
+        Widget.resize(588, 400)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -602,7 +602,7 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addWidget(self.label_15, 1, 0, 1, 1)
 
-        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_5 = QSpacerItem(30, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_5, 1, 4, 1, 1)
 
@@ -653,7 +653,7 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
 
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.horizontalSpacer_3 = QSpacerItem(30, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_3, 3, 4, 1, 1)
 
@@ -683,7 +683,7 @@ class Ui_Widget(object):
         self.appPath.setObjectName(u"appPath")
         sizePolicy3.setHeightForWidth(self.appPath.sizePolicy().hasHeightForWidth())
         self.appPath.setSizePolicy(sizePolicy3)
-        self.appPath.setMinimumSize(QSize(350, 0))
+        self.appPath.setMinimumSize(QSize(300, 0))
         self.appPath.setMaximumSize(QSize(350, 16777215))
 
         self.horizontalLayout_2.addWidget(self.appPath)

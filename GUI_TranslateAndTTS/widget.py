@@ -149,7 +149,7 @@ class Widget(QWidget):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             self.app_data_path = os.path.join(home_directory,
-                                              'AppData', 'Local', 'Programs', 'Ace Centre','TranslateAndTTS')
+                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'TranslateAndTTS')
             self.ui.appPath.setText(self.app_data_path)
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
