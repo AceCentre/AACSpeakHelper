@@ -22,8 +22,6 @@ import requests
 import tempfile
 import subprocess
 import pyperclip
-from google.cloud import texttospeech
-from google.oauth2 import service_account
 from langcodes import *
 from gtts import lang as gtts_language_list
 from deep_translator import __all__ as providers
