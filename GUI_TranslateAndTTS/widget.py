@@ -371,6 +371,14 @@ class Widget(QWidget):
                 self.ttsEngine = "azureTTS"
 
     def OnSavePressed(self, permanent=True):
+        self.ui.statusBar.clear()
+        if self.ui.listWidget_voiceazure.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 0:
+            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+            return
+        if self.ui.listWidget_voicegoogle.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
+            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+            return
+        # TODO: Block saving if API-key is blank
         # Add sections and key-value pairs
         self.startLang = self.translate_languages[self.ui.comboBox_writeLang.currentText()]
         self.endLang = self.translate_languages[self.ui.comboBox_targetLang.currentText()]
@@ -483,6 +491,7 @@ class Widget(QWidget):
             with open(self.config_path, 'w') as configfile:
                 self.config.write(configfile)
                 logging.info("Configuration file is saved on {}".format(self.config_path))
+                self.ui.statusBar.setText("Saving settings is successful.")
             # self.close()
         else:
             self.temp_config_file = tempfile.NamedTemporaryFile(delete=False)

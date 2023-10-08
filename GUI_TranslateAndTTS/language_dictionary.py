@@ -509,35 +509,34 @@ MyMemory_Translator = {
     'Zulu (South Africa)': 'zu-ZA'
 }
 
-DEEPL_LANGUAGE_TO_CODE = {
-    "bulgarian": "bg",
-    "czech": "cs",
-    "danish": "da",
-    "german": "de",
-    "greek": "el",
-    "english": "en",
-    "spanish": "es",
-    "estonian": "et",
-    "finnish": "fi",
-    "french": "fr",
-    "hungarian": "hu",
-    "indonesian": "id",
-    "italian": "it",
-    "japanese": "ja",
-    "lithuanian": "lt",
-    "latvian": "lv",
-    "dutch": "nl",
-    "polish": "pl",
-    "portuguese": "pt",
-    "romanian": "ro",
-    "russian": "ru",
-    "slovak": "sk",
-    "slovenian": "sl",
-    "swedish": "sv",
-    "turkish": "tr",
-    "ukrainian": "uk",
-    "chinese": "zh",
-}
+DeepL_Translator = {
+    'Bulgarian': 'bg',
+    'Czech': 'cs',
+    'Danish': 'da',
+    'German': 'de',
+    'Greek': 'el',
+    'English': 'en',
+    'Spanish': 'es',
+    'Estonian': 'et',
+    'Finnish': 'fi',
+    'French': 'fr',
+    'Hungarian': 'hu',
+    'Indonesian': 'id',
+    'Italian': 'it',
+    'Japanese': 'ja',
+    'Lithuanian': 'lt',
+    'Latvian': 'lv',
+    'Dutch': 'nl',
+    'Polish': 'pl',
+    'Portuguese': 'pt',
+    'Romanian': 'ro',
+    'Russian': 'ru',
+    'Slovak': 'sk',
+    'Slovenian': 'sl',
+    'Swedish': 'sv',
+    'Turkish': 'tr',
+    'Ukrainian': 'uk',
+    'Chinese': 'zh'}
 
 PAPAGO_LANGUAGE_TO_CODE = {
     "ko": "Korean",
@@ -554,7 +553,7 @@ PAPAGO_LANGUAGE_TO_CODE = {
 
 QCRI_LANGUAGE_TO_CODE = {"Arabic": "ar", "English": "en", "Spanish": "es"}
 
-LIBRE_LANGUAGES_TO_CODES = {
+Libre_Translator = {
     "English": "en",
     "Arabic": "ar",
     "Chinese": "zh",
@@ -605,8 +604,8 @@ BAIDU_LANGUAGE_TO_CODE = {
     "yueyu": "yue",
 }
 
-newMemory = {}
-
-for x in MyMemory_Translator:
-    newMemory[Language.get(MyMemory_Translator[x]).display_name()] = MyMemory_Translator[x]
-print(newMemory)
+# newMemory = {}
+#
+# for x in DeepL_Translator:
+#     newMemory[Language.get(DeepL_Translator[x]).display_name()] = DeepL_Translator[x]
+# print(newMemory)
