@@ -590,14 +590,14 @@ class Widget(QWidget):
                     self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_languages = self.language_azure_list
-                self.ui.comboBox_writeLang.addItems(sorted(self.language_azure_list.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.language_azure_list.keys()))
-                self.set_Translate_dropdown(self.language_azure_list)
+                self.translate_languages = Microsoft_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-        # TODO: Add other translators
+        # TODO: Add other translators and refactoring
 
     def updateLanguage(self, language_input):
         pass
@@ -785,6 +785,10 @@ class Widget(QWidget):
             print("Azure voice list fetched from Resource file.")
             logging.info("Azure voice list fetched from Resource file.")
             file.close()
+        # azure_list ={}
+        # for x in self.voice_list:
+        #     azure_list[x['LocaleName']] = x['Locale']
+        # print(azure_list)
         return self.voice_list
 
     def get_google_voices(self):
@@ -917,7 +921,7 @@ class Widget(QWidget):
     def generate_translate_list(self):
         # TODO : Add Kurdish later "Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"
         gtts_list = {v: k for k, v in gtts_language_list.tts_langs().items()}
-        print(str(gtts_list))
+        # print(str(gtts_list))
         # file = json.dumps(gtts_list)
         # with open("gspeak_voices.json", "w") as outfile:
         #     outfile.write(file)
