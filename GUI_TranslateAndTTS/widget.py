@@ -27,6 +27,7 @@ from gtts import lang as gtts_language_list
 from deep_translator import __all__ as providers
 from deep_translator import constants as language_codes_list
 from deep_translator import *
+from language_dictionary import *
 
 
 class Widget(QWidget):
@@ -55,12 +56,12 @@ class Widget(QWidget):
                 self.providers.append(translator)
         self.ui.comboBox_provider.addItems(self.providers)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-        self.ui.deepl_secret_key.textChanged.connect(self.updateLanguage)
+        # self.ui.deepl_secret_key.textChanged.connect(self.updateLanguage)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
         self.tts_dict = {}
-        # self.generate_translate_list()
+        self.generate_translate_list()
         # TODO: removed this translation list later
         self.translate_languages = {"Afrikaans": "af",
                                     "Arabic": "ar",
@@ -531,9 +532,7 @@ class Widget(QWidget):
             try:
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = GoogleTranslator()
-                self.translate_languages = {k.capitalize(): v for k, v in
-                                            self.translate_instance.get_supported_languages(as_dict=True).items()}
+                self.translate_languages = Google_Translator
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -547,9 +546,7 @@ class Widget(QWidget):
                     self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = MyMemoryTranslator(source='af-ZA', target='en-GB')
-                self.translate_languages = {k.capitalize(): v for k, v in
-                                            self.translate_instance.get_supported_languages(as_dict=True).items()}
+                self.translate_languages = MyMemory_Translator
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -564,8 +561,7 @@ class Widget(QWidget):
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = LibreTranslator()
-                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
+                self.translate_languages = Libre_Translator
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -580,9 +576,7 @@ class Widget(QWidget):
                     self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
-                self.translate_instance = DeeplTranslator(api_key=self.ui.deepl_secret_key.text(),
-                                                          use_free_api=not self.ui.checkBox_pro.isChecked())
-                self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
+                self.translate_languages = DeepL_Translator
                 self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
                 self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
                 self.set_Translate_dropdown(self.translate_languages)
@@ -605,17 +599,8 @@ class Widget(QWidget):
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
         # TODO: Add other translators
 
-    def updateLanguage(self, text):
-        if self.ui.comboBox_provider.currentText() == "DeeplTranslator":
-            self.ui.comboBox_writeLang.clear()
-            self.ui.comboBox_targetLang.clear()
-            self.translate_instance = DeeplTranslator(api_key=self.ui.deepl_secret_key.text(),
-                                                      use_free_api=not self.ui.checkBox_pro.isChecked())
-            self.translate_languages = self.translate_instance.get_supported_languages(as_dict=True)
-            self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-            self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-            self.set_Translate_dropdown(self.translate_languages)
-        # TODO: Add other translators
+    def updateLanguage(self, language_input):
+        pass
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
@@ -932,7 +917,7 @@ class Widget(QWidget):
     def generate_translate_list(self):
         # TODO : Add Kurdish later "Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"
         gtts_list = {v: k for k, v in gtts_language_list.tts_langs().items()}
-        # print(str(gtts_list))
+        print(str(gtts_list))
         # file = json.dumps(gtts_list)
         # with open("gspeak_voices.json", "w") as outfile:
         #     outfile.write(file)
