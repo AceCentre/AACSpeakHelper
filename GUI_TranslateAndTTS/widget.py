@@ -605,6 +605,7 @@ class Widget(QWidget):
 
     def updateLanguage(self, language_input):
         print(language_input)
+        # TODO: Standardized all language list using langcodes module
         if self.lock:
             return
         if self.ui.ttsEngineBox.currentText() == 'Azure TTS':
@@ -618,7 +619,10 @@ class Widget(QWidget):
                     print(True)
                     return
         if self.ui.ttsEngineBox.currentText() == 'GSpeak':
-            pass
+            for text in list(gSpeak_TTS_list.keys()):
+                if self.ui.comboBox_targetLang.currentText() in text:
+                    print(True)
+                    return
         if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
             pass
         if self.ui.ttsEngineBox.currentText() == 'NSS (Mac Only)':
