@@ -46,6 +46,7 @@ class Widget(QWidget):
         self.temp_config_file = None
         self.azure_row = None
         self.cleaning = False
+        self.lock = True
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
@@ -62,6 +63,7 @@ class Widget(QWidget):
         self.ui.tabWidget.setTabText(2, "Application Settings")
         self.tts_dict = {}
         self.generate_translate_list()
+        self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
         # TODO: removed this translation list later
         self.translate_languages = {"Afrikaans": "af",
                                     "Arabic": "ar",
@@ -327,13 +329,15 @@ class Widget(QWidget):
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
         self.onTTSEngineToggled(self.comboBox)
+        self.lock = False
 
     def onTTSEngineToggled(self, text):
         # move this on every TTS "if" condition if necessary.
-        index = self.ui.comboBox_targetLang.currentIndex()
-        self.ui.comboBox_targetLang.clear()
-        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-        self.ui.comboBox_targetLang.setCurrentIndex(index)
+        # TODO: Check if this is still needed.
+        # index = self.ui.comboBox_targetLang.currentIndex()
+        # self.ui.comboBox_targetLang.clear()
+        # self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+        # self.ui.comboBox_targetLang.setCurrentIndex(index)
 
         if text == "Azure TTS":
             self.ttsEngine = "azureTTS"
@@ -600,7 +604,31 @@ class Widget(QWidget):
         # TODO: Add other translators and refactoring
 
     def updateLanguage(self, language_input):
-        pass
+        print(language_input)
+        if self.lock:
+            return
+        if self.ui.ttsEngineBox.currentText() == 'Azure TTS':
+            for text in list(azure_tts_list.keys()):
+                if self.ui.comboBox_targetLang.currentText() in text:
+                    print(True)
+                    return
+        if self.ui.ttsEngineBox.currentText() == 'Google TTS':
+            for text in list(google_TTS_list.keys()):
+                if self.ui.comboBox_targetLang.currentText() in text:
+                    print(True)
+                    return
+        if self.ui.ttsEngineBox.currentText() == 'GSpeak':
+            pass
+        if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
+            pass
+        if self.ui.ttsEngineBox.currentText() == 'NSS (Mac Only)':
+            pass
+        if self.ui.ttsEngineBox.currentText() == 'coqui_ai_tts (Unsupported)':
+            pass
+        if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
+            pass
+        if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
+            pass
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
@@ -785,10 +813,6 @@ class Widget(QWidget):
             print("Azure voice list fetched from Resource file.")
             logging.info("Azure voice list fetched from Resource file.")
             file.close()
-        # azure_list ={}
-        # for x in self.voice_list:
-        #     azure_list[x['LocaleName']] = x['Locale']
-        # print(azure_list)
         return self.voice_list
 
     def get_google_voices(self):
