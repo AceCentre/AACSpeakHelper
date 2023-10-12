@@ -677,7 +677,7 @@ class Widget(QWidget):
                 self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
         # TODO: Add other translators and refactoring
 
     def updateLanguage(self, language_input):

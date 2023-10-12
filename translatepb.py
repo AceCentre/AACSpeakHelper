@@ -8,7 +8,7 @@ import logging
 import pyperclip
 import pyttsx3
 from tts_utils import speak
-from translate import Translator
+from GUI_TranslateAndTTS.language_dictionary import *
 from PySide6.QtWidgets import *
 from deep_translator import *
 
@@ -57,8 +57,6 @@ def translate_clipboard():
 
         clipboard_text = pyperclip.paste()
         logging.info(f'Clipboard [{config.get("translate", "startLang")}]: {clipboard_text}')
-
-        # translation = translator.translate(clipboard_text)
 
         translation = translate_instance.translate(clipboard_text)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
