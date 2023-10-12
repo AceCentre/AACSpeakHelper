@@ -134,60 +134,58 @@ Google_Translator = {'Afrikaans': 'af',
                      'Zulu': 'zu'
                      }
 
+Pons_Translator = {'Arabic': 'ar',
+                   'Bulgarian': 'bg',
+                   'Chinese (China)': 'zh-cn',
+                   'Czech': 'cs',
+                   'Danish': 'da',
+                   'Dutch': 'nl',
+                   'English': 'en',
+                   'French': 'fr',
+                   'German': 'de',
+                   'Greek': 'el',
+                   'Hungarian': 'hu',
+                   'Italian': 'it',
+                   'Latin': 'la',
+                   'Norwegian': 'no',
+                   'Polish': 'pl',
+                   'Portuguese': 'pt',
+                   'Russian': 'ru',
+                   'Slovenian': 'sl',
+                   'Spanish': 'es',
+                   'Swedish': 'sv',
+                   'Turkish': 'tr',
+                   'Elvish': 'elv'
+                   }
 
-PONS_CODES_TO_LANGUAGES = {
-    "ar": "arabic",
-    "bg": "bulgarian",
-    "zh-cn": "chinese",
-    "cs": "czech",
-    "da": "danish",
-    "nl": "dutch",
-    "en": "english",
-    "fr": "french",
-    "de": "german",
-    "el": "greek",
-    "hu": "hungarian",
-    "it": "italian",
-    "la": "latin",
-    "no": "norwegian",
-    "pl": "polish",
-    "pt": "portuguese",
-    "ru": "russian",
-    "sl": "slovenian",
-    "es": "spanish",
-    "sv": "swedish",
-    "tr": "turkish",
-    "elv": "elvish",
-}
-
-LINGUEE_LANGUAGES_TO_CODES = {
-    "maltese": "maltese",
-    "english": "english",
-    "german": "german",
-    "bulgarian": "bulgarian",
-    "polish": "polish",
-    "portuguese": "portuguese",
-    "hungarian": "hungarian",
-    "romanian": "romanian",
-    "russian": "russian",
+Linguee_Translator = {
+    "Maltese": "maltese",
+    "English": "english",
+    "German": "german",
+    "Bulgarian": "bulgarian",
+    "Polish": "polish",
+    "Portuguese": "portuguese",
+    "Hungarian": "hungarian",
+    "Romanian": "romanian",
+    "Russian": "russian",
     # "serbian": "sr",
-    "dutch": "dutch",
-    "slovakian": "slovakian",
-    "greek": "greek",
-    "slovenian": "slovenian",
-    "danish": "danish",
-    "italian": "italian",
-    "spanish": "spanish",
-    "finnish": "finnish",
-    "chinese": "chinese",
-    "french": "french",
+    "Dutch": "dutch",
+    "Slovakian": "slovakian",
+    "Greek": "greek",
+    "Slovenian": "slovenian",
+    "Danish": "danish",
+    "Italian": "italian",
+    "Spanish": "spanish",
+    "Finnish": "finnish",
+    "Chinese": "chinese",
+    "French": "french",
     # "croatian": "hr",
-    "czech": "czech",
-    "laotian": "laotian",
-    "swedish": "swedish",
-    "latvian": "latvian",
-    "estonian": "estonian",
-    "japanese": "japanese",
+    "Czech": "czech",
+    "Laotian": "laotian",
+    "Swedish": "swedish",
+    "Latvian": "latvian",
+    "Estonian": "estonian",
+    "Japanese": "japanese",
 }
 
 MyMemory_Translator = {
@@ -537,20 +535,19 @@ DeepL_Translator = {
     'Ukrainian': 'uk',
     'Chinese': 'zh'}
 
-PAPAGO_LANGUAGE_TO_CODE = {
-    "ko": "Korean",
-    "en": "English",
-    "ja": "Japanese",
-    "zh-CN": "Chinese",
-    "zh-TW": "Chinese traditional",
-    "es": "Spanish",
-    "fr": "French",
-    "vi": "Vietnamese",
-    "th": "Thai",
-    "id": "Indonesia",
-}
+Papago_Translator = {'Korean': 'ko',
+                     'English': 'en',
+                     'Japanese': 'ja',
+                     'Chinese (China)': 'zh-CN',
+                     'Chinese (Taiwan)': 'zh-TW',
+                     'Spanish': 'es',
+                     'French': 'fr',
+                     'Vietnamese': 'vi',
+                     'Thai': 'th',
+                     'Indonesian': 'id'
+                     }
 
-QCRI_LANGUAGE_TO_CODE = {"Arabic": "ar", "English": "en", "Spanish": "es"}
+Qcri_Translator = {"Arabic": "ar", "English": "en", "Spanish": "es"}
 
 Libre_Translator = {
     "English": "en",
@@ -572,36 +569,35 @@ Libre_Translator = {
     "Vietnamese": "vi",
 }
 
-BAIDU_LANGUAGE_TO_CODE = {
-    "arabic": "ara",
-    "bulgarian": "bul",
-    "chinese (classical)": "wyw",
-    "chinese (simplified)": "zh",
-    "chinese (traditional)": "cht",
-    "czech": "cs",
-    "danish": "dan",
-    "dutch": "nl",
-    "english": "en",
-    "estonian": "est",
-    "finnish": "fin",
-    "french": "fra",
-    "german": "de",
-    "greek": "el",
-    "hungarian": "hu",
-    "italian": "it",
-    "japanese": "jp",
-    "korean": "kor",
-    "polish": "pl",
-    "portuguese": "pt",
-    "romanian": "ro",
-    "russian": "ru",
-    "slovenian": "slo",
-    "spanish": "spa",
-    "swedish": "swe",
-    "thai": "th",
-    "vietnamese": "vie",
-    "yueyu": "yue",
-}
+Baidu_Translator = {'Arabic': 'ara',
+                    'Bulgarian': 'bul',
+                    'Chinese (Classical)': 'wyw',
+                    'Chinese': 'zh',
+                    'Cholón': 'cht',
+                    'Czech': 'cs',
+                    'Danish': 'dan',
+                    'Dutch': 'nl',
+                    'English': 'en',
+                    'Estonian': 'est',
+                    'Finnish': 'fin',
+                    'French': 'fra',
+                    'German': 'de',
+                    'Greek': 'el',
+                    'Hungarian': 'hu',
+                    'Italian': 'it',
+                    'Japanese': 'jp',
+                    'Korean': 'kor',
+                    'Polish': 'pl',
+                    'Portuguese': 'pt',
+                    'Romanian': 'ro',
+                    'Russian': 'ru',
+                    'Slovak': 'slo',
+                    'Spanish': 'spa',
+                    'Swedish': 'swe',
+                    'Thai': 'th',
+                    'Vietnamese': 'vie',
+                    'Cantonese': 'yue'
+                    }
 
 Microsoft_Translator = {'Afrikaans': 'af',
                         'Amharic': 'am',
@@ -731,6 +727,13 @@ Microsoft_Translator = {'Afrikaans': 'af',
                         'Chinese (Traditional)': 'zh-Hant',
                         'Zulu': 'zu'
                         }
+
+Yandex_Translator = ['az', 'sq', 'am', 'en', 'ar', 'hy', 'af', 'eu', 'ba', 'be', 'bn', 'my', 'bg', 'bs', 'cy', 'hu',
+                     'vi', 'ht', 'gl', 'nl', 'mrj', 'el', 'ka', 'gu', 'da', 'he', 'yi', 'id', 'ga', 'it', 'is', 'es',
+                     'kk', 'kn', 'ca', 'ky', 'zh', 'ko', 'xh', 'km', 'lo', 'la', 'lv', 'lt', 'lb', 'mg', 'ms', 'ml',
+                     'mt', 'mk', 'mi', 'mr', 'mhr', 'mn', 'de', 'ne', 'no', 'pa', 'pap', 'fa', 'pl', 'pt', 'ro', 'ru',
+                     'ceb', 'sr', 'si', 'sk', 'sl', 'sw', 'su', 'tg', 'th', 'tl', 'ta', 'tt', 'te', 'tr', 'te', 'tr',
+                     'udm', 'uz', 'uk', 'ur', 'fi', 'fr', 'hi', 'hr', 'cs', 'sv', 'gd', 'et', 'eo', 'jv', 'ja']
 
 azure_tts_list = {'Afrikaans (South Africa)': 'af-ZA',
                   'Amharic (Ethiopia)': 'am-ET',
@@ -933,7 +936,6 @@ google_TTS_list = {'Afrikaans (South Africa)': 'af-ZA',
                    'Vietnamese (Vietnam)': 'vi-VN'
                    }
 
-
 gSpeak_TTS_list = {'Afrikaans': 'af',
                    'Arabic': 'ar',
                    'Bulgarian': 'bg',
@@ -995,14 +997,10 @@ gSpeak_TTS_list = {'Afrikaans': 'af',
                    'Chinese': 'zh'
                    }
 
-# newMemory = {}
-#
-# for x in DeepL_Translator:
-#     newMemory[Language.get(DeepL_Translator[x]).display_name()] = DeepL_Translator[x]
-# print(newMemory)
+kurdish_tts_list = {"Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"}
 
 newMemory = {}
 
-for x in Google_Translator:
-    newMemory[Language.get(Google_Translator[x]).display_name()] = Google_Translator[x]
-print(newMemory)
+for x in Yandex_Translator:
+    newMemory[Language.get(x).display_name()] = x
+print(sorted(newMemory))

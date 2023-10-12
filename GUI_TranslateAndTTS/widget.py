@@ -601,10 +601,86 @@ class Widget(QWidget):
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
+        if string == 'PonsTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Pons_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
+        if string == 'PonsTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Pons_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
+        if string == 'LingueeTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Linguee_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
+        if string == 'PapagoTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Papago_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
+        if string == 'QcriTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Qcri_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
+        if string == 'BaiduTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Baidu_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+        if string == 'YandexTranslator':
+            try:
+                self.ui.comboBox_writeLang.clear()
+                self.ui.comboBox_targetLang.clear()
+                self.translate_languages = Yandex_Translator
+                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+                self.set_Translate_dropdown(self.translate_languages)
+            except Exception as e:
+                logging.error("Configuration Error: {}".format(e), exc_info=True)
+            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
         # TODO: Add other translators and refactoring
 
     def updateLanguage(self, language_input):
-        print(language_input)
         # TODO: Standardized all language list using langcodes module
         if self.lock:
             return
@@ -814,7 +890,6 @@ class Widget(QWidget):
         if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
             text = PySide6.QtCore.QTextStream(file).readAll()
             self.voice_list = json.loads(text.encode())
-            print("Azure voice list fetched from Resource file.")
             logging.info("Azure voice list fetched from Resource file.")
             file.close()
         return self.voice_list
@@ -824,7 +899,6 @@ class Widget(QWidget):
         if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
             text = PySide6.QtCore.QTextStream(file).readAll()
             self.voice_google_list = json.loads(text.encode())
-            print("Google voice list fetched from Resource file.")
             logging.info("Google voice list fetched from Resource file.")
             file.close()
         return self.voice_google_list
