@@ -135,7 +135,7 @@ class Widget(QWidget):
             # Define regular expressions to extract voice ID and name
             voice_id_pattern = r"id=(.*?)\n"
             name_pattern = r"name=(.*?)\n"
-
+            print(str(os.path.basename(voice.id)))
             # Search for the patterns in the text
             voice_id_match = re.search(voice_id_pattern, str(voice))
             name_match = re.search(name_pattern, str(voice))
@@ -194,7 +194,34 @@ class Widget(QWidget):
                 self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-            # TODO: Add other translators
+            if self.provider == 'YandexTranslator':
+                self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
+            if self.provider == 'GoogleTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.google))
+            if self.provider == 'LingueeTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
+            if self.provider == 'PonsTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.pons))
+            if self.provider == 'QCRITranslator':
+                self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
+            if self.provider == 'PapagoTranslator':
+                self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
+                self.ui.papago_client_id.setText(self.config.get('translate', 'papagotranslator_client_id'))
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.papago))
+            if self.provider == 'BaiduTranslator':
+                self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
+                self.ui.baidu_appid.setText(self.config.get('translate', 'baidutranslator_appid'))
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+            # TODO: Add ChatGPT translator
             self.ttsEngine = self.config.get('TTS', 'engine')
             self.voiceid = self.config.get('TTS', 'voiceid')
             self.rate = self.config.getint('TTS', 'rate')
@@ -361,6 +388,7 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
+            # TODO: Comment this lines after fixing language pairs
             self.ui.comboBox_targetLang.clear()
             self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
@@ -391,13 +419,13 @@ class Widget(QWidget):
 
         identifier = self.get_uuid()
         # TODO: check this function later
-        self.config.clear()
+        # self.config.clear()
 
-        self.config.add_section('App')
+        self.config.add_section('App') if not self.config.has_section('App') else print('')
         self.config.set('App', 'uuid', str(identifier))
         self.config.set('App', 'collectstats', str(self.ui.checkBox_stats.isChecked()))
 
-        self.config.add_section('translate')
+        self.config.add_section('translate') if not self.config.has_section('translate') else print('')
         self.config.set('translate', 'noTranslate', str(self.notranslate))
         self.config.set('translate', 'startLang', self.startLang)
         self.config.set('translate', 'endLang', self.endLang)
@@ -412,9 +440,15 @@ class Widget(QWidget):
         self.config.set('translate', 'deepL_pro', str(self.ui.checkBox_pro.isChecked()).lower())
         self.config.set('translate', 'MicrosoftTranslator_secret_key', self.ui.microsoft_secret_key.text())
         self.config.set('translate', 'region', self.ui.microsoft_region.text())
+        self.config.set('translate', 'YandexTranslator_secret_key', self.ui.yandex_secret_key.text())
+        self.config.set('translate', 'PapagoTranslator_Client_ID', self.ui.papago_client_id.text())
+        self.config.set('translate', 'PapagoTranslator_secret_key', self.ui.papago_secret_key.text())
+        self.config.set('translate', 'BaiduTranslator_AppID', self.ui.baidu_appid.text())
+        self.config.set('translate', 'BaiduTranslator_secret_key', self.ui.baidu_secret_key.text())
+        self.config.set('translate', 'QCRITranslator_secret_key', self.ui.qcri_secret_key.text())
         # TODO: Add other translators
 
-        self.config.add_section('TTS')
+        self.config.add_section('TTS') if not self.config.has_section('TTS') else print('')
         self.config.set('TTS', 'engine', self.ttsEngine)
         if self.ttsEngine == 'azureTTS':
             if permanent:
@@ -441,23 +475,23 @@ class Widget(QWidget):
             self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate.value()))
             self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume.value()))
 
-        self.config.add_section('azureTTS')
+        self.config.add_section('azureTTS') if not self.config.has_section('azureTTS') else print('')
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
         self.config.set('azureTTS', 'location', self.ui.lineEdit_region.text())
         self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().toolTip())
 
-        self.config.add_section('googleTTS')
+        self.config.add_section('googleTTS') if not self.config.has_section('googleTTS') else print('')
         self.config.set('googleTTS', 'creds_file', self.credsFilePath)
         self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().toolTip())
 
-        self.config.add_section('sapi5TTS')
+        self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
 
-        self.config.add_section('kurdishTTS')
+        self.config.add_section('kurdishTTS') if not self.config.has_section('kurdishTTS') else print('')
         self.config.set('kurdishTTS', 'latin', str(self.ui.checkBox_latin.isChecked()).lower())
         self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
 
-        self.config.add_section('appCache')
+        self.config.add_section('appCache') if not self.config.has_section('appCache') else print('')
         self.config.set('appCache', 'threshold', str(self.ui.spinBox_threshold.value()))
 
         start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
@@ -572,7 +606,7 @@ class Widget(QWidget):
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(
-                self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
+            self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
         if string == 'DeeplTranslator':
             try:
                 if os.path.exists(self.config_path):
@@ -708,7 +742,10 @@ class Widget(QWidget):
         if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
             pass
         if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
-            pass
+            for text in list(kurdish_tts_list.keys()):
+                if self.ui.comboBox_targetLang.currentText() in text:
+                    print(True)
+                    return
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
