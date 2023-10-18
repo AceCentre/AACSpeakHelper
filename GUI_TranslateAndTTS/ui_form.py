@@ -550,22 +550,6 @@ class Ui_Widget(object):
         self.google.setObjectName(u"google")
         self.verticalLayout = QVBoxLayout(self.google)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.https_proxies = QLineEdit(self.google)
-        self.https_proxies.setObjectName(u"https_proxies")
-        sizePolicy1.setHeightForWidth(self.https_proxies.sizePolicy().hasHeightForWidth())
-        self.https_proxies.setSizePolicy(sizePolicy1)
-        self.https_proxies.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout.addWidget(self.https_proxies)
-
-        self.http_proxies = QLineEdit(self.google)
-        self.http_proxies.setObjectName(u"http_proxies")
-        sizePolicy1.setHeightForWidth(self.http_proxies.sizePolicy().hasHeightForWidth())
-        self.http_proxies.setSizePolicy(sizePolicy1)
-        self.http_proxies.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout.addWidget(self.http_proxies)
-
         self.stackedWidget_provider.addWidget(self.google)
         self.linguee = QWidget()
         self.linguee.setObjectName(u"linguee")
@@ -765,7 +749,7 @@ class Ui_Widget(object):
 
         self.tabWidget.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
-        self.stackedWidget_provider.setCurrentIndex(0)
+        self.stackedWidget_provider.setCurrentIndex(4)
 
 
         QMetaObject.connectSlotsByName(Widget)
@@ -848,16 +832,6 @@ class Ui_Widget(object):
         self.LibreTranslate_url.setToolTip(QCoreApplication.translate("Widget", u"Leave it for default value", None))
 #endif // QT_CONFIG(tooltip)
         self.LibreTranslate_url.setPlaceholderText(QCoreApplication.translate("Widget", u"Url: https://translate.argosopentech.com/", None))
-#if QT_CONFIG(tooltip)
-        self.https_proxies.setToolTip(QCoreApplication.translate("Widget", u"Separate with comma for multiple IP addresses", None))
-#endif // QT_CONFIG(tooltip)
-        self.https_proxies.setInputMask("")
-        self.https_proxies.setText("")
-        self.https_proxies.setPlaceholderText(QCoreApplication.translate("Widget", u"https proxies e.g. 34.195.196.27:8080", None))
-#if QT_CONFIG(tooltip)
-        self.http_proxies.setToolTip(QCoreApplication.translate("Widget", u"Separate with comma for multiple IP addresses", None))
-#endif // QT_CONFIG(tooltip)
-        self.http_proxies.setPlaceholderText(QCoreApplication.translate("Widget", u"HTTP proxies e.g. 34.195.196.27:8080", None))
         self.yandex_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"Yandex's Secret Access Key", None))
         self.papago_client_id.setPlaceholderText(QCoreApplication.translate("Widget", u"Client ID", None))
         self.papago_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"Papago's Secret Access Key", None))

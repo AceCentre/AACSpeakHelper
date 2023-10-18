@@ -135,7 +135,7 @@ class Widget(QWidget):
             # Define regular expressions to extract voice ID and name
             voice_id_pattern = r"id=(.*?)\n"
             name_pattern = r"name=(.*?)\n"
-            print(str(os.path.basename(voice.id)))
+            # print(str(os.path.basename(voice.id)))
             # Search for the patterns in the text
             voice_id_match = re.search(voice_id_pattern, str(voice))
             name_match = re.search(name_pattern, str(voice))
@@ -177,25 +177,16 @@ class Widget(QWidget):
             self.provider = self.config.get('translate', 'provider')
             self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
             if self.provider == 'MyMemoryTranslator':
-                self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
-                self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
                 self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
             if self.provider == 'LibreTranslator':
-                self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
-                self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
             if self.provider == 'DeeplTranslator':
-                self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
-                self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
                 self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
             if self.provider == 'MicrosoftTranslator':
-                self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
-                self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
             if self.provider == 'YandexTranslator':
-                self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
             if self.provider == 'GoogleTranslator':
@@ -208,19 +199,28 @@ class Widget(QWidget):
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.pons))
             if self.provider == 'QCRITranslator':
-                self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
             if self.provider == 'PapagoTranslator':
-                self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
-                self.ui.papago_client_id.setText(self.config.get('translate', 'papagotranslator_client_id'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.papago))
             if self.provider == 'BaiduTranslator':
-                self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
-                self.ui.baidu_appid.setText(self.config.get('translate', 'baidutranslator_appid'))
                 self.ui.stackedWidget_provider.setCurrentIndex(
                     self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+            self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
+            self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
+            self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
+            self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
+            self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
+            self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
+            self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
+            self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
+            self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
+            self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
+            self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
+            self.ui.papago_client_id.setText(self.config.get('translate', 'papagotranslator_client_id'))
+            self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
+            self.ui.baidu_appid.setText(self.config.get('translate', 'baidutranslator_appid'))
             # TODO: Add ChatGPT translator
             self.ttsEngine = self.config.get('TTS', 'engine')
             self.voiceid = self.config.get('TTS', 'voiceid')
@@ -432,20 +432,20 @@ class Widget(QWidget):
         self.config.set('translate', 'replacepb', str(self.ui.checkBox_overwritepb.isChecked()))
         self.config.set('translate', 'provider', str(self.ui.comboBox_provider.currentText()))
 
-        self.config.set('translate', 'MyMemoryTranslator_secret_key', self.ui.mymemory_secret_key.text())
+        self.config.set('translate', 'mymemorytranslator_secret_key', self.ui.mymemory_secret_key.text())
         self.config.set('translate', 'email', self.ui.email_mymemory.text())
-        self.config.set('translate', 'LibreTranslator_secret_key', self.ui.LibreTranslate_secret_key.text())
+        self.config.set('translate', 'libretranslator_secret_key', self.ui.LibreTranslate_secret_key.text())
         self.config.set('translate', 'url', self.ui.LibreTranslate_url.text())
-        self.config.set('translate', 'DeeplTranslator_secret_key', self.ui.deepl_secret_key.text())
+        self.config.set('translate', 'deepltranslator_secret_key', self.ui.deepl_secret_key.text())
         self.config.set('translate', 'deepL_pro', str(self.ui.checkBox_pro.isChecked()).lower())
-        self.config.set('translate', 'MicrosoftTranslator_secret_key', self.ui.microsoft_secret_key.text())
+        self.config.set('translate', 'microsofttranslator_secret_key', self.ui.microsoft_secret_key.text())
         self.config.set('translate', 'region', self.ui.microsoft_region.text())
-        self.config.set('translate', 'YandexTranslator_secret_key', self.ui.yandex_secret_key.text())
-        self.config.set('translate', 'PapagoTranslator_Client_ID', self.ui.papago_client_id.text())
-        self.config.set('translate', 'PapagoTranslator_secret_key', self.ui.papago_secret_key.text())
-        self.config.set('translate', 'BaiduTranslator_AppID', self.ui.baidu_appid.text())
-        self.config.set('translate', 'BaiduTranslator_secret_key', self.ui.baidu_secret_key.text())
-        self.config.set('translate', 'QCRITranslator_secret_key', self.ui.qcri_secret_key.text())
+        self.config.set('translate', 'yandextranslator_secret_key', self.ui.yandex_secret_key.text())
+        self.config.set('translate', 'papagotranslator_client_id', self.ui.papago_client_id.text())
+        self.config.set('translate', 'papagotranslator_secret_key', self.ui.papago_secret_key.text())
+        self.config.set('translate', 'baidutranslator_appid', self.ui.baidu_appid.text())
+        self.config.set('translate', 'baidutranslator_secret_key', self.ui.baidu_secret_key.text())
+        self.config.set('translate', 'qcritranslator_secret_key', self.ui.qcri_secret_key.text())
         # TODO: Add other translators
 
         self.config.add_section('TTS') if not self.config.has_section('TTS') else print('')
@@ -646,17 +646,6 @@ class Widget(QWidget):
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
-        if string == 'PonsTranslator':
-            try:
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
-                self.translate_languages = Pons_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
         if string == 'LingueeTranslator':
             try:
                 self.ui.comboBox_writeLang.clear()
@@ -670,6 +659,9 @@ class Widget(QWidget):
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
         if string == 'PapagoTranslator':
             try:
+                if os.path.exists(self.config_path):
+                    self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
+                    self.ui.papago_client_id.setText(self.config.get('translate', 'Papagotranslator_client_id'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Papago_Translator
@@ -681,6 +673,8 @@ class Widget(QWidget):
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
         if string == 'QcriTranslator':
             try:
+                if os.path.exists(self.config_path):
+                    self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Qcri_Translator
@@ -692,6 +686,9 @@ class Widget(QWidget):
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
         if string == 'BaiduTranslator':
             try:
+                if os.path.exists(self.config_path):
+                    self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
+                    self.ui.baidu_appid.setText(self.config.get('translate', 'BaiduTranslator_appid'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Baidu_Translator
@@ -703,6 +700,8 @@ class Widget(QWidget):
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
         if string == 'YandexTranslator':
             try:
+                if os.path.exists(self.config_path):
+                    self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
                 self.ui.comboBox_writeLang.clear()
                 self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Yandex_Translator
