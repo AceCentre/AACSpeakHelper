@@ -16,11 +16,12 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QAbstractSpinBox, QApplication, QCheckBox,
-    QComboBox, QDialogButtonBox, QFrame, QGridLayout,
-    QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QPushButton, QSizePolicy,
-    QSlider, QSpacerItem, QSpinBox, QStackedWidget,
-    QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
+    QComboBox, QDialogButtonBox, QFormLayout, QFrame,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QListWidget, QListWidgetItem, QPushButton,
+    QSizePolicy, QSlider, QSpacerItem, QSpinBox,
+    QStackedWidget, QTabWidget, QTextBrowser, QVBoxLayout,
+    QWidget)
 import resources_rc
 
 class Ui_Widget(object):
@@ -420,6 +421,35 @@ class Ui_Widget(object):
 
         self.gridLayout_2.addWidget(self.label, 4, 0, 1, 1)
 
+        self.label_14 = QLabel(self.groupBox_translate)
+        self.label_14.setObjectName(u"label_14")
+        self.label_14.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.label_14, 2, 0, 1, 1)
+
+        self.label_2 = QLabel(self.groupBox_translate)
+        self.label_2.setObjectName(u"label_2")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
+        self.label_2.setSizePolicy(sizePolicy5)
+        self.label_2.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.label_2, 5, 0, 1, 1)
+
+        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
+        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
+        self.comboBox_writeLang.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.comboBox_writeLang, 4, 1, 1, 1)
+
+        self.comboBox_provider = QComboBox(self.groupBox_translate)
+        self.comboBox_provider.setObjectName(u"comboBox_provider")
+        self.comboBox_provider.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.comboBox_provider, 2, 1, 1, 1)
+
         self.comboBox_targetLang = QComboBox(self.groupBox_translate)
         self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
         sizePolicy4.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
@@ -427,6 +457,15 @@ class Ui_Widget(object):
         self.comboBox_targetLang.setFont(font3)
 
         self.gridLayout_2.addWidget(self.comboBox_targetLang, 5, 1, 1, 1)
+
+        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
+        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
+        sizePolicy4.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
+        self.checkBox_overwritepb.setSizePolicy(sizePolicy4)
+        self.checkBox_overwritepb.setFont(font3)
+        self.checkBox_overwritepb.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
 
         self.stackedWidget_provider = QStackedWidget(self.groupBox_translate)
         self.stackedWidget_provider.setObjectName(u"stackedWidget_provider")
@@ -511,78 +550,73 @@ class Ui_Widget(object):
         self.google.setObjectName(u"google")
         self.verticalLayout = QVBoxLayout(self.google)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.https_proxies = QLineEdit(self.google)
-        self.https_proxies.setObjectName(u"https_proxies")
-        sizePolicy1.setHeightForWidth(self.https_proxies.sizePolicy().hasHeightForWidth())
-        self.https_proxies.setSizePolicy(sizePolicy1)
-        self.https_proxies.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout.addWidget(self.https_proxies)
-
-        self.http_proxies = QLineEdit(self.google)
-        self.http_proxies.setObjectName(u"http_proxies")
-        sizePolicy1.setHeightForWidth(self.http_proxies.sizePolicy().hasHeightForWidth())
-        self.http_proxies.setSizePolicy(sizePolicy1)
-        self.http_proxies.setAlignment(Qt.AlignCenter)
-
-        self.verticalLayout.addWidget(self.http_proxies)
-
         self.stackedWidget_provider.addWidget(self.google)
         self.linguee = QWidget()
         self.linguee.setObjectName(u"linguee")
+        self.formLayout = QFormLayout(self.linguee)
+        self.formLayout.setObjectName(u"formLayout")
         self.stackedWidget_provider.addWidget(self.linguee)
         self.yandex = QWidget()
         self.yandex.setObjectName(u"yandex")
+        self.verticalLayout_14 = QVBoxLayout(self.yandex)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.yandex_secret_key = QLineEdit(self.yandex)
+        self.yandex_secret_key.setObjectName(u"yandex_secret_key")
+        self.yandex_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_14.addWidget(self.yandex_secret_key)
+
         self.stackedWidget_provider.addWidget(self.yandex)
         self.pons = QWidget()
         self.pons.setObjectName(u"pons")
         self.stackedWidget_provider.addWidget(self.pons)
         self.papago = QWidget()
         self.papago.setObjectName(u"papago")
+        self.verticalLayout_9 = QVBoxLayout(self.papago)
+        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
+        self.papago_client_id = QLineEdit(self.papago)
+        self.papago_client_id.setObjectName(u"papago_client_id")
+        self.papago_client_id.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_9.addWidget(self.papago_client_id)
+
+        self.papago_secret_key = QLineEdit(self.papago)
+        self.papago_secret_key.setObjectName(u"papago_secret_key")
+        self.papago_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_9.addWidget(self.papago_secret_key)
+
         self.stackedWidget_provider.addWidget(self.papago)
         self.qcri = QWidget()
         self.qcri.setObjectName(u"qcri")
+        self.verticalLayout_3 = QVBoxLayout(self.qcri)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.qcri_secret_key = QLineEdit(self.qcri)
+        self.qcri_secret_key.setObjectName(u"qcri_secret_key")
+        self.qcri_secret_key.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_3.addWidget(self.qcri_secret_key)
+
         self.stackedWidget_provider.addWidget(self.qcri)
+        self.baidu = QWidget()
+        self.baidu.setObjectName(u"baidu")
+        self.verticalLayout_16 = QVBoxLayout(self.baidu)
+        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.baidu_appid = QLineEdit(self.baidu)
+        self.baidu_appid.setObjectName(u"baidu_appid")
+        self.baidu_appid.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_2.addWidget(self.stackedWidget_provider, 3, 0, 1, 2)
+        self.verticalLayout_16.addWidget(self.baidu_appid)
 
-        self.comboBox_writeLang = QComboBox(self.groupBox_translate)
-        self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
-        self.comboBox_writeLang.setFont(font3)
+        self.baidu_secret_key = QLineEdit(self.baidu)
+        self.baidu_secret_key.setObjectName(u"baidu_secret_key")
+        self.baidu_secret_key.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_2.addWidget(self.comboBox_writeLang, 4, 1, 1, 1)
+        self.verticalLayout_16.addWidget(self.baidu_secret_key)
 
-        self.comboBox_provider = QComboBox(self.groupBox_translate)
-        self.comboBox_provider.setObjectName(u"comboBox_provider")
-        self.comboBox_provider.setFont(font3)
+        self.stackedWidget_provider.addWidget(self.baidu)
 
-        self.gridLayout_2.addWidget(self.comboBox_provider, 2, 1, 1, 1)
-
-        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
-        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
-        sizePolicy4.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
-        self.checkBox_overwritepb.setSizePolicy(sizePolicy4)
-        self.checkBox_overwritepb.setFont(font3)
-        self.checkBox_overwritepb.setChecked(True)
-
-        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
-
-        self.label_2 = QLabel(self.groupBox_translate)
-        self.label_2.setObjectName(u"label_2")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy5)
-        self.label_2.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.label_2, 5, 0, 1, 1)
-
-        self.label_14 = QLabel(self.groupBox_translate)
-        self.label_14.setObjectName(u"label_14")
-        self.label_14.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.label_14, 2, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.stackedWidget_provider, 6, 0, 1, 2)
 
 
         self.verticalLayout_15.addWidget(self.groupBox_translate)
@@ -715,7 +749,7 @@ class Ui_Widget(object):
 
         self.tabWidget.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
-        self.stackedWidget_provider.setCurrentIndex(5)
+        self.stackedWidget_provider.setCurrentIndex(4)
 
 
         QMetaObject.connectSlotsByName(Widget)
@@ -775,6 +809,15 @@ class Ui_Widget(object):
         self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
+        self.label_14.setText(QCoreApplication.translate("Widget", u"Provider", None))
+#if QT_CONFIG(tooltip)
+        self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
+#endif // QT_CONFIG(tooltip)
+        self.label_2.setText(QCoreApplication.translate("Widget", u"Target Language", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
         self.mymemory_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"MyMemory's secret access key", None))
 #if QT_CONFIG(tooltip)
         self.email_mymemory.setToolTip(QCoreApplication.translate("Widget", u"Valid email allows 50000 chars/day.", None))
@@ -789,25 +832,12 @@ class Ui_Widget(object):
         self.LibreTranslate_url.setToolTip(QCoreApplication.translate("Widget", u"Leave it for default value", None))
 #endif // QT_CONFIG(tooltip)
         self.LibreTranslate_url.setPlaceholderText(QCoreApplication.translate("Widget", u"Url: https://translate.argosopentech.com/", None))
-#if QT_CONFIG(tooltip)
-        self.https_proxies.setToolTip(QCoreApplication.translate("Widget", u"Separate with comma for multiple IP addresses", None))
-#endif // QT_CONFIG(tooltip)
-        self.https_proxies.setInputMask("")
-        self.https_proxies.setText("")
-        self.https_proxies.setPlaceholderText(QCoreApplication.translate("Widget", u"https proxies e.g. 34.195.196.27:8080", None))
-#if QT_CONFIG(tooltip)
-        self.http_proxies.setToolTip(QCoreApplication.translate("Widget", u"Separate with comma for multiple IP addresses", None))
-#endif // QT_CONFIG(tooltip)
-        self.http_proxies.setPlaceholderText(QCoreApplication.translate("Widget", u"HTTP proxies e.g. 34.195.196.27:8080", None))
-#if QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
-#if QT_CONFIG(tooltip)
-        self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
-#endif // QT_CONFIG(tooltip)
-        self.label_2.setText(QCoreApplication.translate("Widget", u"Target Language", None))
-        self.label_14.setText(QCoreApplication.translate("Widget", u"Provider", None))
+        self.yandex_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"Yandex's Secret Access Key", None))
+        self.papago_client_id.setPlaceholderText(QCoreApplication.translate("Widget", u"Client ID", None))
+        self.papago_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"Papago's Secret Access Key", None))
+        self.qcri_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"QCRI's secret access key", None))
+        self.baidu_appid.setPlaceholderText(QCoreApplication.translate("Widget", u"Baidu Cloud App ID", None))
+        self.baidu_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"QCRI's secret access key", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TranslationSettings), QCoreApplication.translate("Widget", u"Tab 2", None))
         self.label_15.setText(QCoreApplication.translate("Widget", u"Application Cache Threshold: ", None))
         self.spinBox_threshold.setSuffix(QCoreApplication.translate("Widget", u" day(s)", None))

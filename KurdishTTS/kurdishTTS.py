@@ -1,24 +1,13 @@
 import requests
-import math
-import time
 from pygame import mixer
-# from py_mini_racer import py_mini_racer
-from io import BytesIO
-import string
-import random
 import unicodedata
 import logging
-# import Normalizer as normalizer
 
 
 class KurdishTTS:
 
     def __init__(self):
         mixer.init()
-        # with open('Normalizer.js', encoding="utf8") as file:
-        #     cf_js = file.read()
-        # self.script = py_mini_racer.MiniRacer()
-        # self.script.eval(cf_js)
 
     def normalize_text(self, text: str):
         # normalizedText = self.script.call("NormalizeUnicode", text)
@@ -43,21 +32,5 @@ class KurdishTTS:
         parameters = {'t': words, 'l': latin, 'p': punctuation}
         response = requests.post(url, data=parameters)
         audio = requests.get('https://tts.kurdishspeech.com/static/TTS/' + response.text + '.mp3')
-        # if download:
-        #     with open('{}.mp3.'.format(response.text), 'wb') as file:
-        #         file.write(audio.content)
-        # audioFile = BytesIO(audio.content)
-        # audioMixer = mixer.Sound(audioFile)
-        # mixer.Sound.play(audioMixer)
-        # time.sleep(math.ceil(audioMixer.get_length()))
         return audio.content
 
-
-# if __name__ == "__main__":
-#     speech = KurdishTTS()
-#     # length = 2001
-#     # text = ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
-#     # print("Generated random string : " + str(text))
-#     text = "ەڵبەتە لەیەککات و لەیەک سەرزەمیندا دوو گۆڕانکاری مەزن و پڕ سەروەری دەبێتە مایەی هاتنەکایەی خۆشگوزەرانی و شادنوودی گەل و کۆمەلانی خەڵک ، ئەو دوو حاڵەتە پڕ سەروەرییەش ، یەکەمیان ئاشکراکردنی حکومەتی کابینەی شەشەمە بەپۆلێک عەقڵییەتی تازەو بەرنامەی تازەترەوە بۆ خزمەتکردن بە هەرێمی کوردستان ، دووەمیشیان گرێدانی پلینۆمی ( ی.ن.ک ) بۆ دووبارە "
-#     # text = "Good Morning"
-#     speech.synth_to_bytes(text)

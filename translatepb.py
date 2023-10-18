@@ -8,7 +8,7 @@ import logging
 import pyperclip
 import pyttsx3
 from tts_utils import speak
-from translate import Translator
+from GUI_TranslateAndTTS.language_dictionary import *
 from PySide6.QtWidgets import *
 from deep_translator import *
 
@@ -21,6 +21,8 @@ def translate_clipboard():
         region = config.get('translate', 'region') if translator == 'MicrosoftTranslator' else None
         pro = config.getboolean('translate', 'deepl_pro') if translator == 'DeeplTranslator' else None
         url = config.get('translate', 'url') if translator == 'LibreProvider' else None
+        client_id = config.get('translate', 'papagotranslator_client_id') if translator == 'PapagoTranslator' else None
+        appid = config.get('translate', 'baidutranslator_appid') if translator == 'BaiduTranslator' else None
         if translator == "GoogleTranslator":
             translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "PonsTranslator":
@@ -32,33 +34,44 @@ def translate_clipboard():
                                                     target=config.get('translate', 'endLang'),
                                                     email=email)
         elif translator == "YandexTranslator":
-            translate_instance = YandexTranslator(source='auto', target=config.get('translate', 'endLang'))
+            translate_instance = YandexTranslator(source=config.get('translate', 'startLang'),
+                                                  target=config.get('translate', 'endLang'),
+                                                  api_key=key)
         elif translator == "MicrosoftTranslator":
             translate_instance = MicrosoftTranslator(api_key=key,
                                                      source=config.get('translate', 'startLang'),
                                                      target=config.get('translate', 'endLang'),
                                                      region=region)
         elif translator == "QcriTranslator":
-            translate_instance = QcriTranslator(source='auto', target=config.get('translate', 'endLang'))
+            translate_instance = QcriTranslator(source='auto',
+                                                target=config.get('translate', 'endLang'),
+                                                api_key=key)
         elif translator == "DeeplTranslator":
-            translate_instance = DeeplTranslator(source=config.get('translate', 'startang'),
+            translate_instance = DeeplTranslator(source=config.get('translate', 'startlang'),
                                                  target=config.get('translate', 'endLang'),
                                                  api_key=key,
                                                  use_free_api=not pro)
         elif translator == "LibreTranslator":
-            translate_instance = LibreTranslator(source='auto', target=config.get('translate', 'endLang'))
+            translate_instance = LibreTranslator(source=config.get('translate', 'startlang'),
+                                                 target=config.get('translate', 'endLang'),
+                                                 api_key=key,
+                                                 custom_url=url)
         elif translator == "PapagoTranslator":
-            translate_instance = PapagoTranslator(source='auto', target=config.get('translate', 'endLang'))
+            translate_instance = PapagoTranslator(source='auto',
+                                                  target=config.get('translate', 'endLang'),
+                                                  client_id=client_id,
+                                                  secret_key=key)
         elif translator == "ChatGptTranslator":
             translate_instance = ChatGptTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "BaiduTranslator":
-            translate_instance = BaiduTranslator(source='auto', target=config.get('translate', 'endLang'))
+            translate_instance = BaiduTranslator(source=config.get('translate', 'startlang'),
+                                                 target=config.get('translate', 'endLang'),
+                                                 appid=appid,
+                                                 appkey=key)
         logging.info('Translation Provider is {}'.format(translator))
 
         clipboard_text = pyperclip.paste()
         logging.info(f'Clipboard [{config.get("translate", "startLang")}]: {clipboard_text}')
-
-        # translation = translator.translate(clipboard_text)
 
         translation = translate_instance.translate(clipboard_text)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
