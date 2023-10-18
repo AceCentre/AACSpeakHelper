@@ -714,23 +714,24 @@ class Widget(QWidget):
         # TODO: Add other translators and refactoring
 
     def updateLanguage(self, language_input):
+        self.ui.statusBar.setText("")
         # TODO: Standardized all language list using langcodes module
         if self.lock:
             return
         if self.ui.ttsEngineBox.currentText() == 'Azure TTS':
             for text in list(azure_tts_list.keys()):
                 if self.ui.comboBox_targetLang.currentText() in text:
-                    print(True)
+                    self.ui.statusBar.setText("Azure TTS might be compatible to the Translation Engine")
                     return
         if self.ui.ttsEngineBox.currentText() == 'Google TTS':
             for text in list(google_TTS_list.keys()):
                 if self.ui.comboBox_targetLang.currentText() in text:
-                    print(True)
+                    self.ui.statusBar.setText("Google TTS might be compatible to the Translation Engine")
                     return
         if self.ui.ttsEngineBox.currentText() == 'GSpeak':
             for text in list(gSpeak_TTS_list.keys()):
                 if self.ui.comboBox_targetLang.currentText() in text:
-                    print(True)
+                    self.ui.statusBar.setText("GSpeak might be compatible to the Translation Engine")
                     return
         if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
             pass
@@ -743,8 +744,9 @@ class Widget(QWidget):
         if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
             for text in list(kurdish_tts_list.keys()):
                 if self.ui.comboBox_targetLang.currentText() in text:
-                    print(True)
+                    self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
                     return
+        # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
