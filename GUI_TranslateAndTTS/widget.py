@@ -154,13 +154,16 @@ class Widget(QWidget):
             self.app_data_path = os.path.join(home_directory,
                                               'AppData', 'Local', 'Programs', 'Ace Centre', 'TranslateAndTTS')
             self.ui.appPath.setText(self.app_data_path)
+            self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS', 'settings.cfg')
+            self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS', 'Audio Files')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
             self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
-        self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
+            self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
+            self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
-        self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
+        # self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
 
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
@@ -1032,7 +1035,11 @@ class Widget(QWidget):
                 break
 
     def cache_open(self):
-        os.startfile(self.audio_path)
+        if os.path.isdir(self.audio_path):
+            self.ui.statusBar.setText(f"Opened {self.audio_path}")
+            os.startfile(self.audio_path)
+        else:
+            self.ui.statusBar.setText(f"No cached detected. Try using main application first.")
 
     def cache_clear(self):
         pool = QThreadPool.globalInstance()
