@@ -40,6 +40,7 @@ Source: "dist\translatepb\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversi
 Source: "settings.cfg"; DestDir: "{userappdata}\TranslateAndTTS"; Flags: ignoreversion
 Source: "dist\Configure TranslateAndTTS.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\translatepb\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -52,6 +53,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Name: "{autodesktop}\Configure TranslateAndTTS"; Filename: "{app}\Configure TranslateAndTTS.exe"; Tasks: desktopicon
 
 [Run]
+Filename: "{app}\CreateGridset.exe"; Flags: {app}
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{app}\Configure TranslateAndTTS.exe"; Flags: nowait postinstall skipifsilent
