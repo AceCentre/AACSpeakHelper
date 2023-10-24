@@ -42,5 +42,6 @@ if __name__ == "__main__":
     parser.add_argument('LocalAppPath', type=str, help='The path to replace %FILEPATHTOREPLACE% in .xml files')
     args = parser.parse_args()
 
+	local_app_data_path = os.environ.get('LOCALAPPDATA', 'TranslateAndTTS')
     # Assuming the original gridset is located at 'original_gridset.gridset'
-    modify_gridset('assets\TranslateAndTTS DemoGridset.gridset', args.LocalAppPath)
+    modify_gridset(local_app_data_path+'TranslateAndTTS DemoGridset.gridset', args.LocalAppPath)
