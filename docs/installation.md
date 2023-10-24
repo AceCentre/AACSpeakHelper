@@ -16,7 +16,14 @@ Keep a note of the location of the Program Installation Directory. You need this
 
 After installation, you need to configure the application. If you don't, it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS`, which you can find in your start menu and Desktop.
 
-<figure><img src="https://raw.githubusercontent.com/AceCentre/TranslateAndTTS/main/assets/ConfigureTranslateAndTTSScreenshot.png" alt=""><figcaption></figcaption></figure>
+\
+
+
+<figure><img src=".gitbook/assets/Screenshot 2023-10-20 at 17.26.52.png" alt=""><figcaption><p>Choose a TTS Provider and voice</p></figcaption></figure>
+
+<figure><img src=".gitbook/assets/Screenshot 2023-10-20 at 17.26.59 (2).png" alt=""><figcaption><p>Choose a translation provider</p></figcaption></figure>
+
+<figure><img src=".gitbook/assets/App Settings.png" alt=""><figcaption><p>App Settings. Note Copy Path of Main app to add to your AAC software</p></figcaption></figure>
 
 **Notes on the configuration options**
 
