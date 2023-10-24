@@ -1,33 +1,27 @@
 # This Python file uses the following encoding: utf-8
-import sys
-import os
 import configparser
+import json
+import logging
+import os
+import subprocess
+import tempfile
+import uuid
 
-from PySide6.QtWidgets import *
 import PySide6.QtCore
+import pyperclip
+import pyttsx3
 from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
 from PySide6.QtGui import QFont, QIcon, QMovie
+from PySide6.QtWidgets import *
+from deep_translator import __all__ as providers
+from gtts import lang as gtts_language_list
 
-import pyttsx3
-import uuid
-import logging
-import translate
-import json
+from item import Ui_item
+from language_dictionary import *
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
-from item import Ui_item
-import requests
-import tempfile
-import subprocess
-import pyperclip
-from langcodes import *
-from gtts import lang as gtts_language_list
-from deep_translator import __all__ as providers
-from deep_translator import constants as language_codes_list
-from deep_translator import *
-from language_dictionary import *
 
 
 class Widget(QWidget):
@@ -57,7 +51,6 @@ class Widget(QWidget):
                 self.providers.append(translator)
         self.ui.comboBox_provider.addItems(self.providers)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-        # self.ui.deepl_secret_key.textChanged.connect(self.updateLanguage)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
@@ -65,65 +58,7 @@ class Widget(QWidget):
         self.generate_translate_list()
         self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
         # TODO: removed this translation list later
-        self.translate_languages = {"Afrikaans": "af",
-                                    "Arabic": "ar",
-                                    "Bulgarian": "bg",
-                                    "Bengali": "bn",
-                                    "Bosnian": "bs",
-                                    "Catalan": "ca",
-                                    "Czech": "cs",
-                                    "Danish": "da",
-                                    "German": "de",
-                                    "Greek": "el",
-                                    "English": "en",
-                                    "Spanish": "es",
-                                    "Estonian": "et",
-                                    "Finnish": "fi",
-                                    "French": "fr",
-                                    "Gujarati": "gu",
-                                    "Hindi": "hi",
-                                    "Croatian": "hr",
-                                    "Hungarian": "hu",
-                                    "Indonesian": "id",
-                                    "Icelandic": "is",
-                                    "Italian": "it",
-                                    "Hebrew": "iw",
-                                    "Japanese": "ja",
-                                    "Javanese": "jw",
-                                    "Khmer": "km",
-                                    "Kannada": "kn",
-                                    "Korean": "ko",
-                                    "Latin": "la",
-                                    "Latvian": "lv",
-                                    "Malayalam": "ml",
-                                    "Marathi": "mr",
-                                    "Malay": "ms",
-                                    "Myanmar(Burmese)": "my",
-                                    "Nepali": "ne",
-                                    "Dutch": "nl",
-                                    "Norwegian": "no",
-                                    "Polish": "pl",
-                                    "Portuguese": "pt",
-                                    "Romanian": "ro",
-                                    "Russian": "ru",
-                                    "Sinhala": "si",
-                                    "Slovak": "sk",
-                                    "Albanian": "sq",
-                                    "Serbian": "sr",
-                                    "Sundanese": "su",
-                                    "Swedish": "sv",
-                                    "Swahili": "sw",
-                                    "Tamil": "ta",
-                                    "Telugu": "te",
-                                    "Thai": "th",
-                                    "Filipino": "tl",
-                                    "Turkish": "tr",
-                                    "Ukrainian": "uk",
-                                    "Urdu": "ur",
-                                    "Vietnamese": "vi",
-                                    "Chinese(Simplified)": "zh-CN",
-                                    "Chinese(Mandarin/Taiwan)": "zh-TW",
-                                    "Chinese(Mandarin)": "zh"}
+        self.translate_languages = gSpeak_TTS_list
 
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
@@ -313,8 +248,6 @@ class Widget(QWidget):
 
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
-            # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-            # self.onTTSEngineToggled()
 
         else:
             self.generate_azure_voice_models()
@@ -357,18 +290,10 @@ class Widget(QWidget):
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
-        # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
         self.onTTSEngineToggled(self.comboBox)
         self.lock = False
 
     def onTTSEngineToggled(self, text):
-        # move this on every TTS "if" condition if necessary.
-        # TODO: Check if this is still needed.
-        # index = self.ui.comboBox_targetLang.currentIndex()
-        # self.ui.comboBox_targetLang.clear()
-        # self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-        # self.ui.comboBox_targetLang.setCurrentIndex(index)
-
         if text == "Azure TTS":
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
@@ -392,8 +317,8 @@ class Widget(QWidget):
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
             # TODO: Comment this lines after fixing language pairs
-            self.ui.comboBox_targetLang.clear()
-            self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
+            # self.ui.comboBox_targetLang.clear()
+            # self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -405,6 +330,7 @@ class Widget(QWidget):
                 self.ttsEngine = "coqui"
             else:
                 self.ttsEngine = "azureTTS"
+        self.setParameter(self.ui.comboBox_provider.currentText())
 
     def OnSavePressed(self, permanent=True):
         self.ui.statusBar.clear()
@@ -609,7 +535,7 @@ class Widget(QWidget):
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(
-            self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
+                self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
         if string == 'DeeplTranslator':
             try:
                 if os.path.exists(self.config_path):
@@ -745,10 +671,18 @@ class Widget(QWidget):
         if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
             pass
         if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
-            for text in list(kurdish_tts_list.keys()):
-                if self.ui.comboBox_targetLang.currentText() in text:
-                    self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
-                    return
+            items = [self.ui.comboBox_targetLang.itemText(i) for i in range(self.ui.comboBox_targetLang.count())]
+            kurdish_list = []
+            for item in items:
+                if "Kurdish" in item:
+                    kurdish_list.append(item)
+            if len(kurdish_list) > 0:
+                self.lock = True
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_targetLang.addItems(sorted(kurdish_list))
+                self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
+                self.lock = False
+                return
         # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
