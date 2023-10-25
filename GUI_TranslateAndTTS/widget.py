@@ -1,33 +1,27 @@
 # This Python file uses the following encoding: utf-8
-import sys
-import os
 import configparser
+import json
+import logging
+import os
+import subprocess
+import tempfile
+import uuid
 
-from PySide6.QtWidgets import *
 import PySide6.QtCore
+import pyperclip
+import pyttsx3
 from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
 from PySide6.QtGui import QFont, QIcon, QMovie
+from PySide6.QtWidgets import *
+from deep_translator import __all__ as providers
+from gtts import lang as gtts_language_list
 
-import pyttsx3
-import uuid
-import logging
-import translate
-import json
+from item import Ui_item
+from language_dictionary import *
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
-from item import Ui_item
-import requests
-import tempfile
-import subprocess
-import pyperclip
-from langcodes import *
-from gtts import lang as gtts_language_list
-from deep_translator import __all__ as providers
-from deep_translator import constants as language_codes_list
-from deep_translator import *
-from language_dictionary import *
 
 
 class Widget(QWidget):
@@ -57,73 +51,13 @@ class Widget(QWidget):
                 self.providers.append(translator)
         self.ui.comboBox_provider.addItems(self.providers)
         self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-        # self.ui.deepl_secret_key.textChanged.connect(self.updateLanguage)
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
         self.tts_dict = {}
         self.generate_translate_list()
         self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
-        # TODO: removed this translation list later
-        self.translate_languages = {"Afrikaans": "af",
-                                    "Arabic": "ar",
-                                    "Bulgarian": "bg",
-                                    "Bengali": "bn",
-                                    "Bosnian": "bs",
-                                    "Catalan": "ca",
-                                    "Czech": "cs",
-                                    "Danish": "da",
-                                    "German": "de",
-                                    "Greek": "el",
-                                    "English": "en",
-                                    "Spanish": "es",
-                                    "Estonian": "et",
-                                    "Finnish": "fi",
-                                    "French": "fr",
-                                    "Gujarati": "gu",
-                                    "Hindi": "hi",
-                                    "Croatian": "hr",
-                                    "Hungarian": "hu",
-                                    "Indonesian": "id",
-                                    "Icelandic": "is",
-                                    "Italian": "it",
-                                    "Hebrew": "iw",
-                                    "Japanese": "ja",
-                                    "Javanese": "jw",
-                                    "Khmer": "km",
-                                    "Kannada": "kn",
-                                    "Korean": "ko",
-                                    "Latin": "la",
-                                    "Latvian": "lv",
-                                    "Malayalam": "ml",
-                                    "Marathi": "mr",
-                                    "Malay": "ms",
-                                    "Myanmar(Burmese)": "my",
-                                    "Nepali": "ne",
-                                    "Dutch": "nl",
-                                    "Norwegian": "no",
-                                    "Polish": "pl",
-                                    "Portuguese": "pt",
-                                    "Romanian": "ro",
-                                    "Russian": "ru",
-                                    "Sinhala": "si",
-                                    "Slovak": "sk",
-                                    "Albanian": "sq",
-                                    "Serbian": "sr",
-                                    "Sundanese": "su",
-                                    "Swedish": "sv",
-                                    "Swahili": "sw",
-                                    "Tamil": "ta",
-                                    "Telugu": "te",
-                                    "Thai": "th",
-                                    "Filipino": "tl",
-                                    "Turkish": "tr",
-                                    "Ukrainian": "uk",
-                                    "Urdu": "ur",
-                                    "Vietnamese": "vi",
-                                    "Chinese(Simplified)": "zh-CN",
-                                    "Chinese(Mandarin/Taiwan)": "zh-TW",
-                                    "Chinese(Mandarin)": "zh"}
+        self.translate_languages = gSpeak_TTS_list
 
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
@@ -163,7 +97,6 @@ class Widget(QWidget):
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
-        # self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
 
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
@@ -313,8 +246,6 @@ class Widget(QWidget):
 
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
-            # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
-            # self.onTTSEngineToggled()
 
         else:
             self.generate_azure_voice_models()
@@ -357,18 +288,10 @@ class Widget(QWidget):
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
 
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
-        # use self.onTTSEngineToggled() to refresh TTS engine setting upon start-up
         self.onTTSEngineToggled(self.comboBox)
         self.lock = False
 
     def onTTSEngineToggled(self, text):
-        # move this on every TTS "if" condition if necessary.
-        # TODO: Check if this is still needed.
-        # index = self.ui.comboBox_targetLang.currentIndex()
-        # self.ui.comboBox_targetLang.clear()
-        # self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-        # self.ui.comboBox_targetLang.setCurrentIndex(index)
-
         if text == "Azure TTS":
             self.ttsEngine = "azureTTS"
             self.ui.stackedWidget.setCurrentIndex(0)
@@ -391,9 +314,6 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "kurdishTTS"
             self.ui.stackedWidget.setCurrentIndex(4)
-            # TODO: Comment this lines after fixing language pairs
-            self.ui.comboBox_targetLang.clear()
-            self.ui.comboBox_targetLang.addItems(["Kurdish (Kurmanji)", "Kurdish (Sorani)"])
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -405,6 +325,7 @@ class Widget(QWidget):
                 self.ttsEngine = "coqui"
             else:
                 self.ttsEngine = "azureTTS"
+        self.setParameter(self.ui.comboBox_provider.currentText())
 
     def OnSavePressed(self, permanent=True):
         self.ui.statusBar.clear()
@@ -449,7 +370,6 @@ class Widget(QWidget):
         self.config.set('translate', 'baidutranslator_appid', self.ui.baidu_appid.text())
         self.config.set('translate', 'baidutranslator_secret_key', self.ui.baidu_secret_key.text())
         self.config.set('translate', 'qcritranslator_secret_key', self.ui.qcri_secret_key.text())
-        # TODO: Add other translators
 
         self.config.add_section('TTS') if not self.config.has_section('TTS') else print('')
         self.config.set('TTS', 'engine', self.ttsEngine)
@@ -565,18 +485,14 @@ class Widget(QWidget):
             identifier = uuid.uuid4()
             logging.error("UUID Error: {}".format(e), exc_info=False)
             pass
-
         return identifier
 
     def setParameter(self, string):
+        self.ui.comboBox_writeLang.clear()
+        self.ui.comboBox_targetLang.clear()
         if string == 'GoogleTranslator':
             try:
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Google_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.google))
@@ -585,12 +501,7 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
                     self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = MyMemory_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
@@ -600,27 +511,17 @@ class Widget(QWidget):
                     self.ui.LibreTranslate_secret_key.setText(
                         self.config.get('translate', 'LibreTranslator_secret_key'))
                     self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Libre_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(
-            self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
+                self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
         if string == 'DeeplTranslator':
             try:
                 if os.path.exists(self.config_path):
                     self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
                     self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = DeepL_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
@@ -629,34 +530,19 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
                     self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Microsoft_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
         if string == 'PonsTranslator':
             try:
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Pons_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
         if string == 'LingueeTranslator':
             try:
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Linguee_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
@@ -665,12 +551,7 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
                     self.ui.papago_client_id.setText(self.config.get('translate', 'Papagotranslator_client_id'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Papago_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
@@ -678,12 +559,7 @@ class Widget(QWidget):
             try:
                 if os.path.exists(self.config_path):
                     self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Qcri_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
@@ -692,12 +568,7 @@ class Widget(QWidget):
                 if os.path.exists(self.config_path):
                     self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
                     self.ui.baidu_appid.setText(self.config.get('translate', 'BaiduTranslator_appid'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Baidu_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
@@ -705,20 +576,16 @@ class Widget(QWidget):
             try:
                 if os.path.exists(self.config_path):
                     self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
-                self.ui.comboBox_writeLang.clear()
-                self.ui.comboBox_targetLang.clear()
                 self.translate_languages = Yandex_Translator
-                self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-                self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-                self.set_Translate_dropdown(self.translate_languages)
             except Exception as e:
                 logging.error("Configuration Error: {}".format(e), exc_info=True)
             self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
-        # TODO: Add other translators and refactoring
+        self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+        self.set_Translate_dropdown(self.translate_languages)
 
     def updateLanguage(self, language_input):
         self.ui.statusBar.setText("")
-        # TODO: Standardized all language list using langcodes module
         if self.lock:
             return
         if self.ui.ttsEngineBox.currentText() == 'Azure TTS':
@@ -745,10 +612,18 @@ class Widget(QWidget):
         if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
             pass
         if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
-            for text in list(kurdish_tts_list.keys()):
-                if self.ui.comboBox_targetLang.currentText() in text:
-                    self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
-                    return
+            items = [self.ui.comboBox_targetLang.itemText(i) for i in range(self.ui.comboBox_targetLang.count())]
+            kurdish_list = []
+            for item in items:
+                if "Kurdish" in item:
+                    kurdish_list.append(item)
+            if len(kurdish_list) > 0:
+                self.lock = True
+                self.ui.comboBox_targetLang.clear()
+                self.ui.comboBox_targetLang.addItems(sorted(kurdish_list))
+                self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
+                self.lock = False
+                return
         # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
@@ -787,7 +662,6 @@ class Widget(QWidget):
                 return
 
         self.OnSavePressed(False)
-        # TODO: Change value to the desired text
         pyperclip.copy("Hello World")
         pool = QThreadPool.globalInstance()
         runnable = Player(self.temp_config_file)
@@ -1112,7 +986,6 @@ class Player(QRunnable):
                     if "translatepb.exe" in file:
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
-            print(GUI_path)
             # Use subprocess.Popen to run the executable
             process = subprocess.Popen([GUI_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
