@@ -42,7 +42,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 
 	# Create a shortcut file on the Desktop to act as a shortcut
 	desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-	exit_code = os.system(f'powershell.exe $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut("{desktop}"); $s.TargetPath = "{new_gridset_dir}"; $s.Save()')
+	exit_code = os.system(f'powershell.exe "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\'{desktop}\'); $s.TargetPath = \'{new_gridset_dir}\'; $s.Save()" >$null 2>&1')
 
 if __name__ == "__main__":
 	app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
