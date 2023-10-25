@@ -1,7 +1,7 @@
 import zipfile
 import os
 import re
-import shutil  # Import the shutil module
+import shutil
 
 def modify_gridset(gridset_path, LocalAppPath):
 	temp_dir = 'temp_gridset'
@@ -23,8 +23,11 @@ def modify_gridset(gridset_path, LocalAppPath):
 				with open(xml_path, 'w') as f:
 					f.write(new_data)
 	
-	new_gridset_path = os.path.join(os.path.expanduser("~"), 'Desktop', 'Example AAC Helper tool Pages', 'modified_gridset.gridset')
-	os.makedirs(os.path.dirname(new_gridset_path), exist_ok=True)
+	new_gridset_dir = os.path.join(LocalAppPath, 'TranslateAndTTS', 'Example AAC Helper Pages')
+	new_gridset_path = os.path.join(new_gridset_dir, 'modified_gridset.gridset')
+	
+	os.makedirs(new_gridset_dir, exist_ok=True)
+	
 	with zipfile.ZipFile(new_gridset_path, 'w') as zipf:
 		for root, _, files in os.walk(temp_dir):
 			for file in files:
@@ -32,8 +35,14 @@ def modify_gridset(gridset_path, LocalAppPath):
 	
 	# Delete the temp directory after creating the modified .gridset
 	shutil.rmtree(temp_dir)
-	os.remove(gridset_location)
+	os.remove(gridset_path)
 
+	# Create a .bat file on the Desktop to act as a shortcut
+	desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+	bat_file = os.path.join(desktop, "Open Example AAC Helper Pages.bat")
+	
+	with open(bat_file, 'w') as f:
+		f.write(f'start "" "{new_gridset_dir}"')
 
 if __name__ == "__main__":
 	app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
