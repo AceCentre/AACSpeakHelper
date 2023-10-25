@@ -26,7 +26,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 					f.write(new_data)
 		
 	new_gridset_dir = os.path.join(LocalAppPath, 'TranslateAndTTS', 'Example AAC Helper Pages')
-	new_gridset_path = os.path.join(new_gridset_dir, 'modified_gridset.gridset')
+	new_gridset_path = os.path.join(new_gridset_dir, 'AAC Helper Tool Demo.gridset')
 	
 	os.makedirs(new_gridset_dir, exist_ok=True)
 	

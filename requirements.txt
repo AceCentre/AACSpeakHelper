@@ -1,5 +1,5 @@
 #python==3.11.4(python.org)
-pyinstaller==5.13.0 
+pyinstaller==6.1.0
 pyperclip==1.8.2 
 # pyttsx4==3.0.15
 pyttsx3==2.90
