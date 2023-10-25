@@ -19,7 +19,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 					filedata = f.read()
 				
 				full_path_to_exe = os.path.join(LocalAppPath, 'TranslateAndTTS', 'translatepb.exe')
-				new_data = re.sub('%FILEPATHTOREPLACE%', re.escape(full_path_to_exe), filedata)
+				new_data = re.sub('%FILEPATHTOREPLACE%', full_path_to_exe, filedata)
 
 				
 				with open(xml_path, 'w') as f:
