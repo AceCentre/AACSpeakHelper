@@ -18,11 +18,13 @@ def modify_gridset(gridset_path, LocalAppPath):
 				with open(xml_path, 'r') as f:
 					filedata = f.read()
 				
-				new_data = re.sub('%FILEPATHTOREPLACE%', re.escape(LocalAppPath), filedata)
+				full_path_to_exe = os.path.join(LocalAppPath, 'TranslateAndTTS', 'translatepb.exe')
+				new_data = re.sub('%FILEPATHTOREPLACE%', re.escape(full_path_to_exe), filedata)
+
 				
 				with open(xml_path, 'w') as f:
 					f.write(new_data)
-	
+		
 	new_gridset_dir = os.path.join(LocalAppPath, 'TranslateAndTTS', 'Example AAC Helper Pages')
 	new_gridset_path = os.path.join(new_gridset_dir, 'modified_gridset.gridset')
 	
