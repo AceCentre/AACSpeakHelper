@@ -40,12 +40,9 @@ def modify_gridset(gridset_path, LocalAppPath):
 	shutil.rmtree(temp_dir)
 	os.remove(gridset_path)
 
-	# Create a .bat file on the Desktop to act as a shortcut
+	# Create a shortcut file on the Desktop to act as a shortcut
 	desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-	bat_file = os.path.join(desktop, "Open Example AAC Helper Pages.bat")
-	
-	with open(bat_file, 'w') as f:
-		f.write(f'start "" "{new_gridset_dir}"')
+	os.system(f'powershell.exe $ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut("{desktop}"); $s.TargetPath = "{new_gridset_dir}"; $s.Save()')
 
 if __name__ == "__main__":
 	app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
