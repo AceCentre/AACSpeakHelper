@@ -54,7 +54,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Name: "{autodesktop}\Configure TranslateAndTTS"; Filename: "{app}\Configure TranslateAndTTS.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\CreateGridset.exe '{app}'"
+Filename: "{app}\CreateGridset.exe"
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{app}\Configure TranslateAndTTS.exe"; Flags: nowait postinstall skipifsilent
