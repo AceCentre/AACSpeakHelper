@@ -3,6 +3,26 @@ import os
 import re
 import shutil
 
+def create_folder_shortcut(target_folder, shortcut_name):
+	desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+	shortcut_path = os.path.join(desktop, f'{shortcut_name}.lnk')
+
+	vbs_script = f"""
+	Set oWS = WScript.CreateObject("WScript.Shell")
+	sLinkFile = "{shortcut_path}"
+	Set oLink = oWS.CreateShortcut(sLinkFile)
+	oLink.TargetPath = "{target_folder}"
+	oLink.Save
+	"""
+
+	vbs_script_path = os.path.join(desktop, 'create_shortcut.vbs')
+	with open(vbs_script_path, 'w') as file:
+		file.write(vbs_script)
+
+	os.system(f'cscript //Nologo "{vbs_script_path}"')
+	os.remove(vbs_script_path)	# Clean up the VBS script file after creating the shortcut
+
+
 def modify_gridset(gridset_path, LocalAppPath):
 	temp_dir = 'temp_gridset'
 	os.makedirs(temp_dir, exist_ok=True)
@@ -41,8 +61,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 	os.remove(gridset_path)
 
 	# Create a shortcut file on the Desktop to act as a shortcut
-	desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-	exit_code = os.system(f'powershell.exe "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\'{desktop}\'); $s.TargetPath = \'{new_gridset_dir}\'; $s.Save()" >$null 2>&1')
+	create_folder_shortcut(new_gridset_dir, 'Example AAC Pages')
 
 if __name__ == "__main__":
 	app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
