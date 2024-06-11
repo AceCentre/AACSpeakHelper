@@ -2,7 +2,7 @@
 pyinstaller==6.1.0
 pyperclip==1.8.2 
 # pyttsx4==3.0.15
-pyttsx3==2.90
+py3-tts==2.90
 configparser==6.0.0
 translate==3.6.1
 TTS==0.16.3
