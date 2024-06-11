@@ -114,12 +114,15 @@ async def mainrun(listvoices: bool):
                 stop = time.perf_counter() - start
                 # print(f"Translation runtime is {stop:0.5f} seconds.")
                 logging.info(f"Translation runtime is {stop:0.5f} seconds.")
-            start = time.perf_counter()
-            print(f"Text: [{clipboard}].")
-            speak(clipboard)
-            stop = time.perf_counter() - start
-            # print(f"TTS runtime is {stop:0.5f} seconds.")
-            logging.info(f"TTS runtime is {stop:0.5f} seconds.")
+            
+            # Check the bypass TTS flag
+            if not config.getboolean('TTS', 'bypass_tts', fallback=False):
+                start = time.perf_counter()
+                print(f"Text: [{clipboard}].")
+                speak(clipboard)
+                stop = time.perf_counter() - start
+                # print(f"TTS runtime is {stop:0.5f} seconds.")
+                logging.info(f"TTS runtime is {stop:0.5f} seconds.")
             if config.getboolean('translate', 'replacepb') and clipboard is not None:
                 pyperclip.copy(clipboard)
             logging.info("------------------------------------------------------------------------")
