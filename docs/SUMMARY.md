@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Introduction](README.md)
+* [Do you really need this?](do-you-really-need-this.md)
 * [Installation](installation.md)
 * [Command Line Flags](command-line-flags.md)
 * [Supported Languages](supported-languages.md)
