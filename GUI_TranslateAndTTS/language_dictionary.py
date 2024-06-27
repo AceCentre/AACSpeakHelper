@@ -1,4 +1,14 @@
 from langcodes import *
+from tts_wrapper import MMSClient
+
+
+client = MMSClient()
+mms_voices = client.get_voices()
+mms_tts_list = {}
+print(mms_voices)
+for voice in mms_voices:
+    if voice['language_codes'][0] != 'con':
+        mms_tts_list[voice['name']] = voice['language_codes'][0]
 
 Google_Translator = {'Afrikaans': 'af',
                      'Albanian': 'sq',
@@ -1099,6 +1109,3 @@ kurdish_tts_list = {"Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"}
 
 newMemory = {}
 
-# for x in Yandex_Translator:
-#     newMemory[Language.get(x).display_name()] = x
-# print(newMemory)
