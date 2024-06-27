@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="images">
+    <file>images/download.ico</file>
+    <file>images/downloaded.ico</file>
     <file>images/loading.gif</file>
     <file>images/configure.ico</file>
     <file>images/translate.ico</file>
