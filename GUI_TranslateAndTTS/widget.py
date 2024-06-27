@@ -11,7 +11,7 @@ import PySide6.QtCore
 import pyperclip
 import pyttsx3
 from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
-from PySide6.QtGui import QFont, QIcon, QMovie
+from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
 from gtts import lang as gtts_language_list
@@ -189,10 +189,10 @@ class Widget(QWidget):
                 self.comboBox = 'Sapi5 (Windows)'
                 self.ui.stackedWidget.setCurrentIndex(3)
                 self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
-            elif self.ttsEngine == "kurdishTTS":
-                self.comboBox = 'Kurdish TTS'
-                self.ui.stackedWidget.setCurrentIndex(4)
-                self.ui.ttsEngineBox.setCurrentText('Kurdish TTS')
+            elif self.ttsEngine == "mms":
+                self.comboBox = 'Massively Multilingual Speech (MMS)'
+                self.ui.stackedWidget.setCurrentIndex(6)
+                self.ui.ttsEngineBox.setCurrentText('Massively Multilingual Speech (MMS)')
             elif self.ttsEngine == "espeak":
                 self.comboBox = 'espeak (Unsupported)'
                 self.ui.stackedWidget.setCurrentIndex(5)
@@ -253,6 +253,7 @@ class Widget(QWidget):
             self.get_microsoft_language()
             self.ttsEngine = "azureTTS"
             self.comboBox = 'Azure TTS'
+            # TODO: make default to mms
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
@@ -310,10 +311,11 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
-        elif text == "Kurdish TTS":
+        elif text == "Massively Multilingual Speech (MMS)":
             self.resize(588, 400)
-            self.ttsEngine = "kurdishTTS"
-            self.ui.stackedWidget.setCurrentIndex(4)
+            self.ttsEngine = "mms"
+            self.ui.stackedWidget.setCurrentIndex(6)
+            self.generate_MMS_voice_model()
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -952,17 +954,85 @@ class Widget(QWidget):
             lang = [key for key, value in source.items() if value == self.startLang]
             if not len(lang) == 0:
                 lang = lang[0]
+            print(f"Start Language: {lang}")
             self.ui.comboBox_writeLang.setCurrentText(lang)
 
             lang = [key for key, value in source.items() if value == self.endLang]
             if not len(lang) == 0:
                 lang = lang[0]
+            print(f"End Language: {lang}")
             self.ui.comboBox_targetLang.setCurrentText(lang)
         except Exception as error:
-            logging.error("Error setting current text.", exc_info=False)
+            logging.error(f"Error setting current text; {error}", exc_info=False)
 
     def copyAppPath(self):
         pyperclip.copy(self.ui.appPath.text())
+
+    def generate_MMS_voice_model(self):
+        # self.ui.mms_listWidget.setStyleSheet("QListView:item:selected{background-color: rgb(0,0,255);}")
+        downloaded = QIcon(":/images/images/downloaded.ico")
+        self.iconDownload = QIcon(":/images/images/download.ico")
+        self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
+        # cache_file = os.path.join(tempfile.gettempdir(), "mms_voices_cache.json")
+        location = client._model_dir
+        voices = mms_voices
+        for index, x in enumerate(voices):
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            # item_UI.stackedWidget.setStyleSheet('background-color: rgb(255, 255, 255);')
+            item_UI.name.setText(x['name'])
+            font = QFont()
+            font.setBold(False)
+            font.setPointSize(8)
+            item_UI.gender.setFont(font)
+            item_UI.gender.setText(x['gender'])
+            item_UI.play.clicked.connect(self.action_pressed)
+            item_widget.setObjectName(x['name'])
+
+            item = QListWidgetItem()
+            item.setForeground(QColor(0, 0, 0, 0))
+            item.setText(x['name'])
+            item.setToolTip(x['language_codes'][0])
+            item.setSizeHint(item_widget.sizeHint())
+            self.ui.mms_listWidget.insertItem(index, item)
+            self.ui.mms_listWidget.setItemWidget(item, item_widget)
+
+            # item = QListWidgetItem(x)
+            if os.path.exists(os.path.join(location, x['language_codes'][0])):
+                # print(os.path.join(location, voices[x]))
+                item_UI.play.setIcon(self.iconPlayed)
+                item_UI.play.setObjectName('Play')
+            else:
+                item_UI.play.setIcon(self.iconDownload)
+                item_UI.play.setObjectName('Download')
+            # self.ui.mms_listWidget.addItem(item)
+        # self.ui.mms_listWidget.addItems(voices.keys())
+
+        self.ui.mms_listWidget.itemClicked.connect(self.printItem)
+        self.ui.search_language.textChanged.connect(self.searchItem)
+
+    def printItem(self, item):
+        self.ui.mms_listWidget.setCurrentItem(item)
+        print(mms_tts_list[item.text()])
+
+    def action_pressed(self):
+        widget = self.sender().parent().parent().parent()
+        name = widget.objectName()
+        items = self.ui.mms_listWidget.findItems(name, Qt.MatchContains)
+        # print(items, name)
+        for item in items:
+            self.ui.mms_listWidget.setCurrentItem(item)
+        if self.sender().objectName() == 'Play':
+            pass
+        else:
+            pass
+
+    def searchItem(self, text):
+        match_items = self.ui.mms_listWidget.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.mms_listWidget.count()):
+            it = self.ui.mms_listWidget.item(i)
+            it.setHidden(it not in match_items)
 
 
 class Signals(QObject):
