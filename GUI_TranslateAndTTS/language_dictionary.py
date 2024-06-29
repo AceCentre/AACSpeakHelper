@@ -5,7 +5,7 @@ from tts_wrapper import MMSClient
 client = MMSClient()
 mms_voices = client.get_voices()
 mms_tts_list = {}
-print(mms_voices)
+# print(mms_voices)
 for voice in mms_voices:
     if voice['language_codes'][0] != 'con':
         mms_tts_list[voice['name']] = voice['language_codes'][0]
