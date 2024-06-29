@@ -68,6 +68,7 @@ def configure_app():
 
 
 def get_paths(args: vars):
+    # TODO:  %AppData%/Ace Centre/AACSpeechHelper/models
     if args['config'] != '' and os.path.exists(args['config']):
         config_path = args['config']
         audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
@@ -76,7 +77,7 @@ def get_paths(args: vars):
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
+            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeechHelper')
 
         elif __file__:
             application_path = os.path.dirname(__file__)
