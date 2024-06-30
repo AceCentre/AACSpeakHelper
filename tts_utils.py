@@ -208,4 +208,4 @@ def ttsWrapperSpeak(text: str, tts, engine):
         logging.info("Speech synthesized for text [{}].".format(text))
 
     if save_audio_file:
-        save_audio(audio_bytes, text=text, engine=engine, format=fmt)
+        save_audio(audio_bytes, text=text, engine=engine, format=fmt, tts=tts)

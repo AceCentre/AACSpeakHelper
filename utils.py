@@ -11,6 +11,8 @@ import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 import sqlite3
+from tts_wrapper import MMSTTS
+import wave
 
 # Hide Pygame support prompt
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
@@ -116,12 +118,21 @@ def play_audio(audio_bytes, file: bool = False):
         continue
 
 
-def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav'):
+def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav', tts=None):
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + format)
+    if isinstance(tts, MMSTTS):
+        channels = 1
+        sample_width = 2
+        with wave.open(filename, "wb") as file:
+            file.setnchannels(channels)
+            file.setsampwidth(sample_width)
+            file.setframerate(16538)
+            file.writeframes(audio_bytes)
+    else:
+        with open(filename, 'wb') as out_file:
+            out_file.write(audio_bytes)
     sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, timestr + format, engine)
-    with open(filename, 'wb') as out_file:
-        out_file.write(audio_bytes)
     try:
         connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
         connection.execute(sql)
