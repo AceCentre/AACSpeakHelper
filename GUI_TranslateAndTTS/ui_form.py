@@ -28,7 +28,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(588, 400)
+        Widget.resize(615, 391)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -382,6 +382,53 @@ class Ui_Widget(object):
         self.verticalLayout_13.addItem(self.verticalSpacer_4)
 
         self.stackedWidget.addWidget(self.ttsPage)
+        self.mms_page = QWidget()
+        self.mms_page.setObjectName(u"mms_page")
+        self.verticalLayout_17 = QVBoxLayout(self.mms_page)
+        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.frame_3 = QFrame(self.mms_page)
+        self.frame_3.setObjectName(u"frame_3")
+        self.frame_3.setFrameShape(QFrame.StyledPanel)
+        self.frame_3.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_3 = QHBoxLayout(self.frame_3)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.mms_cache = QLineEdit(self.frame_3)
+        self.mms_cache.setObjectName(u"mms_cache")
+
+        self.horizontalLayout_3.addWidget(self.mms_cache)
+
+        self.download_cache = QPushButton(self.frame_3)
+        self.download_cache.setObjectName(u"download_cache")
+
+        self.horizontalLayout_3.addWidget(self.download_cache)
+
+        self.cache_pushButton = QPushButton(self.frame_3)
+        self.cache_pushButton.setObjectName(u"cache_pushButton")
+
+        self.horizontalLayout_3.addWidget(self.cache_pushButton)
+
+
+        self.verticalLayout_17.addWidget(self.frame_3)
+
+        self.mms_checkBox = QCheckBox(self.mms_page)
+        self.mms_checkBox.setObjectName(u"mms_checkBox")
+
+        self.verticalLayout_17.addWidget(self.mms_checkBox)
+
+        self.search_language = QLineEdit(self.mms_page)
+        self.search_language.setObjectName(u"search_language")
+        self.search_language.setAlignment(Qt.AlignCenter)
+        self.search_language.setClearButtonEnabled(False)
+
+        self.verticalLayout_17.addWidget(self.search_language)
+
+        self.mms_listWidget = QListWidget(self.mms_page)
+        self.mms_listWidget.setObjectName(u"mms_listWidget")
+
+        self.verticalLayout_17.addWidget(self.mms_listWidget)
+
+        self.stackedWidget.addWidget(self.mms_page)
 
         self.gridLayout_12.addWidget(self.stackedWidget, 2, 0, 1, 2)
 
@@ -748,7 +795,7 @@ class Ui_Widget(object):
         self.checkBox_translate.clicked["bool"].connect(self.groupBox_translate.setEnabled)
 
         self.tabWidget.setCurrentIndex(0)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(6)
         self.stackedWidget_provider.setCurrentIndex(4)
 
 
@@ -758,14 +805,14 @@ class Ui_Widget(object):
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
         self.statusBar.setText("")
-        self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Azure TTS", None))
-        self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Google TTS", None))
-        self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"GSpeak", None))
-        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
-        self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"NSS (Mac Only)", None))
-        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
-        self.ttsEngineBox.setItemText(6, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
-        self.ttsEngineBox.setItemText(7, QCoreApplication.translate("Widget", u"Kurdish TTS", None))
+        self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Massively Multilingual Speech (MMS)", None))
+        self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Azure TTS", None))
+        self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"Google TTS", None))
+        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GSpeak", None))
+        self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
+        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"NSS (Mac Only)", None))
+        self.ttsEngineBox.setItemText(6, QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
+        self.ttsEngineBox.setItemText(7, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
         self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
@@ -778,10 +825,10 @@ class Ui_Widget(object):
         self.textBrowser.setHtml(QCoreApplication.translate("Widget", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">Note: </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:"
-                        "#001e00; background-color:#f5f6f7;\">1. Not all voices available. </span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#"
+                        "001e00; background-color:#f5f6f7;\">1. Not all voices available. </span></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">2. Voice is chosen by default based on Target Lang</span></p></body></html>", None))
         self.label_8.setText(QCoreApplication.translate("Widget", u"Rate:", None))
 #if QT_CONFIG(tooltip)
@@ -799,6 +846,10 @@ class Ui_Widget(object):
         self.label_5.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
+        self.download_cache.setText(QCoreApplication.translate("Widget", u"Download", None))
+        self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
+        self.mms_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
+        self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TextToSpeechSetting), QCoreApplication.translate("Widget", u"Tab 1", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
