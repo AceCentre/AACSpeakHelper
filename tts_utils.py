@@ -108,6 +108,7 @@ def mmsSpeak(text: str, engine):
     if not os.path.isdir(mms_cache_path):
         # mms_cache_path = None
         os.mkdir(mms_cache_path)
+    print(mms_cache_path)
     client = MMSClient((mms_cache_path, voiceid))
     tts = MMSTTS(client)
     ttsWrapperSpeak(text, tts, engine)
