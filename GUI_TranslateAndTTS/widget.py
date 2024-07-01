@@ -110,11 +110,13 @@ class Widget(QWidget):
             self.config.read(self.config_path)
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
+            self.generate_MMS_voice_model()
             self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
             self.endLang = self.config.get('translate', 'endLang')
             self.overwritePb = self.config.getboolean('translate', 'replacepb')
+            self.bypassTTS = self.config.getboolean('TTS', 'bypass_tts')
             self.provider = self.config.get('translate', 'provider')
             self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
             if self.provider == 'MyMemoryTranslator':
@@ -230,6 +232,7 @@ class Widget(QWidget):
 
             self.ui.checkBox_translate.setChecked(not self.notranslate)
             self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
+            self.ui.bypass_tts_checkBox.setChecked(self.bypassTTS)
             self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
 
             self.ui.horizontalSlider_rate.setValue(self.rate)
@@ -257,14 +260,17 @@ class Widget(QWidget):
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.get_microsoft_language()
-            self.ttsEngine = "azureTTS"
-            self.comboBox = 'Azure TTS'
-            # TODO: make default to mms
+            self.generate_MMS_voice_model()
+            # self.ttsEngine = "azureTTS"
+            # self.comboBox = 'Azure TTS'
+            self.ttsEngine = "mms"
+            self.comboBox = 'Massively Multilingual Speech (MMS)'
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
             self.saveAudio_azure = True
             self.overwritePb = True
+            self.bypassTTS = False
 
             self.voiceid = None
             self.voiceidAzure = "en-US-JennyNeural"
@@ -283,6 +289,7 @@ class Widget(QWidget):
             self.saveAudio_google = True
 
             self.saveAudio_sapi5 = True
+            self.saveAudio_mms = True
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
@@ -322,7 +329,6 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "mms"
             self.ui.stackedWidget.setCurrentIndex(6)
-            self.generate_MMS_voice_model()
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -344,7 +350,7 @@ class Widget(QWidget):
         if self.ui.listWidget_voicegoogle.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
-        if self.ui.mms_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
+        if self.ui.mms_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         # TODO: Block saving if API-key is blank
@@ -397,8 +403,8 @@ class Widget(QWidget):
                 self.config.set('TTS', 'save_audio_file', str(False))
         elif self.ttsEngine == 'sapi5':
             self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
-        elif self.ttsEngine == 'kurdishTTS':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_kurdish.isChecked()))
+        elif self.ttsEngine == 'mms':
+            self.config.set('TTS', 'save_audio_file', str(self.ui.mms_checkBox.isChecked()))
         else:
             self.config.set('TTS', 'save_audio_file', str(False))
 
@@ -409,6 +415,7 @@ class Widget(QWidget):
         else:
             self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate.value()))
             self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume.value()))
+        self.config.set('TTS', 'bypass_tts', str(self.ui.bypass_tts_checkBox.isChecked()))
 
         self.config.add_section('azureTTS') if not self.config.has_section('azureTTS') else print('')
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
@@ -650,7 +657,6 @@ class Widget(QWidget):
         self.currentButton = self.sender()
         text = self.sender().parent().parent().parent().objectName()
         print(text)
-        return
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             for index in range(self.ui.listWidget_voiceazure.count()):
                 item = self.ui.listWidget_voiceazure.item(index)
@@ -674,6 +680,18 @@ class Widget(QWidget):
             if self.ui.credsFilePathEdit.text() == '':
                 self.ui.credsFilePathEdit.setFocus()
                 return
+        elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+            for index in range(self.ui.mms_listWidget.count()):
+                item = self.ui.mms_listWidget.item(index)
+                # print(item.toolTip())
+                if f'({item.toolTip()})' in text:
+                    self.mms_row = self.ui.mms_listWidget.row(item)
+                    self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                    break
+            if self.sender().objectName() == 'Play':
+                self.ui.statusBar.setText(f'Playing: {text}')
+            else:
+                self.ui.statusBar.setText(f'Downloading: {text}')
 
         self.OnSavePressed(False)
         pyperclip.copy("Hello World")
@@ -709,6 +727,7 @@ class Widget(QWidget):
         self.currentButton.setIcon(icon)
         self.temp_config_file.close()
         os.unlink(self.temp_config_file.name)
+        self.ui.statusBar.setText(f'')
 
     def print_data(self, item):
         try:
@@ -716,6 +735,8 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setCurrentItem(item)
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 self.ui.listWidget_voicegoogle.setCurrentItem(item)
+            elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+                self.ui.mms_listWidget.setCurrentItem(item)
         except Exception as error:
             pass
 
@@ -982,11 +1003,13 @@ class Widget(QWidget):
 
     def generate_MMS_voice_model(self):
         # self.ui.mms_listWidget.setStyleSheet("QListView:item:selected{background-color: rgb(0,0,255);}")
+        self.ui.mms_listWidget.itemClicked.connect(self.print_data)
         downloaded = QIcon(":/images/images/downloaded.ico")
         self.iconDownload = QIcon(":/images/images/download.ico")
         self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
         # cache_file = os.path.join(tempfile.gettempdir(), "mms_voices_cache.json")
-        location = client._model_dir
+        # location = client._model_dir
+        location = self.mms_cache_path
         voices = mms_voices
         for index, x in enumerate(voices):
             item_widget = QWidget()
@@ -1012,13 +1035,15 @@ class Widget(QWidget):
             self.ui.mms_listWidget.setItemWidget(item, item_widget)
 
             # item = QListWidgetItem(x)
-            if os.path.exists(os.path.join(location, x['language_codes'][0])):
+            model_path = os.path.join(location, x['language_codes'][0])
+            if os.path.exists(model_path):
                 # print(os.path.join(location, voices[x]))
                 item_UI.play.setIcon(self.iconPlayed)
                 item_UI.play.setObjectName('Play')
             else:
                 item_UI.play.setIcon(self.iconDownload)
                 item_UI.play.setObjectName('Download')
+            print(model_path)
             # self.ui.mms_listWidget.addItem(item)
         # self.ui.mms_listWidget.addItems(voices.keys())
 
@@ -1027,7 +1052,7 @@ class Widget(QWidget):
 
     def printItem(self, item):
         self.ui.mms_listWidget.setCurrentItem(item)
-        print(mms_tts_list[item.text()])
+        # print(mms_tts_list[item.text()])
 
     def action_pressed(self):
         widget = self.sender().parent().parent().parent()
