@@ -28,7 +28,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(615, 391)
+        Widget.resize(619, 400)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -460,20 +460,6 @@ class Ui_Widget(object):
         self.groupBox_translate.setCheckable(False)
         self.gridLayout_2 = QGridLayout(self.groupBox_translate)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.label = QLabel(self.groupBox_translate)
-        self.label.setObjectName(u"label")
-        font3 = QFont()
-        font3.setBold(False)
-        self.label.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.label, 4, 0, 1, 1)
-
-        self.label_14 = QLabel(self.groupBox_translate)
-        self.label_14.setObjectName(u"label_14")
-        self.label_14.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.label_14, 2, 0, 1, 1)
-
         self.label_2 = QLabel(self.groupBox_translate)
         self.label_2.setObjectName(u"label_2")
         sizePolicy5 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -481,38 +467,17 @@ class Ui_Widget(object):
         sizePolicy5.setVerticalStretch(0)
         sizePolicy5.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy5)
+        font3 = QFont()
+        font3.setBold(False)
         self.label_2.setFont(font3)
 
-        self.gridLayout_2.addWidget(self.label_2, 5, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.label_2, 6, 0, 1, 1)
 
         self.comboBox_writeLang = QComboBox(self.groupBox_translate)
         self.comboBox_writeLang.setObjectName(u"comboBox_writeLang")
         self.comboBox_writeLang.setFont(font3)
 
-        self.gridLayout_2.addWidget(self.comboBox_writeLang, 4, 1, 1, 1)
-
-        self.comboBox_provider = QComboBox(self.groupBox_translate)
-        self.comboBox_provider.setObjectName(u"comboBox_provider")
-        self.comboBox_provider.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.comboBox_provider, 2, 1, 1, 1)
-
-        self.comboBox_targetLang = QComboBox(self.groupBox_translate)
-        self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
-        sizePolicy4.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
-        self.comboBox_targetLang.setSizePolicy(sizePolicy4)
-        self.comboBox_targetLang.setFont(font3)
-
-        self.gridLayout_2.addWidget(self.comboBox_targetLang, 5, 1, 1, 1)
-
-        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
-        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
-        sizePolicy4.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
-        self.checkBox_overwritepb.setSizePolicy(sizePolicy4)
-        self.checkBox_overwritepb.setFont(font3)
-        self.checkBox_overwritepb.setChecked(True)
-
-        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.comboBox_writeLang, 5, 1, 1, 1)
 
         self.stackedWidget_provider = QStackedWidget(self.groupBox_translate)
         self.stackedWidget_provider.setObjectName(u"stackedWidget_provider")
@@ -663,7 +628,48 @@ class Ui_Widget(object):
 
         self.stackedWidget_provider.addWidget(self.baidu)
 
-        self.gridLayout_2.addWidget(self.stackedWidget_provider, 6, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.stackedWidget_provider, 7, 0, 1, 2)
+
+        self.comboBox_provider = QComboBox(self.groupBox_translate)
+        self.comboBox_provider.setObjectName(u"comboBox_provider")
+        self.comboBox_provider.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.comboBox_provider, 3, 1, 1, 1)
+
+        self.label_14 = QLabel(self.groupBox_translate)
+        self.label_14.setObjectName(u"label_14")
+        self.label_14.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.label_14, 3, 0, 1, 1)
+
+        self.label = QLabel(self.groupBox_translate)
+        self.label.setObjectName(u"label")
+        self.label.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.label, 5, 0, 1, 1)
+
+        self.comboBox_targetLang = QComboBox(self.groupBox_translate)
+        self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
+        sizePolicy4.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
+        self.comboBox_targetLang.setSizePolicy(sizePolicy4)
+        self.comboBox_targetLang.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.comboBox_targetLang, 6, 1, 1, 1)
+
+        self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
+        self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
+        sizePolicy4.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
+        self.checkBox_overwritepb.setSizePolicy(sizePolicy4)
+        self.checkBox_overwritepb.setFont(font3)
+        self.checkBox_overwritepb.setChecked(True)
+
+        self.gridLayout_2.addWidget(self.checkBox_overwritepb, 1, 0, 1, 1)
+
+        self.bypass_tts_checkBox = QCheckBox(self.groupBox_translate)
+        self.bypass_tts_checkBox.setObjectName(u"bypass_tts_checkBox")
+        self.bypass_tts_checkBox.setFont(font3)
+
+        self.gridLayout_2.addWidget(self.bypass_tts_checkBox, 2, 0, 1, 1)
 
 
         self.verticalLayout_15.addWidget(self.groupBox_translate)
@@ -857,18 +863,9 @@ class Ui_Widget(object):
         self.checkBox_translate.setText(QCoreApplication.translate("Widget", u"Translate", None))
         self.groupBox_translate.setTitle(QCoreApplication.translate("Widget", u"Translate Settings", None))
 #if QT_CONFIG(tooltip)
-        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
-        self.label_14.setText(QCoreApplication.translate("Widget", u"Provider", None))
-#if QT_CONFIG(tooltip)
         self.label_2.setToolTip(QCoreApplication.translate("Widget", u"Target Language for Translattion", None))
 #endif // QT_CONFIG(tooltip)
         self.label_2.setText(QCoreApplication.translate("Widget", u"Target Language", None))
-#if QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
         self.mymemory_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"MyMemory's secret access key", None))
 #if QT_CONFIG(tooltip)
         self.email_mymemory.setToolTip(QCoreApplication.translate("Widget", u"Valid email allows 50000 chars/day.", None))
@@ -889,6 +886,16 @@ class Ui_Widget(object):
         self.qcri_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"QCRI's secret access key", None))
         self.baidu_appid.setPlaceholderText(QCoreApplication.translate("Widget", u"Baidu Cloud App ID", None))
         self.baidu_secret_key.setPlaceholderText(QCoreApplication.translate("Widget", u"QCRI's secret access key", None))
+        self.label_14.setText(QCoreApplication.translate("Widget", u"Provider", None))
+#if QT_CONFIG(tooltip)
+        self.label.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Writing Language </span></pre><p><br/></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.label.setText(QCoreApplication.translate("Widget", u"Writing Language", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Do you want to overwrite the pasteboard with the new translated string?</span></pre></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_overwritepb.setText(QCoreApplication.translate("Widget", u"Overwrite Pasteboard", None))
+        self.bypass_tts_checkBox.setText(QCoreApplication.translate("Widget", u"Bypass TTS", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TranslationSettings), QCoreApplication.translate("Widget", u"Tab 2", None))
         self.label_15.setText(QCoreApplication.translate("Widget", u"Application Cache Threshold: ", None))
         self.spinBox_threshold.setSuffix(QCoreApplication.translate("Widget", u" day(s)", None))
