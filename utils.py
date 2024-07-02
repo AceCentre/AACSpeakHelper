@@ -56,7 +56,7 @@ def configure_app():
         exe_name = ""
         for root, dirs, files in os.walk(application_path):
             for file in files:
-                if "Configure TranslateAndTTS" in file:
+                if "Configure AACSpeechHelper" in file:
                     exe_name = file
         GUI_path = os.path.join(application_path, exe_name)
         # Use subprocess.Popen to run the executable
@@ -98,7 +98,7 @@ def get_paths(args: vars):
             if result:
                 configure_app()
             else:
-                message = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+                message = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
                 response = msgbox("settings.cfg file not found. " + message, 'Error')
                 sys.exit(response)
         except Exception as error:
@@ -273,7 +273,7 @@ try:
         config.read(config_path)
         Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
     else:
-        msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+        msg = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
         result = msgbox("settings.cfg file not found. " + msg, 'Error')
         sys.exit()
 except Exception as e:
