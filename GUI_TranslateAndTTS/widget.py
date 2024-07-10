@@ -100,6 +100,8 @@ class Widget(QWidget):
             self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
             self.mms_cache_path = os.path.join(self.app_data_path, 'models')
+        if not os.path.isdir(self.mms_cache_path):
+            os.makedirs(self.mms_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
         self.ui.cache_pushButton.clicked.connect(self.open_mms_cache)
@@ -263,6 +265,7 @@ class Widget(QWidget):
             self.generate_MMS_voice_model()
             # self.ttsEngine = "azureTTS"
             # self.comboBox = 'Azure TTS'
+            self.ui.mms_cache.setText(self.mms_cache_path)
             self.ttsEngine = "mms"
             self.comboBox = 'Massively Multilingual Speech (MMS)'
             self.ui.stackedWidget.setCurrentIndex(0)
@@ -499,11 +502,12 @@ class Widget(QWidget):
             if os.path.isfile(self.config_path) and self.config.has_section('App'):
                 id = self.config.get('App', 'uuid')
                 identifier = uuid.UUID(id)
+            else:
+                identifier = uuid.uuid4()
         except Exception as e:
             # Code to handle other exceptions
             identifier = uuid.uuid4()
             logging.error("UUID Error: {}".format(e), exc_info=False)
-            pass
         return identifier
 
     def setParameter(self, string):
@@ -956,7 +960,9 @@ class Widget(QWidget):
             self.ui.statusBar.setText(f"Opened {self.mms_cache_path}")
             os.startfile(self.mms_cache_path)
         else:
-            self.ui.statusBar.setText(f"No cached detected. Try using main application first.")
+            os.makedirs(self.mms_cache_path)
+            os.startfile(self.mms_cache_path)
+            self.ui.statusBar.setText(f"No cached detected. Creating model directory...")
 
     def cache_clear(self):
         pool = QThreadPool.globalInstance()
@@ -1043,7 +1049,7 @@ class Widget(QWidget):
             else:
                 item_UI.play.setIcon(self.iconDownload)
                 item_UI.play.setObjectName('Download')
-            print(model_path)
+            # print(model_path)
             # self.ui.mms_listWidget.addItem(item)
         # self.ui.mms_listWidget.addItems(voices.keys())
 
