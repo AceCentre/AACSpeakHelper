@@ -28,4 +28,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: 'Windows Release'
-        path: 'Output\TranslateAndTTS.exe'
+        path: 'Output\AACSpeechHelper.exe'

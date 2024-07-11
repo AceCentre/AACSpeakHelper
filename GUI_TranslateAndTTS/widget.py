@@ -11,7 +11,7 @@ import PySide6.QtCore
 import pyperclip
 import pyttsx3
 from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
-from PySide6.QtGui import QFont, QIcon, QMovie
+from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
 from gtts import lang as gtts_language_list
@@ -55,7 +55,7 @@ class Widget(QWidget):
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
         self.tts_dict = {}
-        self.generate_translate_list()
+        # self.generate_translate_list()
         self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
         self.translate_languages = gSpeak_TTS_list
 
@@ -86,18 +86,25 @@ class Widget(QWidget):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             self.app_data_path = os.path.join(home_directory,
-                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'TranslateAndTTS')
+                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeechHelper')
             self.ui.appPath.setText(self.app_data_path)
-            self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS', 'settings.cfg')
-            self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS', 'Audio Files')
+            self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
+                                            'AACSpeechHelper', 'settings.cfg')
+            self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
+                                           'AACSpeechHelper', 'Audio Files')
+            self.mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
+                                               'AACSpeechHelper', 'models')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
             self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
             self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
+            self.mms_cache_path = os.path.join(self.app_data_path, 'models')
+        if not os.path.isdir(self.mms_cache_path):
+            os.makedirs(self.mms_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
-
+        self.ui.cache_pushButton.clicked.connect(self.open_mms_cache)
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
         # Check if the file already exists
@@ -105,11 +112,13 @@ class Widget(QWidget):
             self.config.read(self.config_path)
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
+            self.generate_MMS_voice_model()
             self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
             self.endLang = self.config.get('translate', 'endLang')
             self.overwritePb = self.config.getboolean('translate', 'replacepb')
+            self.bypassTTS = self.config.getboolean('TTS', 'bypass_tts')
             self.provider = self.config.get('translate', 'provider')
             self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
             if self.provider == 'MyMemoryTranslator':
@@ -172,7 +181,7 @@ class Widget(QWidget):
             self.voiceidGoogle = self.config.get('googleTTS', 'voiceid')
 
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
-
+            self.voiceid_mms = self.config.get('mmsTTS', 'voiceid')
             if self.ttsEngine == "azureTTS":
                 self.comboBox = 'Azure TTS'
                 self.ui.stackedWidget.setCurrentIndex(0)
@@ -189,10 +198,10 @@ class Widget(QWidget):
                 self.comboBox = 'Sapi5 (Windows)'
                 self.ui.stackedWidget.setCurrentIndex(3)
                 self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
-            elif self.ttsEngine == "kurdishTTS":
-                self.comboBox = 'Kurdish TTS'
-                self.ui.stackedWidget.setCurrentIndex(4)
-                self.ui.ttsEngineBox.setCurrentText('Kurdish TTS')
+            elif self.ttsEngine == "mms":
+                self.comboBox = 'Massively Multilingual Speech (MMS)'
+                self.ui.stackedWidget.setCurrentIndex(6)
+                self.ui.ttsEngineBox.setCurrentText('Massively Multilingual Speech (MMS)')
             elif self.ttsEngine == "espeak":
                 self.comboBox = 'espeak (Unsupported)'
                 self.ui.stackedWidget.setCurrentIndex(5)
@@ -225,12 +234,14 @@ class Widget(QWidget):
 
             self.ui.checkBox_translate.setChecked(not self.notranslate)
             self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
+            self.ui.bypass_tts_checkBox.setChecked(self.bypassTTS)
             self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
 
             self.ui.horizontalSlider_rate.setValue(self.rate)
             self.ui.horizontalSlider_volume.setValue(self.volume)
             self.ui.horizontalSlider_rate_sapi.setValue(self.rate)
             self.ui.horizontalSlider_volume_sapi.setValue(self.volume)
+            self.ui.mms_cache.setText(self.mms_cache_path)
             self.ui.lineEdit_voiceID.setText(self.voiceid)
             self.ui.lineEdit_key.setText(self.key)
             self.ui.lineEdit_region.setText(self.region)
@@ -239,10 +250,10 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
             self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
-            self.ui.checkBox_saveAudio_kurdish.setChecked(self.saveAudio)
+            self.ui.mms_checkBox.setChecked(self.saveAudio)
 
-            self.ui.checkBox_latin.setChecked(self.config.getboolean('kurdishTTS', 'latin'))
-            self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
+            # self.ui.checkBox_latin.setChecked(self.config.getboolean('kurdishTTS', 'latin'))
+            # self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
 
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
@@ -251,17 +262,23 @@ class Widget(QWidget):
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.get_microsoft_language()
-            self.ttsEngine = "azureTTS"
-            self.comboBox = 'Azure TTS'
+            self.generate_MMS_voice_model()
+            # self.ttsEngine = "azureTTS"
+            # self.comboBox = 'Azure TTS'
+            self.ui.mms_cache.setText(self.mms_cache_path)
+            self.ttsEngine = "mms"
+            self.comboBox = 'Massively Multilingual Speech (MMS)'
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
             self.saveAudio_azure = True
             self.overwritePb = True
+            self.bypassTTS = False
 
             self.voiceid = None
             self.voiceidAzure = "en-US-JennyNeural"
             self.voiceidGoogle = "en-US-Wavenet-C"
+            self.voiceidmms = "eng"
 
             self.rate = None
             self.volume = None
@@ -275,6 +292,7 @@ class Widget(QWidget):
             self.saveAudio_google = True
 
             self.saveAudio_sapi5 = True
+            self.saveAudio_mms = True
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
@@ -310,10 +328,10 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
-        elif text == "Kurdish TTS":
+        elif text == "Massively Multilingual Speech (MMS)":
             self.resize(588, 400)
-            self.ttsEngine = "kurdishTTS"
-            self.ui.stackedWidget.setCurrentIndex(4)
+            self.ttsEngine = "mms"
+            self.ui.stackedWidget.setCurrentIndex(6)
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -333,6 +351,9 @@ class Widget(QWidget):
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         if self.ui.listWidget_voicegoogle.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
+            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+            return
+        if self.ui.mms_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         # TODO: Block saving if API-key is blank
@@ -385,8 +406,8 @@ class Widget(QWidget):
                 self.config.set('TTS', 'save_audio_file', str(False))
         elif self.ttsEngine == 'sapi5':
             self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
-        elif self.ttsEngine == 'kurdishTTS':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_kurdish.isChecked()))
+        elif self.ttsEngine == 'mms':
+            self.config.set('TTS', 'save_audio_file', str(self.ui.mms_checkBox.isChecked()))
         else:
             self.config.set('TTS', 'save_audio_file', str(False))
 
@@ -397,6 +418,7 @@ class Widget(QWidget):
         else:
             self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate.value()))
             self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume.value()))
+        self.config.set('TTS', 'bypass_tts', str(self.ui.bypass_tts_checkBox.isChecked()))
 
         self.config.add_section('azureTTS') if not self.config.has_section('azureTTS') else print('')
         self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
@@ -410,43 +432,43 @@ class Widget(QWidget):
         self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
 
-        self.config.add_section('kurdishTTS') if not self.config.has_section('kurdishTTS') else print('')
-        self.config.set('kurdishTTS', 'latin', str(self.ui.checkBox_latin.isChecked()).lower())
-        self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
+        self.config.add_section('mmsTTS') if not self.config.has_section('mmsTTS') else print('')
+        self.config.set('mmsTTS', 'voiceid', self.ui.mms_listWidget.currentItem().toolTip())
+        # self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
 
         self.config.add_section('appCache') if not self.config.has_section('appCache') else print('')
         self.config.set('appCache', 'threshold', str(self.ui.spinBox_threshold.value()))
 
-        start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
-        end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
-        prompt1 = False
-        prompt2 = False
+        # start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
+        # end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
+        # prompt1 = False
+        # prompt2 = False
+        #
+        # if not self.notranslate:
+        #     if self.ttsEngine != "kurdishTTS":
+        #         if end_lang_is_Kurdish:
+        #             prompt1 = True
+        #     else:
+        #         if not end_lang_is_Kurdish:
+        #             prompt2 = True
 
-        if not self.notranslate:
-            if self.ttsEngine != "kurdishTTS":
-                if end_lang_is_Kurdish:
-                    prompt1 = True
-            else:
-                if not end_lang_is_Kurdish:
-                    prompt2 = True
-
-        msg = ""
-        if prompt1:
-            msg = 'Do you really want to save?\n'
-            msg += 'Tip:\n'
-            msg += 'Choose Kurdish TTS Engine for these settings.'
-
-        if prompt2:
-            msg = 'Do you really want to save?\n'
-            msg += 'Tip:\n'
-            msg += 'Choose TTS Engine other than Kurdish TTS.'
-
-        if prompt1 or prompt2:
-            reply = QMessageBox.question(self, 'Confirmation', msg,
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-
-            if reply == QMessageBox.No:
-                return
+        # msg = ""
+        # if prompt1:
+        #     msg = 'Do you really want to save?\n'
+        #     msg += 'Tip:\n'
+        #     msg += 'Choose Kurdish TTS Engine for these settings.'
+        #
+        # if prompt2:
+        #     msg = 'Do you really want to save?\n'
+        #     msg += 'Tip:\n'
+        #     msg += 'Choose TTS Engine other than Kurdish TTS.'
+        #
+        # if prompt1 or prompt2:
+        #     reply = QMessageBox.question(self, 'Confirmation', msg,
+        #                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        #
+        #     if reply == QMessageBox.No:
+        #         return
 
         # Write the configuration to a file
         if permanent:
@@ -480,11 +502,12 @@ class Widget(QWidget):
             if os.path.isfile(self.config_path) and self.config.has_section('App'):
                 id = self.config.get('App', 'uuid')
                 identifier = uuid.UUID(id)
+            else:
+                identifier = uuid.uuid4()
         except Exception as e:
             # Code to handle other exceptions
             identifier = uuid.uuid4()
             logging.error("UUID Error: {}".format(e), exc_info=False)
-            pass
         return identifier
 
     def setParameter(self, string):
@@ -611,20 +634,20 @@ class Widget(QWidget):
             pass
         if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
             pass
-        if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
-            items = [self.ui.comboBox_targetLang.itemText(i) for i in range(self.ui.comboBox_targetLang.count())]
-            kurdish_list = []
-            for item in items:
-                if "Kurdish" in item:
-                    kurdish_list.append(item)
-            if len(kurdish_list) > 0:
-                self.lock = True
-                self.ui.comboBox_targetLang.clear()
-                self.ui.comboBox_targetLang.addItems(sorted(kurdish_list))
-                self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
-                self.lock = False
-                return
-        # TODO: Iterate targetlang and text to check compatibility
+        # if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
+        #     items = [self.ui.comboBox_targetLang.itemText(i) for i in range(self.ui.comboBox_targetLang.count())]
+        #     kurdish_list = []
+        #     for item in items:
+        #         if "Kurdish" in item:
+        #             kurdish_list.append(item)
+        #     if len(kurdish_list) > 0:
+        #         self.lock = True
+        #         self.ui.comboBox_targetLang.clear()
+        #         self.ui.comboBox_targetLang.addItems(sorted(kurdish_list))
+        #         self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
+        #         self.lock = False
+        #         return
+        # # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
         for index in range(self.ui.listWidget_voiceazure.count()):
@@ -637,6 +660,7 @@ class Widget(QWidget):
     def preview_pressed(self):
         self.currentButton = self.sender()
         text = self.sender().parent().parent().parent().objectName()
+        print(text)
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             for index in range(self.ui.listWidget_voiceazure.count()):
                 item = self.ui.listWidget_voiceazure.item(index)
@@ -660,6 +684,18 @@ class Widget(QWidget):
             if self.ui.credsFilePathEdit.text() == '':
                 self.ui.credsFilePathEdit.setFocus()
                 return
+        elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+            for index in range(self.ui.mms_listWidget.count()):
+                item = self.ui.mms_listWidget.item(index)
+                # print(item.toolTip())
+                if f'({item.toolTip()})' in text:
+                    self.mms_row = self.ui.mms_listWidget.row(item)
+                    self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                    break
+            if self.sender().objectName() == 'Play':
+                self.ui.statusBar.setText(f'Playing: {text}')
+            else:
+                self.ui.statusBar.setText(f'Downloading: {text}')
 
         self.OnSavePressed(False)
         pyperclip.copy("Hello World")
@@ -683,8 +719,9 @@ class Widget(QWidget):
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
         elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
-            buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
-
+            buttons = self.ui.listWidget_voicegoogle.findChildren(QPushButton)
+        elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+            buttons = self.ui.mms_listWidget.findChildren(QPushButton)
         self.ui.ttsEngineBox.setEnabled(True)
         for button in buttons:
             button.setEnabled(True)
@@ -694,6 +731,7 @@ class Widget(QWidget):
         self.currentButton.setIcon(icon)
         self.temp_config_file.close()
         os.unlink(self.temp_config_file.name)
+        self.ui.statusBar.setText(f'')
 
     def print_data(self, item):
         try:
@@ -701,6 +739,8 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setCurrentItem(item)
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 self.ui.listWidget_voicegoogle.setCurrentItem(item)
+            elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+                self.ui.mms_listWidget.setCurrentItem(item)
         except Exception as error:
             pass
 
@@ -915,6 +955,15 @@ class Widget(QWidget):
         else:
             self.ui.statusBar.setText(f"No cached detected. Try using main application first.")
 
+    def open_mms_cache(self):
+        if os.path.isdir(self.mms_cache_path):
+            self.ui.statusBar.setText(f"Opened {self.mms_cache_path}")
+            os.startfile(self.mms_cache_path)
+        else:
+            os.makedirs(self.mms_cache_path)
+            os.startfile(self.mms_cache_path)
+            self.ui.statusBar.setText(f"No cached detected. Creating model directory...")
+
     def cache_clear(self):
         pool = QThreadPool.globalInstance()
         runnable = Cleaner(self.audio_path)
@@ -939,30 +988,95 @@ class Widget(QWidget):
             self.language_azure_list[language_azure_list[value]['name']] = value
         return self.language_azure_list
 
-    def generate_translate_list(self):
-        # TODO : Add Kurdish later "Kurdish (Kurmanji)": "ku", "Kurdish (Sorani)": "ckb"
-        gtts_list = {v: k for k, v in gtts_language_list.tts_langs().items()}
-        # print(str(gtts_list))
-        # file = json.dumps(gtts_list)
-        # with open("gspeak_voices.json", "w") as outfile:
-        #     outfile.write(file)
-
     def set_Translate_dropdown(self, source):
         try:
             lang = [key for key, value in source.items() if value == self.startLang]
             if not len(lang) == 0:
                 lang = lang[0]
+            print(f"Start Language: {lang}")
             self.ui.comboBox_writeLang.setCurrentText(lang)
 
             lang = [key for key, value in source.items() if value == self.endLang]
             if not len(lang) == 0:
                 lang = lang[0]
+            print(f"End Language: {lang}")
             self.ui.comboBox_targetLang.setCurrentText(lang)
         except Exception as error:
-            logging.error("Error setting current text.", exc_info=False)
+            logging.error(f"Error setting current text; {error}", exc_info=False)
 
     def copyAppPath(self):
         pyperclip.copy(self.ui.appPath.text())
+
+    def generate_MMS_voice_model(self):
+        # self.ui.mms_listWidget.setStyleSheet("QListView:item:selected{background-color: rgb(0,0,255);}")
+        self.ui.mms_listWidget.itemClicked.connect(self.print_data)
+        downloaded = QIcon(":/images/images/downloaded.ico")
+        self.iconDownload = QIcon(":/images/images/download.ico")
+        self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
+        # cache_file = os.path.join(tempfile.gettempdir(), "mms_voices_cache.json")
+        # location = client._model_dir
+        location = self.mms_cache_path
+        voices = mms_voices
+        for index, x in enumerate(voices):
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            # item_UI.stackedWidget.setStyleSheet('background-color: rgb(255, 255, 255);')
+            item_UI.name.setText(x['name'])
+            font = QFont()
+            font.setBold(False)
+            font.setPointSize(8)
+            item_UI.gender.setFont(font)
+            item_UI.gender.setText(x['gender'])
+            # item_UI.play.clicked.connect(self.action_pressed)
+            item_UI.play.clicked.connect(self.preview_pressed)
+            item_widget.setObjectName(x['name'])
+
+            item = QListWidgetItem()
+            item.setForeground(QColor(0, 0, 0, 0))
+            item.setText(x['name'])
+            item.setToolTip(x['language_codes'][0])
+            item.setSizeHint(item_widget.sizeHint())
+            self.ui.mms_listWidget.insertItem(index, item)
+            self.ui.mms_listWidget.setItemWidget(item, item_widget)
+
+            # item = QListWidgetItem(x)
+            model_path = os.path.join(location, x['language_codes'][0])
+            if os.path.exists(model_path):
+                # print(os.path.join(location, voices[x]))
+                item_UI.play.setIcon(self.iconPlayed)
+                item_UI.play.setObjectName('Play')
+            else:
+                item_UI.play.setIcon(self.iconDownload)
+                item_UI.play.setObjectName('Download')
+            # print(model_path)
+            # self.ui.mms_listWidget.addItem(item)
+        # self.ui.mms_listWidget.addItems(voices.keys())
+
+        self.ui.mms_listWidget.itemClicked.connect(self.printItem)
+        self.ui.search_language.textChanged.connect(self.searchItem)
+
+    def printItem(self, item):
+        self.ui.mms_listWidget.setCurrentItem(item)
+        # print(mms_tts_list[item.text()])
+
+    def action_pressed(self):
+        widget = self.sender().parent().parent().parent()
+        name = widget.objectName()
+        items = self.ui.mms_listWidget.findItems(name, Qt.MatchContains)
+        # print(items, name)
+        for item in items:
+            self.ui.mms_listWidget.setCurrentItem(item)
+        if self.sender().objectName() == 'Play':
+            pass
+        else:
+            pass
+
+    def searchItem(self, text):
+        match_items = self.ui.mms_listWidget.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.mms_listWidget.count()):
+            it = self.ui.mms_listWidget.item(i)
+            it.setHidden(it not in match_items)
 
 
 class Signals(QObject):

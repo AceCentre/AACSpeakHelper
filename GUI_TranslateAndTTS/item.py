@@ -35,6 +35,7 @@ class Ui_item(object):
         self.stackedWidget.setFrameShadow(QFrame.Raised)
         self.stackedWidgetPage1 = QWidget()
         self.stackedWidgetPage1.setObjectName(u"stackedWidgetPage1")
+        self.stackedWidgetPage1.setStyleSheet(u"background-color: rgb(255, 255, 255);")
         self.gridLayout = QGridLayout(self.stackedWidgetPage1)
         self.gridLayout.setSpacing(2)
         self.gridLayout.setObjectName(u"gridLayout")

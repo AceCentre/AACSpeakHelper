@@ -11,6 +11,8 @@ import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 import sqlite3
+from tts_wrapper import MMSTTS
+import wave
 
 # Hide Pygame support prompt
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
@@ -54,7 +56,7 @@ def configure_app():
         exe_name = ""
         for root, dirs, files in os.walk(application_path):
             for file in files:
-                if "Configure TranslateAndTTS" in file:
+                if "Configure AACSpeechHelper" in file:
                     exe_name = file
         GUI_path = os.path.join(application_path, exe_name)
         # Use subprocess.Popen to run the executable
@@ -68,6 +70,7 @@ def configure_app():
 
 
 def get_paths(args: vars):
+    # TODO:  %AppData%/Ace Centre/AACSpeechHelper/models
     if args['config'] != '' and os.path.exists(args['config']):
         config_path = args['config']
         audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
@@ -76,7 +79,7 @@ def get_paths(args: vars):
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'TranslateAndTTS')
+            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeechHelper')
 
         elif __file__:
             application_path = os.path.dirname(__file__)
@@ -95,7 +98,7 @@ def get_paths(args: vars):
             if result:
                 configure_app()
             else:
-                message = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+                message = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
                 response = msgbox("settings.cfg file not found. " + message, 'Error')
                 sys.exit(response)
         except Exception as error:
@@ -115,12 +118,21 @@ def play_audio(audio_bytes, file: bool = False):
         continue
 
 
-def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav'):
+def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav', tts=None):
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + format)
+    if isinstance(tts, MMSTTS):
+        channels = 1
+        sample_width = 2
+        with wave.open(filename, "wb") as file:
+            file.setnchannels(channels)
+            file.setsampwidth(sample_width)
+            file.setframerate(16538)
+            file.writeframes(audio_bytes)
+    else:
+        with open(filename, 'wb') as out_file:
+            out_file.write(audio_bytes)
     sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, timestr + format, engine)
-    with open(filename, 'wb') as out_file:
-        out_file.write(audio_bytes)
     try:
         connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
         connection.execute(sql)
@@ -261,7 +273,7 @@ try:
         config.read(config_path)
         Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
     else:
-        msg = "\n\n Please Run 'Configure TranslateAndTTS executable' first."
+        msg = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
         result = msgbox("settings.cfg file not found. " + msg, 'Error')
         sys.exit()
 except Exception as e:

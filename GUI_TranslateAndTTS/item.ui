@@ -41,6 +41,9 @@
       <number>0</number>
      </property>
      <widget class="QWidget" name="stackedWidgetPage1">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255);</string>
+      </property>
       <layout class="QGridLayout" name="gridLayout">
        <property name="leftMargin">
         <number>5</number>
