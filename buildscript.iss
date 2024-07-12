@@ -39,7 +39,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\translatepb\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "settings.cfg"; DestDir: "{userappdata}\AACSpeechHelper"; Flags: ignoreversion
-Source: "dist\Configure AACSpeechHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Configure AACSpeechHelper\Configure AACSpeechHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Configure AACSpeechHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\translatepb\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\AACSpeechHelper"; Flags: ignoreversion
