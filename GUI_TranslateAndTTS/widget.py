@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import tempfile
+import time
 import uuid
 
 import PySide6.QtCore
@@ -14,8 +15,9 @@ from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
 from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
-from gtts import lang as gtts_language_list
-
+# from gtts import lang as gtts_language_list
+import warnings
+warnings.filterwarnings('ignore')
 from item import Ui_item
 from language_dictionary import *
 # You need to run the following command to generate the ui_form.py file
@@ -507,7 +509,7 @@ class Widget(QWidget):
         except Exception as e:
             # Code to handle other exceptions
             identifier = uuid.uuid4()
-            logging.error("UUID Error: {}".format(e), exc_info=False)
+            logging.error("UUID Error: {}. Generating UUID is successful.".format(e), exc_info=False)
         return identifier
 
     def setParameter(self, string):
@@ -993,13 +995,13 @@ class Widget(QWidget):
             lang = [key for key, value in source.items() if value == self.startLang]
             if not len(lang) == 0:
                 lang = lang[0]
-            print(f"Start Language: {lang}")
+            # print(f"Start Language: {lang}")
             self.ui.comboBox_writeLang.setCurrentText(lang)
 
             lang = [key for key, value in source.items() if value == self.endLang]
             if not len(lang) == 0:
                 lang = lang[0]
-            print(f"End Language: {lang}")
+            # print(f"End Language: {lang}")
             self.ui.comboBox_targetLang.setCurrentText(lang)
         except Exception as error:
             logging.error(f"Error setting current text; {error}", exc_info=False)
@@ -1092,6 +1094,8 @@ class Player(QRunnable):
         self.signals = Signals()
 
     def run(self):
+        # start = time.time()
+        # print(f'Translate started')
         if getattr(sys, 'frozen', False):
             application_path = os.path.dirname(sys.executable)
             exe_name = ""
@@ -1101,14 +1105,19 @@ class Player(QRunnable):
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
+            # print(f'Initial Delay = {time.time() - start}')
+            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
             process = subprocess.Popen([GUI_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, 'translatepb.py')
+            # print(f'Initial Delay = {time.time() - start}')
+            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
+        # print(f'Translate Time = {time.time() - start}')
         self.signals.completed.emit()
 
 
@@ -1137,7 +1146,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
-    # print('Size: %d x %d' % (size.width(), size.height()))
     widget = Widget(size)
     widget.show()
     sys.exit(app.exec())
