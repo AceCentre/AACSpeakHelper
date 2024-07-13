@@ -121,8 +121,8 @@ async def mainrun(listvoices: bool):
                 print(f"Text: [{clipboard}].")
                 speak(clipboard)
                 stop = time.perf_counter() - start
-                # print(f"TTS runtime is {stop:0.5f} seconds.")
-                logging.info(f"TTS runtime is {stop:0.5f} seconds.")
+                # print(f"App runtime is {stop:0.5f} seconds.")
+                logging.info(f"App runtime is {stop:0.5f} seconds.")
             if config.getboolean('translate', 'replacepb') and clipboard is not None:
                 pyperclip.copy(clipboard)
             logging.info("------------------------------------------------------------------------")
