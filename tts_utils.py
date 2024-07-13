@@ -2,7 +2,7 @@ import logging
 import io
 import os.path
 import sys
-
+import time
 import pyttsx3
 from gtts import gTTS
 from tts_wrapper import AbstractTTS
@@ -13,9 +13,9 @@ from tts_wrapper import MMSClient, MMSTTS
 from KurdishTTS.kurdishTTS import KurdishTTS
 from utils import play_audio, save_audio, config, check_history, args
 import warnings
+from threading import Thread
+
 warnings.filterwarnings("ignore")
-
-
 
 VALID_STYLES = [
     "advertisement_upbeat",
@@ -68,11 +68,13 @@ class GSPEAK:
 
 
 def speak(text=''):
+    # start = time.time()
     file = check_history(text)
     if file is not None and os.path.isfile(file):
         play_audio(file, file=True)
         print("Speech synthesized for text [{}] from cache.".format(text))
         logging.info("Speech synthesized for text [{}] from cache.".format(text))
+        # print(f'Playback from cache: {time.time() - start}')
         return
     ttsengine = config.get('TTS', 'engine')
     if ttsengine == 'gspeak':
@@ -95,6 +97,7 @@ def speak(text=''):
         engine.setProperty('volume', config.get('TTS', 'volume'))
         engine.say(text)
         engine.runAndWait()
+    # print(f'Realtime Playback: {time.time() - start}')
 
 
 def mmsSpeak(text: str, engine):
@@ -106,20 +109,17 @@ def mmsSpeak(text: str, engine):
         app_data_path = os.path.abspath(os.path.dirname(__file__))
         mms_cache_path = os.path.join(app_data_path, 'models')
     if not os.path.isdir(mms_cache_path):
-        # mms_cache_path = None
         os.mkdir(mms_cache_path)
-    print(mms_cache_path)
     client = MMSClient((mms_cache_path, voiceid))
     tts = MMSTTS(client)
     ttsWrapperSpeak(text, tts, engine)
 
 
-def azureSpeak(text: str, engine, style: str = None,  styledegree: float = None):
+def azureSpeak(text: str, engine, style: str = None, styledegree: float = None):
     # Add your key and endpoint
     key = config.get('azureTTS', 'key')
     location = config.get('azureTTS', 'location')
     voiceid = config.get('azureTTS', 'voiceid')
-    
     if not voiceid:
         raise ValueError("voiceid is empty or None")
     if '-' not in voiceid:
@@ -128,9 +128,10 @@ def azureSpeak(text: str, engine, style: str = None,  styledegree: float = None)
     if len(parts) < 2:
         raise ValueError("voiceid does not have enough parts separated by hyphens")
     lang = parts[0] + '-' + parts[1]
-    client = MicrosoftClient(credentials=key, region=location)
+    # client = MicrosoftClient(credentials=key, region=location)
+    client = MicrosoftClient((key, location))
     tts = MicrosoftTTS(client=client, voice=voiceid, lang=lang)
-    
+
     if style:
         # Check if the provided style is in the valid styles array
         if style in VALID_STYLES:
@@ -182,18 +183,12 @@ def gSpeak(text: str, engine):
 
 
 def ttsWrapperSpeak(text: str, tts, engine):
-    save_audio_file = config.getboolean('TTS', 'save_audio_file')
+    # Render the audio to bytes
     fmt = 'wav'
     if isinstance(tts, SAPITTS):
         audio_bytes = tts.synth_to_bytes(text, 'wav')
     elif isinstance(tts, MMSTTS):
-        try:
-            audio_bytes = tts.synth_to_bytes(text, 'wav')
-            tts.speak(text)
-            print("Speech synthesized for text [{}].".format(text))
-            logging.info("Speech synthesized for text [{}].".format(text))
-        except Exception as e:
-            print(e)
+        audio_bytes = tts.synth_to_bytes(text, 'wav')
     elif isinstance(tts, AbstractTTS):
         audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
     elif isinstance(tts, GSPEAK):
@@ -202,11 +197,31 @@ def ttsWrapperSpeak(text: str, tts, engine):
     else:
         logging.error(str(type(tts)) + " TTS Engine is Invalid.")
         raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
+    try:
+        playText = Thread(target=playSpeech, args=(audio_bytes, text, tts))
+        saveText = Thread(target=saveSpeech, args=(audio_bytes, text, engine, fmt, tts))
+        playText.start()
+        saveText.start()
+    except Exception as e:
+        print(e)
 
+
+def playSpeech(audio_bytes, text, tts):
+    # start = time.perf_counter()
     if not isinstance(tts, MMSTTS):
         play_audio(audio_bytes)
-        print("Speech synthesized for text [{}].".format(text))
-        logging.info("Speech synthesized for text [{}].".format(text))
+    else:
+        tts.speak(text)
+    # stop = time.perf_counter() - start
+    # print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
+    # logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
 
+
+def saveSpeech(audio_bytes, text, engine, format, tts):
+    # start = time.perf_counter()
+    save_audio_file = config.getboolean('TTS', 'save_audio_file')
     if save_audio_file:
-        save_audio(audio_bytes, text=text, engine=engine, format=fmt, tts=tts)
+        save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
+    # stop = time.perf_counter() - start
+    # print(f"Speech file saving runtime is {stop:0.5f} seconds.")
+    # logging.info(f"Speech file saving runtime is {stop:0.5f} seconds.")
