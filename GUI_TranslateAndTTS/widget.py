@@ -224,6 +224,7 @@ class Widget(QWidget):
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
+            self.set_mms_voice(self.voiceid_mms)
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
 
@@ -298,6 +299,7 @@ class Widget(QWidget):
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
+            self.set_mms_voice(self.voiceidmms)
             self.ui.spinBox_threshold.setValue(7)
 
         self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
@@ -331,9 +333,11 @@ class Widget(QWidget):
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
         elif text == "Massively Multilingual Speech (MMS)":
-            self.resize(588, 400)
+            # self.resize(588, 400)
             self.ttsEngine = "mms"
             self.ui.stackedWidget.setCurrentIndex(6)
+            if self.screenSize.height() > 800:
+                self.resize(588, 667)
         else:
             self.resize(588, 400)
             self.ui.stackedWidget.setCurrentIndex(5)
@@ -757,6 +761,10 @@ class Widget(QWidget):
                 if self.ui.listWidget_voicegoogle.currentRow() == 0:
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.google_row))
+            elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
+                if self.ui.mms_listWidget.currentRow() == 0:
+                    self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                    self.ui.mms_listWidget.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.mms_row))
         except Exception as error:
             pass
 
@@ -996,12 +1004,15 @@ class Widget(QWidget):
             if not len(lang) == 0:
                 lang = lang[0]
             # print(f"Start Language: {lang}")
+            copy_lang = lang
             self.ui.comboBox_writeLang.setCurrentText(lang)
 
             lang = [key for key, value in source.items() if value == self.endLang]
             if not len(lang) == 0:
                 lang = lang[0]
             # print(f"End Language: {lang}")
+            else:
+                lang = copy_lang
             self.ui.comboBox_targetLang.setCurrentText(lang)
         except Exception as error:
             logging.error(f"Error setting current text; {error}", exc_info=False)
@@ -1079,6 +1090,14 @@ class Widget(QWidget):
         for i in range(self.ui.mms_listWidget.count()):
             it = self.ui.mms_listWidget.item(i)
             it.setHidden(it not in match_items)
+
+    def set_mms_voice(self, text):
+        for index in range(self.ui.mms_listWidget.count()):
+            item = self.ui.mms_listWidget.item(index)
+            if text == item.toolTip():
+                self.mms_row = self.ui.mms_listWidget.row(item)
+                self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                break
 
 
 class Signals(QObject):
