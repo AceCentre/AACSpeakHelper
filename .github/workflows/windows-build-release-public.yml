@@ -25,6 +25,9 @@ jobs:
         run: |
           venv/Scripts/activate
           .\build_executable.bat
+      - name: Verify Downloaded Artifact
+        run: |
+          dir Output
       - name: Upload Installer
         uses: actions/upload-artifact@v3
         with:
@@ -43,6 +46,9 @@ jobs:
         with:
           name: Windows Release
           path: Output
+      - name: Verify Downloaded Artifact
+        run: |
+          dir Output
       - name: Sign Executable
         run: signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a ./Output/AACSpeechHelper.exe
       - name: Rename Executable
