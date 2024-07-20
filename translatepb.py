@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import asyncio
-from utils import configure_app, config, args, clear_history
 import utils
 import logging
 import pyperclip
@@ -11,6 +10,8 @@ from tts_utils import speak
 from GUI_TranslateAndTTS.language_dictionary import *
 from PySide6.QtWidgets import *
 from deep_translator import *
+from utils import configure_app, config, args, clear_history
+import win32pipe, win32file, pywintypes
 
 
 def translate_clipboard():
@@ -23,6 +24,7 @@ def translate_clipboard():
         url = config.get('translate', 'url') if translator == 'LibreProvider' else None
         client_id = config.get('translate', 'papagotranslator_client_id') if translator == 'PapagoTranslator' else None
         appid = config.get('translate', 'baidutranslator_appid') if translator == 'BaiduTranslator' else None
+
         if translator == "GoogleTranslator":
             translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
         elif translator == "PonsTranslator":
@@ -68,6 +70,11 @@ def translate_clipboard():
                                                  target=config.get('translate', 'endLang'),
                                                  appid=appid,
                                                  appkey=key)
+        # elif translator == "DeepLearningTranslator":
+        #     translate_instance = BaiduTranslator(source=config.get('translate', 'startlang'),
+        #                                          target=config.get('translate', 'endLang'),
+        #                                          appid=appid,
+        #                                          appkey=key)
         logging.info('Translation Provider is {}'.format(translator))
 
         clipboard_text = pyperclip.paste()
@@ -114,7 +121,7 @@ async def mainrun(listvoices: bool):
                 stop = time.perf_counter() - start
                 # print(f"Translation runtime is {stop:0.5f} seconds.")
                 logging.info(f"Translation runtime is {stop:0.5f} seconds.")
-            
+
             # Check the bypass TTS flag
             if not config.getboolean('TTS', 'bypass_tts', fallback=False):
                 start = time.perf_counter()
@@ -170,6 +177,44 @@ async def main(wav_files_path):
     await asyncio.gather(mainrun(args['listvoices']), remove_stale_temp_files(wav_files_path))
 
 
+def pipe_server():
+    pipe_name = r'\\.\pipe\AACSpeechHelper'
+    logging.info("Pipe Server: Creating named pipe...")
+    while True:
+        try:
+            pipe = win32pipe.CreateNamedPipe(
+                pipe_name,
+                win32pipe.PIPE_ACCESS_DUPLEX,
+                win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_WAIT,
+                1, 65536, 65536,
+                0,
+                None)
+            logging.info("Pipe Server: Waiting for client...")
+            win32pipe.ConnectNamedPipe(pipe, None)
+            logging.info("Pipe Server: Client connected.")
+        except pywintypes.error as e:
+            logging.error(f"Failed to create or connect named pipe: {e}")
+            continue  # Attempt to create a new pipe and wait for a new connection
+
+        try:
+            while True:
+                # Read the sentence from the client
+                result, data = win32file.ReadFile(pipe, 64 * 1024)
+                if result == 0:  # Check if the read was successful
+                    # sentence = data.decode()
+                    from utils import configure_app, config, args, clear_history
+                    asyncio.run(main(utils.audio_files_path))
+                    # print(sentence)
+                    win32file.WriteFile(pipe, data)
+                else:
+                    break  # Break out of the inner loop if reading fails
+        except pywintypes.error as e:
+            logging.error(f"Communication error: {e}")
+        finally:
+            win32file.CloseHandle(pipe)
+            logging.info("Client disconnected. Waiting for new connection...")
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    asyncio.run(main(utils.audio_files_path))
+    pipe_server()
