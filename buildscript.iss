@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AACSpeechHelper"
-#define MyAppVersion "2.0.2"
+#define MyAppVersion "2.2.0"
 #define MyAppPublisher "Ace Centre"
 #define MyAppURL "https://acecentre.org.uk"
 #define MyAppExeName "client.exe"
