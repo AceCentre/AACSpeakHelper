@@ -11,12 +11,12 @@ from tts_wrapper import GoogleClient, GoogleTTS
 from tts_wrapper import SAPIClient, SAPITTS
 from tts_wrapper import MMSClient, MMSTTS
 # from KurdishTTS.kurdishTTS import KurdishTTS
-from utils import play_audio, save_audio, config, check_history, args
 import warnings
 from threading import Thread
-# import dl_translate as dlt
 
+# import dl_translate as dlt
 warnings.filterwarnings("ignore")
+utils = None
 
 VALID_STYLES = [
     "advertisement_upbeat",
@@ -56,6 +56,12 @@ VALID_STYLES = [
 ]
 
 
+def init(module):
+    # from utils import play_audio, save_audio, config, check_history, args
+    global utils
+    utils = module
+
+
 class GSPEAK:
 
     def __init__(self):
@@ -63,26 +69,25 @@ class GSPEAK:
 
     def synth_to_bytes(self, text: str):
         with self.audio as file:
-            gTTS(text=text, lang=config.get('translate', 'endLang')).write_to_fp(file)
+            gTTS(text=text, lang=utils.config.get('translate', 'endLang')).write_to_fp(file)
             file.seek(0)
             return file.read()
 
 
 def speak(text=''):
-    # start = time.time()
-    file = check_history(text)
+    file = utils.check_history(text)
     if file is not None and os.path.isfile(file):
-        play_audio(file, file=True)
+        utils.play_audio(file, file=True)
         print("Speech synthesized for text [{}] from cache.".format(text))
         logging.info("Speech synthesized for text [{}] from cache.".format(text))
         # print(f'Playback from cache: {time.time() - start}')
         return
-    ttsengine = config.get('TTS', 'engine')
+    ttsengine = utils.config.get('TTS', 'engine')
     if ttsengine == 'gspeak':
         gSpeak(text, ttsengine)
     elif ttsengine == 'azureTTS':
-        if args['style']:
-            azureSpeak(text, ttsengine, args['style'], args['styledegree'])
+        if utils.args['style']:
+            azureSpeak(text, ttsengine, utils.args['style'], utils.args['styledegree'])
         else:
             azureSpeak(text, ttsengine)
     elif ttsengine == 'gTTS':
@@ -93,16 +98,16 @@ def speak(text=''):
         mmsSpeak(text, ttsengine)
     else:  # Unsupported Engines
         engine = pyttsx3.init(ttsengine)
-        engine.setProperty('voice', config.get('TTS', 'voiceid'))
-        engine.setProperty('rate', config.get('TTS', 'rate'))
-        engine.setProperty('volume', config.get('TTS', 'volume'))
+        engine.setProperty('voice', utils.config.get('TTS', 'voiceid'))
+        engine.setProperty('rate', utils.config.get('TTS', 'rate'))
+        engine.setProperty('volume', utils.config.get('TTS', 'volume'))
         engine.say(text)
         engine.runAndWait()
     # print(f'Realtime Playback: {time.time() - start}')
 
 
 def mmsSpeak(text: str, engine):
-    voiceid = config.get('mmsTTS', 'voiceid')
+    voiceid = utils.config.get('mmsTTS', 'voiceid')
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
         mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeechHelper', 'models')
@@ -118,9 +123,9 @@ def mmsSpeak(text: str, engine):
 
 def azureSpeak(text: str, engine, style: str = None, styledegree: float = None):
     # Add your key and endpoint
-    key = config.get('azureTTS', 'key')
-    location = config.get('azureTTS', 'location')
-    voiceid = config.get('azureTTS', 'voiceid')
+    key = utils.config.get('azureTTS', 'key')
+    location = utils.config.get('azureTTS', 'location')
+    voiceid = utils.config.get('azureTTS', 'voiceid')
     if not voiceid:
         raise ValueError("voiceid is empty or None")
     if '-' not in voiceid:
@@ -153,8 +158,8 @@ def azureSpeak(text: str, engine, style: str = None, styledegree: float = None):
 
 def googleSpeak(text: str, engine):
     # Add your key and endpoint
-    creds_file = config.get('googleTTS', 'creds_file')
-    voiceid = config.get('googleTTS', 'voiceid')
+    creds_file = utils.config.get('googleTTS', 'creds_file')
+    voiceid = utils.config.get('googleTTS', 'voiceid')
 
     client = GoogleClient(credentials=creds_file)
     tts = GoogleTTS(client=client, voice=voiceid)
@@ -163,12 +168,12 @@ def googleSpeak(text: str, engine):
 
 def sapiSpeak(text: str, engine):
     # Add your key and endpoint
-    voiceid = config.get('sapi5TTS', 'voiceid')
+    voiceid = utils.config.get('sapi5TTS', 'voiceid')
 
     client = SAPIClient()
     client._client.setProperty('voice', voiceid)
-    client._client.setProperty('rate', config.get('TTS', 'rate'))
-    client._client.setProperty('volume', config.get('TTS', 'volume'))
+    client._client.setProperty('rate', utils.config.get('TTS', 'rate'))
+    client._client.setProperty('volume', utils.config.get('TTS', 'volume'))
     tts = SAPITTS(client=client)
     ttsWrapperSpeak(text, tts, engine)
 
@@ -203,21 +208,21 @@ def ttsWrapperSpeak(text: str, tts, engine):
 
 
 def playSpeech(audio_bytes, text, tts):
-    # start = time.perf_counter()
+    start = time.perf_counter()
     if not isinstance(tts, MMSTTS):
-        play_audio(audio_bytes)
+        utils.play_audio(audio_bytes)
     else:
         tts.speak(text)
-    # stop = time.perf_counter() - start
-    # print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
+    stop = time.perf_counter() - start
+    print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
     # logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
 
 
 def saveSpeech(audio_bytes, text, engine, format, tts):
     # start = time.perf_counter()
-    save_audio_file = config.getboolean('TTS', 'save_audio_file')
+    save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
     if save_audio_file:
-        save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
+        utils.save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
     # stop = time.perf_counter() - start
     # print(f"Speech file saving runtime is {stop:0.5f} seconds.")
     # logging.info(f"Speech file saving runtime is {stop:0.5f} seconds.")
@@ -233,7 +238,6 @@ def load_deep_learning_translation():
 
 def deep_learning_translation():
     pass
-
 
 # dl = None
 # dlTranslate = Thread(target=load_deep_learning_translation)
