@@ -1120,7 +1120,7 @@ class Player(QRunnable):
             exe_name = ""
             for root, dirs, files in os.walk(application_path):
                 for file in files:
-                    if "translatepb.exe" in file:
+                    if "client.exe" in file:
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
@@ -1131,7 +1131,7 @@ class Player(QRunnable):
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
-            GUI_script_path = os.path.join(application_path, 'translatepb.py')
+            GUI_script_path = os.path.join(application_path, 'client.py')
             # print(f'Initial Delay = {time.time() - start}')
             cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
