@@ -241,6 +241,11 @@ def update_Database(file):
         logging.error("Failed to update database: ".format(error), exc_info=True)
 
 
+def updateConfig():
+    if os.path.isfile(config_path):
+        config.read(config_path)
+
+
 parser = argparse.ArgumentParser(
     description='Reads pasteboard. Translates it. Speaks it out. Or any variation of that')
 parser.add_argument(
@@ -287,13 +292,10 @@ if Allow_Collecting_Stats:
     event_properties = {
         'uuid': distinct_id,
         'source': 'helperApp',
-        'version': '1.3',
+        'version': 2.0,
         'fromLang': config.get('translate', 'startlang'),
         'toLang': config.get('translate', 'endlang'),
         'ttsengine': config.get('TTS', 'engine'),
     }
 
     notify_posthog(distinct_id, event_name, event_properties)
-    stop = time.perf_counter() - start
-    # print(f"Posthog runtime is {stop:0.5f} seconds.")
-    logging.info(f"Posthog runtime is {stop:0.5f} seconds.")
