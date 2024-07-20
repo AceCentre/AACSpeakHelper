@@ -10,10 +10,11 @@ from tts_wrapper import MicrosoftClient, MicrosoftTTS
 from tts_wrapper import GoogleClient, GoogleTTS
 from tts_wrapper import SAPIClient, SAPITTS
 from tts_wrapper import MMSClient, MMSTTS
-from KurdishTTS.kurdishTTS import KurdishTTS
+# from KurdishTTS.kurdishTTS import KurdishTTS
 from utils import play_audio, save_audio, config, check_history, args
 import warnings
 from threading import Thread
+# import dl_translate as dlt
 
 warnings.filterwarnings("ignore")
 
@@ -172,11 +173,6 @@ def sapiSpeak(text: str, engine):
     ttsWrapperSpeak(text, tts, engine)
 
 
-def kurdishSpeak(text: str, engine):
-    tts = KurdishTTS()
-    ttsWrapperSpeak(text, tts, engine)
-
-
 def gSpeak(text: str, engine):
     tts = GSPEAK()
     ttsWrapperSpeak(text, tts, engine)
@@ -225,3 +221,20 @@ def saveSpeech(audio_bytes, text, engine, format, tts):
     # stop = time.perf_counter() - start
     # print(f"Speech file saving runtime is {stop:0.5f} seconds.")
     # logging.info(f"Speech file saving runtime is {stop:0.5f} seconds.")
+
+
+def load_deep_learning_translation():
+    start = time.time()
+    global dl
+    # dl = dlt.TranslationModel("dlt/cached_model_nllb200", model_family="nllb200")
+    print(dl)
+    print(time.time() - start)
+
+
+def deep_learning_translation():
+    pass
+
+
+# dl = None
+# dlTranslate = Thread(target=load_deep_learning_translation)
+# dlTranslate.start()
