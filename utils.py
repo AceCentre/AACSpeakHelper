@@ -19,6 +19,10 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
 pygame.mixer.init()
+args = {'config': '', 'listvoices': False, 'preview': False, 'style': '', 'styledegree': None}
+config_path = None
+audio_files_path = None
+config = None
 
 
 def ynbox(message: str, header: str, timeout: int = 10000):
@@ -241,61 +245,44 @@ def update_Database(file):
         logging.error("Failed to update database: ".format(error), exc_info=True)
 
 
-def updateConfig():
-    if os.path.isfile(config_path):
-        config.read(config_path)
-
-
-parser = argparse.ArgumentParser(
-    description='Reads pasteboard. Translates it. Speaks it out. Or any variation of that')
-parser.add_argument(
-    '-c', '--config', help='Path to a defined config file', required=False, default='')
-parser.add_argument(
-    '-l', '--listvoices', help='List Voices to see whats available', required=False, default=False, action="store_true")
-parser.add_argument(
-    '-p', '--preview', help='Preview Only', required=False, default=False, action="store_true")
-parser.add_argument(
-    '-s', '--style', help='Voice style for Azure TTS', required=False, default='')
-parser.add_argument(
-    '-sd', '--styledegree', type=float, help='Degree of style for Azure TTS', required=False, default=None)
-args = vars(parser.parse_args())
-logging.info(str(args))
-(config_path, audio_files_path) = get_paths(args=args)
-config = configparser.ConfigParser()
-current_path = os.path.dirname(config_path)
-
-# Need to set initial path if no config file was found.
-if os.path.isdir(current_path):
-    logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
-                        filemode='a',
-                        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
-                        level=logging.DEBUG,
-                        force=True)
-try:
-    # print(config_path)
-
-    if os.path.isfile(config_path):
-        config.read(config_path)
-        Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
-    else:
-        msg = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
-        result = msgbox("settings.cfg file not found. " + msg, 'Error')
+def init(args=args):
+    default = args
+    logging.info(str(args))
+    global config_path
+    global audio_files_path
+    global config
+    (config_path, audio_files_path) = get_paths(args=args)
+    config = configparser.ConfigParser()
+    current_path = os.path.dirname(config_path)
+    if os.path.isdir(current_path):
+        logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
+                            filemode='a',
+                            format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+                            level=logging.DEBUG,
+                            force=True)
+    try:
+        if os.path.isfile(config_path):
+            config.read(config_path)
+            Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
+        else:
+            msg = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
+            result = msgbox("settings.cfg file not found. " + msg, 'Error')
+            sys.exit()
+    except Exception as e:
+        logging.error("Configuration Error {}".format(e), exc_info=True)
         sys.exit()
-except Exception as e:
-    logging.error("Configuration Error {}".format(e), exc_info=True)
-    sys.exit()
 
-if Allow_Collecting_Stats:
-    start = time.perf_counter()
-    distinct_id = get_uuid()
-    event_name = 'App Run'
-    event_properties = {
-        'uuid': distinct_id,
-        'source': 'helperApp',
-        'version': 2.0,
-        'fromLang': config.get('translate', 'startlang'),
-        'toLang': config.get('translate', 'endlang'),
-        'ttsengine': config.get('TTS', 'engine'),
-    }
+    if Allow_Collecting_Stats:
+        start = time.perf_counter()
+        distinct_id = get_uuid()
+        event_name = 'App Run'
+        event_properties = {
+            'uuid': distinct_id,
+            'source': 'helperApp',
+            'version': 2.0,
+            'fromLang': config.get('translate', 'startlang'),
+            'toLang': config.get('translate', 'endlang'),
+            'ttsengine': config.get('TTS', 'engine'),
+        }
 
-    notify_posthog(distinct_id, event_name, event_properties)
+        notify_posthog(distinct_id, event_name, event_properties)
