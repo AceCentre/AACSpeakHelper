@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AACSpeechHelper"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "2.0.2"
 #define MyAppPublisher "Ace Centre"
 #define MyAppURL "https://acecentre.org.uk"
-#define MyAppExeName "translatepb.exe"
+#define MyAppExeName "client.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -37,7 +37,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "dist\translatepb\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\client\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\client\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\translatepb\translatepb.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "settings.cfg"; DestDir: "{userappdata}\AACSpeechHelper"; Flags: ignoreversion
 Source: "dist\Configure AACSpeechHelper\Configure AACSpeechHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Configure AACSpeechHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -60,3 +62,4 @@ Filename: "{app}\CreateGridset.exe"
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{app}\Configure AACSpeechHelper.exe"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\client.exe"; Flags: nowait postinstall skipifsilent
