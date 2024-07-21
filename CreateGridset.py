@@ -40,7 +40,7 @@ def modify_gridset(gridset_path, LocalAppPath):
                     filedata = f.read()
 
                 local_app_data_path = os.environ.get('LOCALAPPDATA', '')
-                full_path_to_exe = os.path.join(local_app_data_path, 'Programs', 'Ace Centre', 'AACSpeechHelper',
+                full_path_to_exe = os.path.join(local_app_data_path, 'Programs', 'Ace Centre', 'AACSpeakHelper',
                                                 'translatepb.exe')
                 full_path_to_exe_escaped = full_path_to_exe.replace('\\', '\\\\')
                 new_data = re.sub('%FILEPATHTOREPLACE%', full_path_to_exe_escaped, filedata)
@@ -48,7 +48,7 @@ def modify_gridset(gridset_path, LocalAppPath):
                 with open(xml_path, 'w') as f:
                     f.write(new_data)
 
-    new_gridset_dir = os.path.join(LocalAppPath, 'AACSpeechHelper', 'Example AAC Helper Pages')
+    new_gridset_dir = os.path.join(LocalAppPath, 'AACSpeakHelper', 'Example AAC Helper Pages')
     new_gridset_path = os.path.join(new_gridset_dir, 'AAC Helper Tool Demo.gridset')
 
     os.makedirs(new_gridset_dir, exist_ok=True)
@@ -68,7 +68,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 
 if __name__ == "__main__":
     app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
-    gridset_location = os.path.join(app_data_path, 'AACSpeechHelper',
+    gridset_location = os.path.join(app_data_path, 'AACSpeakHelper',
                                     'TranslateAndTTS DemoGridset.gridset')  # Updated path
 
     # Assuming the original gridset is located at 'TranslateAndTTS DemoGridset.gridset' within the APPDATA folder

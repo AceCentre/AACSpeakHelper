@@ -59,7 +59,7 @@ def configure_app():
         exe_name = ""
         for root, dirs, files in os.walk(application_path):
             for file in files:
-                if "Configure AACSpeechHelper" in file:
+                if "Configure AACSpeakHelper" in file:
                     exe_name = file
         GUI_path = os.path.join(application_path, exe_name)
         # Use subprocess.Popen to run the executable
@@ -73,7 +73,7 @@ def configure_app():
 
 
 def get_paths(args: vars):
-    # TODO:  %AppData%/Ace Centre/AACSpeechHelper/models
+    # TODO:  %AppData%/Ace Centre/AACSpeakHelper/models
     if args['config'] != '' and os.path.exists(args['config']):
         config_path = args['config']
         audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
@@ -82,7 +82,7 @@ def get_paths(args: vars):
         if getattr(sys, 'frozen', False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeechHelper')
+            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
 
         elif __file__:
             application_path = os.path.dirname(__file__)
@@ -101,7 +101,7 @@ def get_paths(args: vars):
             if result:
                 configure_app()
             else:
-                message = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
+                message = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
                 response = msgbox("settings.cfg file not found. " + message, 'Error')
                 sys.exit(response)
         except Exception as error:
@@ -264,7 +264,7 @@ def init(args=args):
             config.read(config_path)
             Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
         else:
-            msg = "\n\n Please Run 'Configure AACSpeechHelper executable' first."
+            msg = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
             result = msgbox("settings.cfg file not found. " + msg, 'Error')
             sys.exit()
     except Exception as e:

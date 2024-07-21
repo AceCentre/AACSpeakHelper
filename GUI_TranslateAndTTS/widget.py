@@ -88,14 +88,14 @@ class Widget(QWidget):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             self.app_data_path = os.path.join(home_directory,
-                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeechHelper')
+                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeakHelper')
             self.ui.appPath.setText(self.app_data_path)
             self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                            'AACSpeechHelper', 'settings.cfg')
+                                            'AACSpeakHelper', 'settings.cfg')
             self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                           'AACSpeechHelper', 'Audio Files')
+                                           'AACSpeakHelper', 'Audio Files')
             self.mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                               'AACSpeechHelper', 'models')
+                                               'AACSpeakHelper', 'models')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
             self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))

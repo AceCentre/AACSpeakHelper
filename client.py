@@ -26,7 +26,7 @@ data_string = json.dumps(args)
 
 
 def send_to_pipe(arguments, retries=3, delay=1):
-    pipe_name = r'\\.\pipe\AACSpeechHelper'
+    pipe_name = r'\\.\pipe\AACSpeakHelper'
     attempt = 0
     while attempt < retries:
         try:

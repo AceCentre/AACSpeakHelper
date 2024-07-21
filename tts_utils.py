@@ -109,7 +109,7 @@ def mmsSpeak(text: str, engine):
     voiceid = utils.config.get('mmsTTS', 'voiceid')
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
-        mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeechHelper', 'models')
+        mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
     elif __file__:
         app_data_path = os.path.abspath(os.path.dirname(__file__))
         mms_cache_path = os.path.join(app_data_path, 'models')

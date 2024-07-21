@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import time
 
 import pyperclip
@@ -16,6 +17,27 @@ import utils
 from GUI_TranslateAndTTS.language_dictionary import *
 import tts_utils
 from threading import Thread
+
+pipe = None
+
+
+class SystemTrayIcon(QSystemTrayIcon):
+
+    def __init__(self, icon, parent=None):
+        super().__init__(icon, parent)
+        self.parent = parent
+        menu = QMenu(parent)
+        exitAction = menu.addAction("Exit")
+        self.setContextMenu(menu)
+        menu.triggered.connect(self.exit)
+
+    def exit(self):
+        try:
+            print('Closing ...')
+            sys.exit()
+        except Exception as e:
+            print(sys.exc_info()[0])
+            print(e)
 
 
 def translate_clipboard():
@@ -185,10 +207,11 @@ async def main(wav_files_path):
 
 
 def pipe_server():
-    pipe_name = r'\\.\pipe\AACSpeechHelper'
+    pipe_name = r'\\.\pipe\AACSpeakHelper'
     logging.info("Pipe Server: Creating named pipe...")
     while True:
         try:
+            global pipe
             pipe = win32pipe.CreateNamedPipe(
                 pipe_name,
                 win32pipe.PIPE_ACCESS_DUPLEX,
@@ -227,16 +250,12 @@ def pipe_server():
 if __name__ == '__main__':
     app = QApplication([])
     pipe_thread = Thread(target=pipe_server)
+    pipe_thread.daemon = True
     app.setQuitOnLastWindowClosed(False)
+    w = QWidget()
     icon = QIcon('translate.ico')
-    tray = QSystemTrayIcon(icon=icon, parent=app)
-    # tray.setIcon(icon)
+    tray = SystemTrayIcon(icon=icon, parent=w)
     tray.setVisible(True)
-    menu = QMenu()
-    quit = QAction("Quit")
-    quit.triggered.connect(app.quit)
-    menu.addAction(quit)
-    tray.setContextMenu(menu)
     pipe_thread.start()
-    tray.show()
-    sys.exit(app.exec_())
+    app_ref = app.exec_()
+    sys.exit(app_ref)
