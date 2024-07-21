@@ -10,7 +10,6 @@ from tts_wrapper import MicrosoftClient, MicrosoftTTS
 from tts_wrapper import GoogleClient, GoogleTTS
 from tts_wrapper import SAPIClient, SAPITTS
 from tts_wrapper import MMSClient, MMSTTS
-# from KurdishTTS.kurdishTTS import KurdishTTS
 import warnings
 from threading import Thread
 
