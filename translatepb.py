@@ -10,11 +10,12 @@ import pywintypes
 import win32file
 import win32pipe
 from PySide6.QtWidgets import *
+from PySide6.QtGui import *
 from deep_translator import *
 import utils
 from GUI_TranslateAndTTS.language_dictionary import *
 import tts_utils
-# from utils import init, configure_app, config, args, clear_history
+from threading import Thread
 
 
 def translate_clipboard():
@@ -196,7 +197,8 @@ def pipe_server():
                 0,
                 None)
             logging.info("Pipe Server: Waiting for client...")
-            print(f'Waiting for request ...')
+            print(f'Listening for client...')
+            tray.showMessage('AACSpeakHelperServer', 'Listening for client...', icon, 2000)
             win32pipe.ConnectNamedPipe(pipe, None)
             logging.info("Pipe Server: Client connected.")
         except pywintypes.error as e:
@@ -223,5 +225,18 @@ def pipe_server():
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    pipe_server()
+    app = QApplication([])
+    pipe_thread = Thread(target=pipe_server)
+    app.setQuitOnLastWindowClosed(False)
+    icon = QIcon('translate.ico')
+    tray = QSystemTrayIcon(icon=icon, parent=app)
+    # tray.setIcon(icon)
+    tray.setVisible(True)
+    menu = QMenu()
+    quit = QAction("Quit")
+    quit.triggered.connect(app.quit)
+    menu.addAction(quit)
+    tray.setContextMenu(menu)
+    pipe_thread.start()
+    tray.show()
+    sys.exit(app.exec_())
