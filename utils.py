@@ -278,7 +278,7 @@ def init(args=args):
         event_properties = {
             'uuid': distinct_id,
             'source': 'helperApp',
-            'version': 2.0,
+            'version': 2.2,
             'fromLang': config.get('translate', 'startlang'),
             'toLang': config.get('translate', 'endlang'),
             'ttsengine': config.get('TTS', 'engine'),
