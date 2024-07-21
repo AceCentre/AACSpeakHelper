@@ -185,7 +185,11 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
             file_path = os.path.join(root, file)
             if ignore_pattern and file.endswith(ignore_pattern) and file.endswith('.db-journal'):
                 continue  # Ignore this file and move to the next iteration
-            file_modification_time = os.path.getmtime(file_path)
+            try:
+                file_modification_time = os.path.getmtime(file_path)
+            except Exception as fileError:
+                logging.error(str(fileError))
+                continue
             if file_modification_time < time_threshold:
                 try:
                     os.remove(file_path)
