@@ -4,7 +4,6 @@ import sys
 import subprocess
 import time
 import io
-import argparse
 import configparser
 import uuid
 import posthog
