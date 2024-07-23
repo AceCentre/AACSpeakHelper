@@ -5,11 +5,7 @@ import sys
 import time
 import pyttsx3
 from gtts import gTTS
-from tts_wrapper import AbstractTTS
-from tts_wrapper import MicrosoftClient, MicrosoftTTS
-from tts_wrapper import GoogleClient, GoogleTTS
-from tts_wrapper import SAPIClient, SAPITTS
-from tts_wrapper import MMSClient, MMSTTS
+from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, MMSClient, MMSTTS
 import warnings
 from threading import Thread
 

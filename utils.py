@@ -72,42 +72,35 @@ def configure_app():
         process = subprocess.run(["python", GUI_script_path])
 
 
-def get_paths(args=None):
-    if args is None:
-        args = {'config': ''}    
-    # TODO:  %AppData%/Ace Centre/AACSpeakHelper/models
-    if args['config'] != '' and os.path.exists(args['config']):
-        config_path = args['config']
+def get_paths(config_path=None):
+    if config_path and os.path.exists(config_path):
         audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
     else:
-        # determine if application is a script file or frozen exe
         if getattr(sys, 'frozen', False):
-            # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
-
-        elif __file__:
+        else:
             application_path = os.path.dirname(__file__)
+        
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-    # Check if the directory already exists
-    if not os.path.exists(audio_files_path):
-        # Create the "Audio Files" directory
-        os.makedirs(audio_files_path)
+    
+    # Ensure the audio files directory exists
+    os.makedirs(audio_files_path, exist_ok=True)
 
-    # Check if the file already exists
-    if not os.path.exists(config_path):
-        message = '\n\n Do You want to open the Configuration Setup?'
-        try:
-            result = ynbox("settings.cfg file not found." + message, 'Error')
-            if result:
-                configure_app()
-            else:
-                message = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
-                response = msgbox("settings.cfg file not found. " + message, 'Error')
-                sys.exit(response)
-        except Exception as error:
-            logging.error("Configuration Error: {}".format(error), exc_info=True)
+    # Check if the file already exists - commenting this for now. 
+    # if not os.path.exists(config_path):
+    #     message = '\n\n Do You want to open the Configuration Setup?'
+    #     try:
+    #         result = ynbox("settings.cfg file not found." + message, 'Error')
+    #         if result:
+    #             configure_app()
+    #         else:
+    #             message = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
+    #             response = msgbox("settings.cfg file not found. " + message, 'Error')
+    #             sys.exit(response)
+    #     except Exception as error:
+    #         logging.error("Configuration Error: {}".format(error), exc_info=True)
 
     return config_path, audio_files_path
 
@@ -245,30 +238,23 @@ def update_Database(file):
     except Exception as error:
         logging.error("Failed to update database: ".format(error), exc_info=True)
 
-
-def init(args=args):
-    default = args
-    logging.info(str(args))
+def init(input_config, args=args):
     global config_path
     global audio_files_path
     global config
-    (config_path, audio_files_path) = get_paths(args=args)
-    config = configparser.ConfigParser()
-    current_path = os.path.dirname(config_path)
-    try:
-        if os.path.isfile(config_path):
-            config.read(config_path)
-            Allow_Collecting_Stats = config.getboolean('App', 'collectstats')
-        else:
-            msg = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
-            result = msgbox("settings.cfg file not found. " + msg, 'Error')
-            sys.exit()
-    except Exception as e:
-        logging.error("Configuration Error {}".format(e), exc_info=True)
-        sys.exit()
 
-    if Allow_Collecting_Stats:
-        start = time.perf_counter()
+    config_path = input_config['App']['config_path']
+    audio_files_path = input_config['App']['audio_files_path']
+    config = input_config  # This assigns the passed config to the global config variable
+    
+    logging.info(f"Initialized utils with config path: {config_path}")
+    logging.info(f"Audio files path: {audio_files_path}")
+
+    #Dropping. this init now takes in a config object.. checking. msg = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
+    #            result = msgbox("settings.cfg file not found. " + msg, 'Error')
+    #            sys.exit()
+
+    if config.getboolean('App', 'collectstats'):
         distinct_id = get_uuid()
         event_name = 'App Run'
         event_properties = {
@@ -279,5 +265,5 @@ def init(args=args):
             'toLang': config.get('translate', 'endlang'),
             'ttsengine': config.get('TTS', 'engine'),
         }
-
         notify_posthog(distinct_id, event_name, event_properties)
+

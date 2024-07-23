@@ -165,9 +165,18 @@ class MainWindow(QWidget):
             for section, options in config_dict.items():
                 config[section] = options
 
-            # Update utils with the new config and args
-            utils.config = config
-            utils.args = args
+            # Get the config path from the received config
+            config_path = config.get('App', 'config_path', fallback=None)
+            # Use utils.get_paths to get the paths
+            config_path, audio_files_path = utils.get_paths(config_path)
+            
+            if 'App' not in config:
+                config['App'] = {}
+            config['App']['config_path'] = config_path
+            config['App']['audio_files_path'] = audio_files_path
+
+            # Initialize utils with the new config and args
+            utils.init(config, args)
 
             # Initialize TTS
             tts_utils.init(utils)
@@ -291,7 +300,6 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     stop = time.perf_counter() - start
     utils.clear_history(file_list)
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
-    logging.info("------------------------------------------------------------------------")
 
 async def main(wav_files_path):
     logging.info("Starting main function execution...")
@@ -323,7 +331,6 @@ async def mainrun(listvoices: bool):
                 return
     else:
         try:
-            logging.info("------------------------------------------------------------------------")
             start = time.perf_counter()
             if config.getboolean('translate', 'noTranslate'):
                 clipboard_text = pyperclip.paste()
@@ -344,7 +351,6 @@ async def mainrun(listvoices: bool):
             if config.getboolean('translate', 'replacepb') and clipboard is not None:
                 pyperclip.copy(clipboard)
 
-            logging.info("------------------------------------------------------------------------")
         except Exception as e:
             logging.error(f"Runtime Error: {e}", exc_info=True)
             # Handle error (e.g., show dialog)
