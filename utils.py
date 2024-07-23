@@ -72,7 +72,9 @@ def configure_app():
         process = subprocess.run(["python", GUI_script_path])
 
 
-def get_paths(args: vars):
+def get_paths(args=None):
+    if args is None:
+        args = {'config': ''}    
     # TODO:  %AppData%/Ace Centre/AACSpeakHelper/models
     if args['config'] != '' and os.path.exists(args['config']):
         config_path = args['config']
@@ -166,11 +168,11 @@ def notify_posthog(id: str, event_name: str, properties: dict = {}):
                                          host='https://app.posthog.com')
         # Attempt to send the event to PostHog
         posthog_client.capture(distinct_id=id, event=event_name, properties=properties)
-        print(f"Event '{event_name}' captured successfully!")
+        print(f"[notify-posthog] Event '{event_name}' captured successfully!")
     except Exception as e:
         # Handle the case when there's an issue with sending the event
-        print(f"Failed to capture event '{event_name}': {e}")
-        logging.error("Failed to capture event '{}': {}".format(event_name, e), exc_info=True)
+        print(f"[notify-posthog] Failed to capture event '{event_name}': {e}")
+        logging.error("[notify-posthog] Failed to capture event '{}': {}".format(event_name, e), exc_info=True)
         # You can add further logic here if needed, such as logging the error or continuing the script
         pass
 
@@ -253,12 +255,6 @@ def init(args=args):
     (config_path, audio_files_path) = get_paths(args=args)
     config = configparser.ConfigParser()
     current_path = os.path.dirname(config_path)
-    if os.path.isdir(current_path):
-        logging.basicConfig(filename=os.path.join(current_path, 'app.log'),
-                            filemode='a',
-                            format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
-                            level=logging.DEBUG,
-                            force=True)
     try:
         if os.path.isfile(config_path):
             config.read(config_path)
