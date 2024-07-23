@@ -98,7 +98,7 @@ class Widget(QWidget):
                                                'AACSpeakHelper', 'models')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-            self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
+            self.ui.appPath.setText(os.path.join(self.app_data_path, "AACSpeakHelperServer.py"))
             self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
             self.mms_cache_path = os.path.join(self.app_data_path, 'models')
