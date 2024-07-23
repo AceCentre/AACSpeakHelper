@@ -44,6 +44,7 @@ import utils
 from GUI_TranslateAndTTS.language_dictionary import *
 import tts_utils
 import subprocess
+import configparser
 
 class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, icon, parent=None):
@@ -152,23 +153,50 @@ class MainWindow(QWidget):
     def handle_message(self, message):
         try:
             logging.info(f"Handling new message: {message[:50]}...")
-            arguments = json.loads(message)
-            utils.init(args=arguments)
-            tts_utils.init(utils)
-            asyncio.run(main(utils.audio_files_path))
+            data = json.loads(message)
             
+            # Extract data from the received message
+            args = data['args']
+            config_dict = data['config']
+            clipboard_text = data['clipboard_text']
+
+            # Create a ConfigParser object and update it with received config
+            config = configparser.ConfigParser()
+            for section, options in config_dict.items():
+                config[section] = options
+
+            # Update utils with the new config and args
+            utils.config = config
+            utils.args = args
+
+            # Initialize TTS
+            tts_utils.init(utils)
+
+            # Process the clipboard text
+            if config.getboolean('translate', 'noTranslate'):
+                text_to_process = clipboard_text
+            else:
+                text_to_process = translate_clipboard(clipboard_text, config)
+
+            # Perform TTS if not bypassed
+            if not config.getboolean('TTS', 'bypass_tts', fallback=False):
+                tts_utils.speak(text_to_process)
+
+            # Replace clipboard if specified
+            if config.getboolean('translate', 'replacepb') and text_to_process is not None:
+                pyperclip.copy(text_to_process)
+
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
-            duration = "N/A"
-            self.tray_icon.update_last_run_info(current_time, duration)
-            logging.info(f"Processed message at {current_time}, duration: {duration}")
+            self.tray_icon.update_last_run_info(current_time, "N/A")
+            logging.info(f"Processed message at {current_time}")
         except Exception as e:
             logging.error(f"Error handling message: {e}", exc_info=True)
         finally:
             logging.info("Message handling complete.")
 
-def translate_clipboard():
+
+def translate_clipboard(text, config):
     try:
-        config = utils.config
         translator = config.get('translate', 'provider')
         key = config.get('translate', f'{translator}_secret_key') if not translator == "GoogleTranslator" else None
         email = config.get('translate', 'email') if translator == 'MyMemoryTranslator' else None
@@ -229,11 +257,9 @@ def translate_clipboard():
         #                                          appid=appid,
         #                                          appkey=key)
         logging.info('Translation Provider is {}'.format(translator))
+        logging.info(f'Text [{config.get("translate", "startLang")}]: {text}')
 
-        clipboard_text = pyperclip.paste()
-        logging.info(f'Clipboard [{config.get("translate", "startLang")}]: {clipboard_text}')
-
-        translation = translate_instance.translate(clipboard_text)
+        translation = translate_instance.translate(text)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
         return translation
     except Exception as e:
