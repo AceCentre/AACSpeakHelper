@@ -5,7 +5,8 @@ import sys
 import time
 import pyttsx3
 from gtts import gTTS
-from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, SherpaOnnxClient, SherpaOnnxTTS
+from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, \
+    SherpaOnnxClient, SherpaOnnxTTS
 import warnings
 from threading import Thread
 
@@ -70,6 +71,7 @@ class GSPEAK:
             file.seek(0)
             return file.read()
 
+
 def init_azure_tts():
     key = utils.config.get('azureTTS', 'key')
     location = utils.config.get('azureTTS', 'location')
@@ -79,11 +81,13 @@ def init_azure_tts():
     client = MicrosoftClient((key, location))
     return MicrosoftTTS(client=client, voice=voiceid, lang=lang)
 
+
 def init_google_tts():
     creds_file = utils.config.get('googleTTS', 'creds_file')
     voiceid = utils.config.get('googleTTS', 'voiceid')
     client = GoogleClient(credentials=creds_file)
     return GoogleTTS(client=client, voice=voiceid)
+
 
 def init_sapi_tts():
     voiceid = utils.config.get('sapi5TTS', 'voiceid')
@@ -92,6 +96,7 @@ def init_sapi_tts():
     client._client.setProperty('rate', utils.config.get('TTS', 'rate'))
     client._client.setProperty('volume', utils.config.get('TTS', 'volume'))
     return SAPITTS(client=client)
+
 
 def init_mms_tts():
     voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
@@ -106,6 +111,7 @@ def init_mms_tts():
     client = SherpaOnnxClient((mms_cache_path, voiceid))
     return SherpaOnnxTTS(client)
 
+
 def speak(text=''):
     file = utils.check_history(text)
     if file is not None and os.path.isfile(file):
@@ -115,7 +121,7 @@ def speak(text=''):
         return
 
     ttsengine = utils.config.get('TTS', 'engine')
-    
+
     # Check if the TTS client is already in memory
     if ttsengine in tts_clients:
         tts_client = tts_clients[ttsengine]
@@ -133,7 +139,7 @@ def speak(text=''):
             tts_client = init_mms_tts()
         else:
             tts_client = pyttsx3.init(ttsengine)
-        
+
         # Store the client for future use
         tts_clients[ttsengine] = tts_client
 
@@ -162,6 +168,7 @@ def speak(text=''):
 def mmsSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
 
+
 def azureSpeak(text: str, engine, tts_client, style: str = None, styledegree: float = None):
     if style:
         # Check if the provided style is in the valid styles array
@@ -180,11 +187,14 @@ def azureSpeak(text: str, engine, tts_client, style: str = None, styledegree: fl
 
     ttsWrapperSpeak(ssml, tts_client, engine)
 
+
 def googleSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
 
+
 def sapiSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
+
 
 def gSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
