@@ -28,23 +28,23 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 
 NB: On some machines you cant build monotonic_align with anything other than 3.11.3 or 3.11.4. We have a .python-version of 3.11.4 but you may need to overrride this to get it to work.
 
-'''bash
+```bash
 python -m venv venv
 .\venv\Scripts\Activate
 pip install -r requirements.txt
-'''
+```
 
 then run the server
 
-'''bash
+```bash
 python AACSpeakHelper.py
-'''
+```
 
 add some text to your buffer and run 
 
-'''bash
+```bash
 python client.py
-'''
+```
 Running the GUI can be fun. 
 
 

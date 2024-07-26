@@ -10,14 +10,10 @@ import posthog
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 import sqlite3
-from tts_wrapper import MMSTTS
+from tts_wrapper import SherpaOnnxTTS
 import wave
+import pyaudio
 
-# Hide Pygame support prompt
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-import pygame
-
-pygame.mixer.init()
 args = {'config': '', 'listvoices': False, 'preview': False, 'style': '', 'styledegree': None}
 config_path = None
 audio_files_path = None
@@ -107,19 +103,41 @@ def get_paths(config_path=None):
 
 def play_audio(audio_bytes, file: bool = False):
     if file:
-        audio_stream = audio_bytes
+        with wave.open(audio_bytes, 'rb') as wf:
+            play_wave(wf)
     else:
-        audio_stream = io.BytesIO(audio_bytes)
-    pygame.mixer.music.load(audio_stream)
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        continue
+        with wave.open(io.BytesIO(audio_bytes), 'rb') as wf:
+            play_wave(wf)
+
+def play_wave(wf):
+    p = pyaudio.PyAudio()
+    
+    def callback(in_data, frame_count, time_info, status):
+        data = wf.readframes(frame_count)
+        return (data, pyaudio.paContinue)
+
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True,
+                    stream_callback=callback)
+    
+    stream.start_stream()
+    
+    while stream.is_active():
+        pass
+    
+    stream.stop_stream()
+    stream.close()
+    wf.close()
+    
+    p.terminate()
 
 
 def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav', tts=None):
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + format)
-    if isinstance(tts, MMSTTS):
+    if isinstance(tts, SherpaOnnxTTS):
         channels = 1
         sample_width = 2
         with wave.open(filename, "wb") as file:

@@ -23,9 +23,7 @@ def setup_logging():
 
     return log_file
 
-
 logfile = setup_logging()
-
 
 import asyncio
 import json
@@ -354,6 +352,85 @@ async def mainrun(listvoices: bool):
         except Exception as e:
             logging.error(f"Runtime Error: {e}", exc_info=True)
             # Handle error (e.g., show dialog)
+
+
+def init_tts(engine):
+    if engine == 'azureTTS':
+        key = utils.config.get('azureTTS', 'key')
+        location = utils.config.get('azureTTS', 'location')
+        voiceid = utils.config.get('azureTTS', 'voiceid')
+        parts = voiceid.split('-')
+        lang = parts[0] + '-' + parts[1]
+        client = MicrosoftClient((key, location))
+        return MicrosoftTTS(client=client, voice=voiceid, lang=lang)
+    elif engine == 'gTTS':
+        creds_file = utils.config.get('googleTTS', 'creds_file')
+        voiceid = utils.config.get('googleTTS', 'voiceid')
+        client = GoogleClient(credentials=creds_file)
+        return GoogleTTS(client=client, voice=voiceid)
+    elif engine == 'sapi5':
+        voiceid = utils.config.get('sapi5TTS', 'voiceid')
+        client = SAPIClient()
+        client._client.setProperty('voice', voiceid)
+        client._client.setProperty('rate', utils.config.get('TTS', 'rate'))
+        client._client.setProperty('volume', utils.config.get('TTS', 'volume'))
+        return SAPITTS(client=client)
+    elif engine == 'mms':
+        voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
+        if getattr(sys, 'frozen', False):
+            home_directory = os.path.expanduser("~")
+            mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
+        else:
+            app_data_path = os.path.abspath(os.path.dirname(__file__))
+            mms_cache_path = os.path.join(app_data_path, 'models')
+        if not os.path.isdir(mms_cache_path):
+            os.mkdir(mms_cache_path)
+        client = SherpaOnnxClient((mms_cache_path, voiceid))
+        return SherpaOnnxTTS(client)
+    else:
+        return pyttsx3.init(engine)
+
+def speak(text=''):
+    file = utils.check_history(text)
+    if file is not None and os.path.isfile(file):
+        utils.play_audio(file, file=True)
+        print("Speech synthesized for text [{}] from cache.".format(text))
+        logging.info("Speech synthesized for text [{}] from cache.".format(text))
+        return
+
+    ttsengine = utils.config.get('TTS', 'engine')
+    
+    # Check if the TTS client is already in memory
+    if ttsengine in tts_clients:
+        tts_client = tts_clients[ttsengine]
+    else:
+        # Initialize the TTS client based on the engine
+        tts_client = init_tts(ttsengine)
+        
+        # Store the client for future use
+        tts_clients[ttsengine] = tts_client
+
+    # Use the TTS client
+    if ttsengine == 'gspeak':
+        gSpeak(text, ttsengine, tts_client)
+    elif ttsengine == 'azureTTS':
+        if utils.args['style']:
+            azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
+        else:
+            azureSpeak(text, ttsengine, tts_client)
+    elif ttsengine == 'gTTS':
+        googleSpeak(text, ttsengine, tts_client)
+    elif ttsengine == 'sapi5':
+        sapiSpeak(text, ttsengine, tts_client)
+    elif ttsengine == 'mms':
+        mmsSpeak(text, ttsengine, tts_client)
+    else:
+        tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
+        tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
+        tts_client.setProperty('volume', utils.config.get('TTS', 'volume'))
+        tts_client.say(text)
+        tts_client.runAndWait()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

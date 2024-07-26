@@ -5,7 +5,7 @@ import sys
 import time
 import pyttsx3
 from gtts import gTTS
-from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, MMSClient, MMSTTS
+from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, SherpaOnnxClient, SherpaOnnxTTS
 import warnings
 from threading import Thread
 
@@ -94,7 +94,7 @@ def init_sapi_tts():
     return SAPITTS(client=client)
 
 def init_mms_tts():
-    voiceid = utils.config.get('mmsTTS', 'voiceid')
+    voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
         mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
@@ -103,8 +103,8 @@ def init_mms_tts():
         mms_cache_path = os.path.join(app_data_path, 'models')
     if not os.path.isdir(mms_cache_path):
         os.mkdir(mms_cache_path)
-    client = MMSClient((mms_cache_path, voiceid))
-    return MMSTTS(client)
+    client = SherpaOnnxClient((mms_cache_path, voiceid))
+    return SherpaOnnxTTS(client)
 
 def speak(text=''):
     file = utils.check_history(text)
@@ -195,7 +195,7 @@ def ttsWrapperSpeak(text: str, tts, engine):
     fmt = 'wav'
     if isinstance(tts, SAPITTS):
         audio_bytes = tts.synth_to_bytes(text, 'wav')
-    elif isinstance(tts, MMSTTS):
+    elif isinstance(tts, SherpaOnnxTTS):
         audio_bytes = tts.synth_to_bytes(text, 'wav')
     elif isinstance(tts, AbstractTTS):
         audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
@@ -216,7 +216,7 @@ def ttsWrapperSpeak(text: str, tts, engine):
 
 def playSpeech(audio_bytes, text, tts):
     start = time.perf_counter()
-    if not isinstance(tts, MMSTTS):
+    if not isinstance(tts, SherpaOnnxTTS):
         utils.play_audio(audio_bytes)
     else:
         tts.speak(text)
