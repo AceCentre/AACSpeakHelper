@@ -88,17 +88,17 @@ class Widget(QWidget):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
             self.app_data_path = os.path.join(home_directory,
-                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeechHelper')
+                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeakHelper')
             self.ui.appPath.setText(self.app_data_path)
             self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                            'AACSpeechHelper', 'settings.cfg')
+                                            'AACSpeakHelper', 'settings.cfg')
             self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                           'AACSpeechHelper', 'Audio Files')
+                                           'AACSpeakHelper', 'Audio Files')
             self.mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                               'AACSpeechHelper', 'models')
+                                               'AACSpeakHelper', 'models')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-            self.ui.appPath.setText(os.path.join(self.app_data_path, "translatepb.py"))
+            self.ui.appPath.setText(os.path.join(self.app_data_path, "AACSpeakHelperServer.py"))
             self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
             self.mms_cache_path = os.path.join(self.app_data_path, 'models')
@@ -1120,7 +1120,7 @@ class Player(QRunnable):
             exe_name = ""
             for root, dirs, files in os.walk(application_path):
                 for file in files:
-                    if "translatepb.exe" in file:
+                    if "client.exe" in file:
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
@@ -1131,7 +1131,7 @@ class Player(QRunnable):
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
-            GUI_script_path = os.path.join(application_path, 'translatepb.py')
+            GUI_script_path = os.path.join(application_path, 'client.py')
             # print(f'Initial Delay = {time.time() - start}')
             cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])

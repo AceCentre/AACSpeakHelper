@@ -26,6 +26,28 @@ AAC Speak Helper reads the text once the text is copied to the clipboard (using 
 
 See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). Note it works on Python 3.10 or 3.11. The dependencies aren't well covered on all other versions (and there are a lot!)
 
+NB: On some machines you cant build monotonic_align with anything other than 3.11.3 or 3.11.4. We have a .python-version of 3.11.4 but you may need to overrride this to get it to work.
+
+```bash
+python -m venv venv
+.\venv\Scripts\Activate
+pip install -r requirements.txt
+```
+
+then run the server
+
+```bash
+python AACSpeakHelper.py
+```
+
+add some text to your buffer and run 
+
+```bash
+python client.py
+```
+Running the GUI can be fun. 
+
+
 ## Troubleshooting
 
 As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, please create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
