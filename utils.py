@@ -70,7 +70,7 @@ def configure_app():
 
 def get_paths(config_path=None):
     if config_path and os.path.exists(config_path):
-        audio_files_path = os.path.join(os.path.dirname(config_path), 'WAV Files')
+        audio_files_path = os.path.join(os.path.dirname(config_path), 'Audio Files')
     else:
         if getattr(sys, 'frozen', False):
             home_directory = os.path.expanduser("~")
