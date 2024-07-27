@@ -11,7 +11,8 @@ import warnings
 from threading import Thread
 
 # import dl_translate as dlt
-warnings.filterwarnings("ignore")
+# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 utils = None
 # Global dictionary to store TTS clients
 tts_clients = {}
@@ -98,17 +99,17 @@ def init_sapi_tts():
     return SAPITTS(client=client)
 
 
-def init_mms_tts():
+def init_onnx_tts():
     voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
-        mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
+        onnx_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
     elif __file__:
         app_data_path = os.path.abspath(os.path.dirname(__file__))
-        mms_cache_path = os.path.join(app_data_path, 'models')
-    if not os.path.isdir(mms_cache_path):
-        os.mkdir(mms_cache_path)
-    client = SherpaOnnxClient((mms_cache_path, voiceid))
+        onnx_cache_path = os.path.join(app_data_path, 'models')
+    if not os.path.isdir(onnx_cache_path):
+        os.mkdir(onnx_cache_path)
+    client = SherpaOnnxClient(model_path=onnx_cache_path, tokens_path=None, voice_id=voiceid)
     return SherpaOnnxTTS(client)
 
 
@@ -128,6 +129,7 @@ def speak(text=''):
     else:
         # Initialize the TTS client based on the engine
         if ttsengine == 'gspeak':
+            # TODO: check tts-wrapper
             tts_client = GSPEAK()
         elif ttsengine == 'azureTTS':
             tts_client = init_azure_tts()
@@ -135,8 +137,8 @@ def speak(text=''):
             tts_client = init_google_tts()
         elif ttsengine == 'sapi5':
             tts_client = init_sapi_tts()
-        elif ttsengine == 'mms':
-            tts_client = init_mms_tts()
+        elif ttsengine == 'SherpaOnnxTTS':
+            tts_client = init_onnx_tts()
         else:
             tts_client = pyttsx3.init(ttsengine)
 
@@ -155,8 +157,8 @@ def speak(text=''):
         googleSpeak(text, ttsengine, tts_client)
     elif ttsengine == 'sapi5':
         sapiSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'mms':
-        mmsSpeak(text, ttsengine, tts_client)
+    elif ttsengine == 'SherpaOnnxTTS':
+        onnxSpeak(text, ttsengine, tts_client)
     else:
         tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
         tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
@@ -165,7 +167,7 @@ def speak(text=''):
         tts_client.runAndWait()
 
 
-def mmsSpeak(text: str, engine, tts_client):
+def onnxSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
 
 
@@ -236,13 +238,9 @@ def playSpeech(audio_bytes, text, tts):
 
 
 def saveSpeech(audio_bytes, text, engine, format, tts):
-    # start = time.perf_counter()
     save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
     if save_audio_file:
         utils.save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
-    # stop = time.perf_counter() - start
-    # print(f"Speech file saving runtime is {stop:0.5f} seconds.")
-    # logging.info(f"Speech file saving runtime is {stop:0.5f} seconds.")
 
 
 def load_deep_learning_translation():

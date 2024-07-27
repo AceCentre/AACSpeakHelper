@@ -382,21 +382,21 @@ class Ui_Widget(object):
         self.verticalLayout_13.addItem(self.verticalSpacer_4)
 
         self.stackedWidget.addWidget(self.ttsPage)
-        self.mms_page = QWidget()
-        self.mms_page.setObjectName(u"mms_page")
-        self.verticalLayout_17 = QVBoxLayout(self.mms_page)
+        self.onnx_page = QWidget()
+        self.onnx_page.setObjectName(u"onnx_page")
+        self.verticalLayout_17 = QVBoxLayout(self.onnx_page)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
-        self.frame_3 = QFrame(self.mms_page)
+        self.frame_3 = QFrame(self.onnx_page)
         self.frame_3.setObjectName(u"frame_3")
         self.frame_3.setFrameShape(QFrame.StyledPanel)
         self.frame_3.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_3 = QHBoxLayout(self.frame_3)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.mms_cache = QLineEdit(self.frame_3)
-        self.mms_cache.setObjectName(u"mms_cache")
+        self.onnx_cache = QLineEdit(self.frame_3)
+        self.onnx_cache.setObjectName(u"onnx_cache")
 
-        self.horizontalLayout_3.addWidget(self.mms_cache)
+        self.horizontalLayout_3.addWidget(self.onnx_cache)
 
         self.download_cache = QPushButton(self.frame_3)
         self.download_cache.setObjectName(u"download_cache")
@@ -411,24 +411,24 @@ class Ui_Widget(object):
 
         self.verticalLayout_17.addWidget(self.frame_3)
 
-        self.mms_checkBox = QCheckBox(self.mms_page)
-        self.mms_checkBox.setObjectName(u"mms_checkBox")
+        self.onnx_checkBox = QCheckBox(self.onnx_page)
+        self.onnx_checkBox.setObjectName(u"onnx_checkBox")
 
-        self.verticalLayout_17.addWidget(self.mms_checkBox)
+        self.verticalLayout_17.addWidget(self.onnx_checkBox)
 
-        self.search_language = QLineEdit(self.mms_page)
+        self.search_language = QLineEdit(self.onnx_page)
         self.search_language.setObjectName(u"search_language")
         self.search_language.setAlignment(Qt.AlignCenter)
         self.search_language.setClearButtonEnabled(False)
 
         self.verticalLayout_17.addWidget(self.search_language)
 
-        self.mms_listWidget = QListWidget(self.mms_page)
-        self.mms_listWidget.setObjectName(u"mms_listWidget")
+        self.onnx_listWidget = QListWidget(self.onnx_page)
+        self.onnx_listWidget.setObjectName(u"onnx_listWidget")
 
-        self.verticalLayout_17.addWidget(self.mms_listWidget)
+        self.verticalLayout_17.addWidget(self.onnx_listWidget)
 
-        self.stackedWidget.addWidget(self.mms_page)
+        self.stackedWidget.addWidget(self.onnx_page)
 
         self.gridLayout_12.addWidget(self.stackedWidget, 2, 0, 1, 2)
 
@@ -811,7 +811,7 @@ class Ui_Widget(object):
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
         self.statusBar.setText("")
-        self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Massively Multilingual Speech (MMS)", None))
+        self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Sherpa-ONNX", None))
         self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Azure TTS", None))
         self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"Google TTS", None))
         self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GSpeak", None))
@@ -854,7 +854,7 @@ class Ui_Widget(object):
         self.label_5.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
         self.download_cache.setText(QCoreApplication.translate("Widget", u"Download", None))
         self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
-        self.mms_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
+        self.onnx_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TextToSpeechSetting), QCoreApplication.translate("Widget", u"Tab 1", None))
 #if QT_CONFIG(tooltip)

@@ -5,7 +5,7 @@ import logging
 import os
 import subprocess
 import tempfile
-import time
+import sys
 import uuid
 
 import PySide6.QtCore
@@ -15,8 +15,8 @@ from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool
 from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
-# from gtts import lang as gtts_language_list
 import warnings
+
 warnings.filterwarnings('ignore')
 from item import Ui_item
 from language_dictionary import *
@@ -94,19 +94,19 @@ class Widget(QWidget):
                                             'AACSpeakHelper', 'settings.cfg')
             self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
                                            'AACSpeakHelper', 'Audio Files')
-            self.mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                               'AACSpeakHelper', 'models')
+            self.onnx_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
+                                                'AACSpeakHelper', 'models')
         elif __file__:
             self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
             self.ui.appPath.setText(os.path.join(self.app_data_path, "AACSpeakHelperServer.py"))
             self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
             self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
-            self.mms_cache_path = os.path.join(self.app_data_path, 'models')
-        if not os.path.isdir(self.mms_cache_path):
-            os.makedirs(self.mms_cache_path)
+            self.onnx_cache_path = os.path.join(self.app_data_path, 'models')
+        if not os.path.isdir(self.onnx_cache_path):
+            os.makedirs(self.onnx_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.open_cache.clicked.connect(self.cache_open)
-        self.ui.cache_pushButton.clicked.connect(self.open_mms_cache)
+        self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
         # Check if the file already exists
@@ -114,7 +114,7 @@ class Widget(QWidget):
             self.config.read(self.config_path)
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
-            self.generate_MMS_voice_model()
+            self.generate_onnx_voice_model()
             self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
@@ -183,7 +183,7 @@ class Widget(QWidget):
             self.voiceidGoogle = self.config.get('googleTTS', 'voiceid')
 
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
-            self.voiceid_mms = self.config.get('mmsTTS', 'voiceid')
+            self.voiceid_onnx = self.config.get('SherpaOnnxTTS', 'voiceid')
             if self.ttsEngine == "azureTTS":
                 self.comboBox = 'Azure TTS'
                 self.ui.stackedWidget.setCurrentIndex(0)
@@ -200,10 +200,10 @@ class Widget(QWidget):
                 self.comboBox = 'Sapi5 (Windows)'
                 self.ui.stackedWidget.setCurrentIndex(3)
                 self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
-            elif self.ttsEngine == "mms":
-                self.comboBox = 'Massively Multilingual Speech (MMS)'
+            elif self.ttsEngine == "SherpaOnnxTTS":
+                self.comboBox = 'Sherpa-ONNX'
                 self.ui.stackedWidget.setCurrentIndex(6)
-                self.ui.ttsEngineBox.setCurrentText('Massively Multilingual Speech (MMS)')
+                self.ui.ttsEngineBox.setCurrentText('Sherpa-ONNX')
             elif self.ttsEngine == "espeak":
                 self.comboBox = 'espeak (Unsupported)'
                 self.ui.stackedWidget.setCurrentIndex(5)
@@ -224,7 +224,7 @@ class Widget(QWidget):
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
-            self.set_mms_voice(self.voiceid_mms)
+            self.set_onnx_voice(self.voiceid_onnx)
 
             item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
 
@@ -244,7 +244,7 @@ class Widget(QWidget):
             self.ui.horizontalSlider_volume.setValue(self.volume)
             self.ui.horizontalSlider_rate_sapi.setValue(self.rate)
             self.ui.horizontalSlider_volume_sapi.setValue(self.volume)
-            self.ui.mms_cache.setText(self.mms_cache_path)
+            self.ui.onnx_cache.setText(self.onnx_cache_path)
             self.ui.lineEdit_voiceID.setText(self.voiceid)
             self.ui.lineEdit_key.setText(self.key)
             self.ui.lineEdit_region.setText(self.region)
@@ -253,7 +253,7 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
             self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
-            self.ui.mms_checkBox.setChecked(self.saveAudio)
+            self.ui.onnx_checkBox.setChecked(self.saveAudio)
 
             # self.ui.checkBox_latin.setChecked(self.config.getboolean('kurdishTTS', 'latin'))
             # self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
@@ -265,12 +265,12 @@ class Widget(QWidget):
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.get_microsoft_language()
-            self.generate_MMS_voice_model()
+            self.generate_onnx_voice_model()
             # self.ttsEngine = "azureTTS"
             # self.comboBox = 'Azure TTS'
-            self.ui.mms_cache.setText(self.mms_cache_path)
-            self.ttsEngine = "mms"
-            self.comboBox = 'Massively Multilingual Speech (MMS)'
+            self.ui.onnx_cache.setText(self.onnx_cache_path)
+            self.ttsEngine = "SherpaOnnxTTS"
+            self.comboBox = 'Sherpa-ONNX'
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
@@ -281,7 +281,7 @@ class Widget(QWidget):
             self.voiceid = None
             self.voiceidAzure = "en-US-JennyNeural"
             self.voiceidGoogle = "en-US-Wavenet-C"
-            self.voiceidmms = "eng"
+            self.voiceidonnx = "eng"
 
             self.rate = None
             self.volume = None
@@ -295,11 +295,11 @@ class Widget(QWidget):
             self.saveAudio_google = True
 
             self.saveAudio_sapi5 = True
-            self.saveAudio_mms = True
+            self.saveAudio_onnx = True
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
-            self.set_mms_voice(self.voiceidmms)
+            self.set_onnx_voice(self.voiceidonnx)
             self.ui.spinBox_threshold.setValue(7)
 
         self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
@@ -332,9 +332,9 @@ class Widget(QWidget):
             self.resize(588, 400)
             self.ttsEngine = "sapi5"
             self.ui.stackedWidget.setCurrentIndex(3)
-        elif text == "Massively Multilingual Speech (MMS)":
+        elif text == "Sherpa-ONNX":
             # self.resize(588, 400)
-            self.ttsEngine = "mms"
+            self.ttsEngine = "SherpaOnnxTTS"
             self.ui.stackedWidget.setCurrentIndex(6)
             if self.screenSize.height() > 800:
                 self.resize(588, 667)
@@ -359,7 +359,7 @@ class Widget(QWidget):
         if self.ui.listWidget_voicegoogle.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
-        if self.ui.mms_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
+        if self.ui.onnx_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         # TODO: Block saving if API-key is blank
@@ -412,8 +412,8 @@ class Widget(QWidget):
                 self.config.set('TTS', 'save_audio_file', str(False))
         elif self.ttsEngine == 'sapi5':
             self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
-        elif self.ttsEngine == 'mms':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.mms_checkBox.isChecked()))
+        elif self.ttsEngine == 'SherpaOnnxTTS':
+            self.config.set('TTS', 'save_audio_file', str(self.ui.onnx_checkBox.isChecked()))
         else:
             self.config.set('TTS', 'save_audio_file', str(False))
 
@@ -438,8 +438,8 @@ class Widget(QWidget):
         self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
 
-        self.config.add_section('mmsTTS') if not self.config.has_section('mmsTTS') else print('')
-        self.config.set('mmsTTS', 'voiceid', self.ui.mms_listWidget.currentItem().toolTip())
+        self.config.add_section('SherpaOnnxTTS') if not self.config.has_section('SherpaOnnxTTS') else print('')
+        self.config.set('SherpaOnnxTTS', 'voiceid', self.ui.onnx_listWidget.currentItem().toolTip())
         # self.config.set('kurdishTTS', 'punctuation', str(self.ui.checkBox_punctuation.isChecked()).lower())
 
         self.config.add_section('appCache') if not self.config.has_section('appCache') else print('')
@@ -690,13 +690,13 @@ class Widget(QWidget):
             if self.ui.credsFilePathEdit.text() == '':
                 self.ui.credsFilePathEdit.setFocus()
                 return
-        elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
-            for index in range(self.ui.mms_listWidget.count()):
-                item = self.ui.mms_listWidget.item(index)
+        elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
+            for index in range(self.ui.onnx_listWidget.count()):
+                item = self.ui.onnx_listWidget.item(index)
                 # print(item.toolTip())
                 if f'({item.toolTip()})' in text:
-                    self.mms_row = self.ui.mms_listWidget.row(item)
-                    self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                    self.onnx_row = self.ui.onnx_listWidget.row(item)
+                    self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     break
             if self.sender().objectName() == 'Play':
                 self.ui.statusBar.setText(f'Playing: {text}')
@@ -726,8 +726,8 @@ class Widget(QWidget):
             buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
         elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
             buttons = self.ui.listWidget_voicegoogle.findChildren(QPushButton)
-        elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
-            buttons = self.ui.mms_listWidget.findChildren(QPushButton)
+        elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
+            buttons = self.ui.onnx_listWidget.findChildren(QPushButton)
         self.ui.ttsEngineBox.setEnabled(True)
         for button in buttons:
             button.setEnabled(True)
@@ -745,8 +745,8 @@ class Widget(QWidget):
                 self.ui.listWidget_voiceazure.setCurrentItem(item)
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 self.ui.listWidget_voicegoogle.setCurrentItem(item)
-            elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
-                self.ui.mms_listWidget.setCurrentItem(item)
+            elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
+                self.ui.onnx_listWidget.setCurrentItem(item)
         except Exception as error:
             pass
 
@@ -761,10 +761,10 @@ class Widget(QWidget):
                 if self.ui.listWidget_voicegoogle.currentRow() == 0:
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.google_row))
-            elif self.ui.stackedWidget.currentWidget() == self.ui.mms_page:
-                if self.ui.mms_listWidget.currentRow() == 0:
-                    self.ui.mms_listWidget.setCurrentRow(self.mms_row)
-                    self.ui.mms_listWidget.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.mms_row))
+            elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
+                if self.ui.onnx_listWidget.currentRow() == 0:
+                    self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
+                    self.ui.onnx_listWidget.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.onnx_row))
         except Exception as error:
             pass
 
@@ -965,13 +965,13 @@ class Widget(QWidget):
         else:
             self.ui.statusBar.setText(f"No cached detected. Try using main application first.")
 
-    def open_mms_cache(self):
-        if os.path.isdir(self.mms_cache_path):
-            self.ui.statusBar.setText(f"Opened {self.mms_cache_path}")
-            os.startfile(self.mms_cache_path)
+    def open_onnx_cache(self):
+        if os.path.isdir(self.onnx_cache_path):
+            self.ui.statusBar.setText(f"Opened {self.onnx_cache_path}")
+            os.startfile(self.onnx_cache_path)
         else:
-            os.makedirs(self.mms_cache_path)
-            os.startfile(self.mms_cache_path)
+            os.makedirs(self.onnx_cache_path)
+            os.startfile(self.onnx_cache_path)
             self.ui.statusBar.setText(f"No cached detected. Creating model directory...")
 
     def cache_clear(self):
@@ -1020,16 +1020,14 @@ class Widget(QWidget):
     def copyAppPath(self):
         pyperclip.copy(self.ui.appPath.text())
 
-    def generate_MMS_voice_model(self):
-        # self.ui.mms_listWidget.setStyleSheet("QListView:item:selected{background-color: rgb(0,0,255);}")
-        self.ui.mms_listWidget.itemClicked.connect(self.print_data)
+    def generate_onnx_voice_model(self):
+        # self.ui.onnx_listWidget.setStyleSheet("QListView:item:selected{background-color: rgb(0,0,255);}")
+        self.ui.onnx_listWidget.itemClicked.connect(self.print_data)
         downloaded = QIcon(":/images/images/downloaded.ico")
         self.iconDownload = QIcon(":/images/images/download.ico")
         self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
-        # cache_file = os.path.join(tempfile.gettempdir(), "mms_voices_cache.json")
-        # location = client._model_dir
-        location = self.mms_cache_path
-        voices = mms_voices
+        location = self.onnx_cache_path
+        voices = onnx_voices
         for index, x in enumerate(voices):
             item_widget = QWidget()
             item_UI = Ui_item()
@@ -1050,8 +1048,8 @@ class Widget(QWidget):
             item.setText(x['name'])
             item.setToolTip(x['language_codes'][0])
             item.setSizeHint(item_widget.sizeHint())
-            self.ui.mms_listWidget.insertItem(index, item)
-            self.ui.mms_listWidget.setItemWidget(item, item_widget)
+            self.ui.onnx_listWidget.insertItem(index, item)
+            self.ui.onnx_listWidget.setItemWidget(item, item_widget)
 
             # item = QListWidgetItem(x)
             model_path = os.path.join(location, x['language_codes'][0])
@@ -1063,40 +1061,40 @@ class Widget(QWidget):
                 item_UI.play.setIcon(self.iconDownload)
                 item_UI.play.setObjectName('Download')
             # print(model_path)
-            # self.ui.mms_listWidget.addItem(item)
-        # self.ui.mms_listWidget.addItems(voices.keys())
+            # self.ui.onnx_listWidget.addItem(item)
+        # self.ui.onnx_listWidget.addItems(voices.keys())
 
-        self.ui.mms_listWidget.itemClicked.connect(self.printItem)
+        self.ui.onnx_listWidget.itemClicked.connect(self.printItem)
         self.ui.search_language.textChanged.connect(self.searchItem)
 
     def printItem(self, item):
-        self.ui.mms_listWidget.setCurrentItem(item)
-        # print(mms_tts_list[item.text()])
+        self.ui.onnx_listWidget.setCurrentItem(item)
+        # print(onnx_tts_list[item.text()])
 
     def action_pressed(self):
         widget = self.sender().parent().parent().parent()
         name = widget.objectName()
-        items = self.ui.mms_listWidget.findItems(name, Qt.MatchContains)
+        items = self.ui.onnx_listWidget.findItems(name, Qt.MatchContains)
         # print(items, name)
         for item in items:
-            self.ui.mms_listWidget.setCurrentItem(item)
+            self.ui.onnx_listWidget.setCurrentItem(item)
         if self.sender().objectName() == 'Play':
             pass
         else:
             pass
 
     def searchItem(self, text):
-        match_items = self.ui.mms_listWidget.findItems(text, Qt.MatchContains)
-        for i in range(self.ui.mms_listWidget.count()):
-            it = self.ui.mms_listWidget.item(i)
+        match_items = self.ui.onnx_listWidget.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.onnx_listWidget.count()):
+            it = self.ui.onnx_listWidget.item(i)
             it.setHidden(it not in match_items)
 
-    def set_mms_voice(self, text):
-        for index in range(self.ui.mms_listWidget.count()):
-            item = self.ui.mms_listWidget.item(index)
+    def set_onnx_voice(self, text):
+        for index in range(self.ui.onnx_listWidget.count()):
+            item = self.ui.onnx_listWidget.item(index)
             if text == item.toolTip():
-                self.mms_row = self.ui.mms_listWidget.row(item)
-                self.ui.mms_listWidget.setCurrentRow(self.mms_row)
+                self.onnx_row = self.ui.onnx_listWidget.row(item)
+                self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                 break
 
 
@@ -1125,7 +1123,7 @@ class Player(QRunnable):
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
             # print(f'Initial Delay = {time.time() - start}')
-            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
+            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'Audio Files')
             process = subprocess.Popen([GUI_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
         elif __file__:
@@ -1133,7 +1131,7 @@ class Player(QRunnable):
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, 'client.py')
             # print(f'Initial Delay = {time.time() - start}')
-            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'WAV Files')
+            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'Audio Files')
             process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
             process.wait()
         # print(f'Translate Time = {time.time() - start}')
