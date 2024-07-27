@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+
 def setup_logging():
     if getattr(sys, 'frozen', False):
         # If the application is run as a bundle, use the AppData directory
@@ -13,7 +14,7 @@ def setup_logging():
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     log_file = os.path.join(log_dir, 'app.log')
-    
+
     logging.basicConfig(
         filename=log_file,
         filemode='a',
@@ -22,6 +23,7 @@ def setup_logging():
     )
 
     return log_file
+
 
 logfile = setup_logging()
 
@@ -43,6 +45,7 @@ from GUI_TranslateAndTTS.language_dictionary import *
 import tts_utils
 import subprocess
 import configparser
+
 
 class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, icon, parent=None):
@@ -87,6 +90,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         subprocess.Popen(['explorer', self.audio_files_path])
         # Implement cache opening logic here
 
+
 class PipeServerThread(QThread):
     message_received = Signal(str)
 
@@ -102,17 +106,17 @@ class PipeServerThread(QThread):
                     win32pipe.PIPE_UNLIMITED_INSTANCES, 65536, 65536,
                     0,
                     None)
-                
+
                 logging.info("Waiting for client connection...")
                 win32pipe.ConnectNamedPipe(pipe, None)
                 logging.info("Client connected.")
-                
+
                 result, data = win32file.ReadFile(pipe, 64 * 1024)
                 if result == 0:
                     message = data.decode()
                     logging.info(f"Received data: {message[:50]}...")
                     self.message_received.emit(message)
-                
+
                 logging.info("Processing complete. Ready for next connection.")
             except Exception as e:
                 logging.error(f"Pipe server error: {e}", exc_info=True)
@@ -121,9 +125,11 @@ class PipeServerThread(QThread):
                     win32file.CloseHandle(pipe)
                 logging.info("Pipe closed. Reopening for next connection.")
 
+
 class CacheCleanerThread(QThread):
     def run(self):
-        asyncio.run(remove_stale_temp_files(utils.audio_files_path))
+        remove_stale_temp_files(utils.audio_files_path)
+
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -152,7 +158,7 @@ class MainWindow(QWidget):
         try:
             logging.info(f"Handling new message: {message[:50]}...")
             data = json.loads(message)
-            
+
             # Extract data from the received message
             args = data['args']
             config_dict = data['config']
@@ -167,7 +173,7 @@ class MainWindow(QWidget):
             config_path = config.get('App', 'config_path', fallback=None)
             # Use utils.get_paths to get the paths
             config_path, audio_files_path = utils.get_paths(config_path)
-            
+
             if 'App' not in config:
                 config['App'] = {}
             config['App']['config_path'] = config_path
@@ -273,14 +279,14 @@ def translate_clipboard(text, config):
         logging.error(f"Translation Error: {e}", exc_info=True)
 
 
-async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
+def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     config = utils.config
     start = time.perf_counter()
     current_time = time.time()
     day = int(config.get('appCache', 'threshold'))
     time_threshold = current_time - day * 24 * 60 * 60
     file_list = []
-    
+
     for root, dirs, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
@@ -299,6 +305,7 @@ async def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     utils.clear_history(file_list)
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
 
+
 async def main(wav_files_path):
     logging.info("Starting main function execution...")
     try:
@@ -307,6 +314,7 @@ async def main(wav_files_path):
         logging.error(f"Error in main function: {e}", exc_info=True)
     finally:
         logging.info("Main function execution complete.")
+
 
 async def mainrun(listvoices: bool):
     config = utils.config
@@ -335,13 +343,14 @@ async def mainrun(listvoices: bool):
                 logging.info(f"Text from clipboard: [{clipboard_text}].")
             else:
                 clipboard = translate_clipboard()
-            
+
             stop = time.perf_counter() - start
-            logging.info(f"{'Clipboard' if config.getboolean('translate', 'noTranslate') else 'Translation'} runtime is {stop:0.5f} seconds.")
+            logging.info(
+                f"{'Clipboard' if config.getboolean('translate', 'noTranslate') else 'Translation'} runtime is {stop:0.5f} seconds.")
 
             if not config.getboolean('TTS', 'bypass_tts', fallback=False):
                 start = time.perf_counter()
-                logging.info(f"Text to Speech: {clipboard}")    
+                logging.info(f"Text to Speech: {clipboard}")
                 tts_utils.speak(clipboard)
                 stop = time.perf_counter() - start
                 logging.info(f"TTS runtime is {stop:0.5f} seconds.")
@@ -379,16 +388,18 @@ def init_tts(engine):
         voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
         if getattr(sys, 'frozen', False):
             home_directory = os.path.expanduser("~")
-            mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'models')
+            mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper',
+                                          'models')
         else:
             app_data_path = os.path.abspath(os.path.dirname(__file__))
             mms_cache_path = os.path.join(app_data_path, 'models')
         if not os.path.isdir(mms_cache_path):
             os.mkdir(mms_cache_path)
-        client = SherpaOnnxClient((mms_cache_path, voiceid))
+        client = SherpaOnnxClient(model_path=mms_cache_path, tokens_path=None, voice_id=voiceid)
         return SherpaOnnxTTS(client)
     else:
         return pyttsx3.init(engine)
+
 
 def speak(text=''):
     file = utils.check_history(text)
@@ -399,14 +410,14 @@ def speak(text=''):
         return
 
     ttsengine = utils.config.get('TTS', 'engine')
-    
+
     # Check if the TTS client is already in memory
     if ttsengine in tts_clients:
         tts_client = tts_clients[ttsengine]
     else:
         # Initialize the TTS client based on the engine
         tts_client = init_tts(ttsengine)
-        
+
         # Store the client for future use
         tts_clients[ttsengine] = tts_client
 
