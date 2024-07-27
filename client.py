@@ -10,6 +10,7 @@ import os
 import json
 import configparser
 
+
 def get_config_path():
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
@@ -17,13 +18,16 @@ def get_config_path():
     else:
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.cfg')
 
+
 def load_config(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
     return config
 
+
 def get_clipboard_text():
     return pyperclip.paste()
+
 
 def send_to_pipe(data, retries=3, delay=1):
     pipe_name = r'\\.\pipe\AACSpeakHelper'
@@ -44,6 +48,7 @@ def send_to_pipe(data, retries=3, delay=1):
             time.sleep(delay)
             attempt += 1
     return None
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='AACSpeakHelper Client')
