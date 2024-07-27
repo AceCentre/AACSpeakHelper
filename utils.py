@@ -77,10 +77,10 @@ def get_paths(config_path=None):
             application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
         else:
             application_path = os.path.dirname(__file__)
-        
+
         audio_files_path = os.path.join(application_path, 'Audio Files')
         config_path = os.path.join(application_path, 'settings.cfg')
-    
+
     # Ensure the audio files directory exists
     os.makedirs(audio_files_path, exist_ok=True)
 
@@ -109,9 +109,10 @@ def play_audio(audio_bytes, file: bool = False):
         with wave.open(io.BytesIO(audio_bytes), 'rb') as wf:
             play_wave(wf)
 
+
 def play_wave(wf):
     p = pyaudio.PyAudio()
-    
+
     def callback(in_data, frame_count, time_info, status):
         data = wf.readframes(frame_count)
         return (data, pyaudio.paContinue)
@@ -121,16 +122,16 @@ def play_wave(wf):
                     rate=wf.getframerate(),
                     output=True,
                     stream_callback=callback)
-    
+
     stream.start_stream()
-    
+
     while stream.is_active():
         pass
-    
+
     stream.stop_stream()
     stream.close()
     wf.close()
-    
+
     p.terminate()
 
 
@@ -256,6 +257,7 @@ def update_Database(file):
     except Exception as error:
         logging.error("Failed to update database: ".format(error), exc_info=True)
 
+
 def init(input_config, args=args):
     global config_path
     global audio_files_path
@@ -264,11 +266,11 @@ def init(input_config, args=args):
     config_path = input_config['App']['config_path']
     audio_files_path = input_config['App']['audio_files_path']
     config = input_config  # This assigns the passed config to the global config variable
-    
+
     logging.info(f"Initialized utils with config path: {config_path}")
     logging.info(f"Audio files path: {audio_files_path}")
 
-    #Dropping. this init now takes in a config object.. checking. msg = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
+    # Dropping. this init now takes in a config object.. checking. msg = "\n\n Please Run 'Configure AACSpeakHelper executable' first."
     #            result = msgbox("settings.cfg file not found. " + msg, 'Error')
     #            sys.exit()
 
@@ -284,4 +286,3 @@ def init(input_config, args=args):
             'ttsengine': config.get('TTS', 'engine'),
         }
         notify_posthog(distinct_id, event_name, event_properties)
-
