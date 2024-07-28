@@ -76,6 +76,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.setContextMenu(menu)
 
     def exit(self):
+        self.parent.pipe_thread.quit()
         QApplication.quit()
 
     def update_last_run_info(self, last_run_time, duration):
@@ -134,12 +135,17 @@ class CacheCleanerThread(QThread):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.cache_timer = None
+        self.cache_cleaner = None
+        self.pipe_thread = None
+        self.tray_icon = None
+        self.icon = QIcon('assets/translate.ico')
         self.init_ui()
         self.init_pipe_server()
         self.init_cache_cleaner()
 
     def init_ui(self):
-        self.tray_icon = SystemTrayIcon(QIcon('assets/translate.ico'), self)
+        self.tray_icon = SystemTrayIcon(self.icon, self)
         self.tray_icon.setVisible(True)
 
     def init_pipe_server(self):
@@ -150,7 +156,7 @@ class MainWindow(QWidget):
     def init_cache_cleaner(self):
         self.cache_cleaner = CacheCleanerThread()
         self.cache_timer = QTimer(self)
-        self.cache_timer.timeout.connect(self.cache_cleaner.start)
+        self.cache_timer.timeout.connect(lambda: self.cache_cleaner.start())
         self.cache_timer.start(24 * 60 * 60 * 1000)  # Run once a day
 
     @Slot(str)
@@ -184,6 +190,25 @@ class MainWindow(QWidget):
 
             # Initialize TTS
             tts_utils.init(utils)
+            # if args['listvoices']:
+            #     try:
+            #         engine = pyttsx3.init(config.get('TTS', 'engine'))
+            #         voices = engine.getProperty('voices')
+            #         for voice in voices:
+            #             print(voice)
+            #         self.tray_icon.showMessage('Voice List', '', self.icon, 5000)
+            #     except Exception as e:
+            #         logging.error(f"List Voice Error: {e}", exc_info=True)
+            #         logging.error("List Voice Error!", exc_info=True)
+            #         result = utils.ynbox(
+            #             str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to '
+            #                      'open the'
+            #                      'Configuration Setup?',
+            #             'List Voice Error')
+            #         if result:
+            #             utils.configure_app()
+            #         else:
+            #             return
 
             # Process the clipboard text
             if config.getboolean('translate', 'noTranslate'):
@@ -193,8 +218,9 @@ class MainWindow(QWidget):
 
             # Perform TTS if not bypassed
             if not config.getboolean('TTS', 'bypass_tts', fallback=False):
-                tts_utils.speak(text_to_process)
-
+                tts_utils.speak(text_to_process, args['listvoices'])
+            if tts_utils.voices:
+                self.tray_icon.showMessage('Voice List', str(tts_utils.voices), self.icon, 5000)
             # Replace clipboard if specified
             if config.getboolean('translate', 'replacepb') and text_to_process is not None:
                 pyperclip.copy(text_to_process)
@@ -219,51 +245,52 @@ def translate_clipboard(text, config):
         client_id = config.get('translate', 'papagotranslator_client_id') if translator == 'PapagoTranslator' else None
         appid = config.get('translate', 'baidutranslator_appid') if translator == 'BaiduTranslator' else None
 
-        if translator == "GoogleTranslator":
-            translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
-        elif translator == "PonsTranslator":
-            translate_instance = PonsTranslator(source='auto', target=config.get('translate', 'endLang'))
-        elif translator == "LingueeTranslator":
-            translate_instance = LingueeTranslator(source='auto', target=config.get('translate', 'endLang'))
-        elif translator == "MyMemoryTranslator":
-            translate_instance = MyMemoryTranslator(source=config.get('translate', 'startLang'),
+        match translator:
+            case "GoogleTranslator":
+                translate_instance = GoogleTranslator(source='auto', target=config.get('translate', 'endLang'))
+            case "PonsTranslator":
+                translate_instance = PonsTranslator(source='auto', target=config.get('translate', 'endLang'))
+            case "LingueeTranslator":
+                translate_instance = LingueeTranslator(source='auto', target=config.get('translate', 'endLang'))
+            case "MyMemoryTranslator":
+                translate_instance = MyMemoryTranslator(source=config.get('translate', 'startLang'),
+                                                        target=config.get('translate', 'endLang'),
+                                                        email=email)
+            case "YandexTranslator":
+                translate_instance = YandexTranslator(source=config.get('translate', 'startLang'),
+                                                      target=config.get('translate', 'endLang'),
+                                                      api_key=key)
+            case "MicrosoftTranslator":
+                translate_instance = MicrosoftTranslator(api_key=key,
+                                                         source=config.get('translate', 'startLang'),
+                                                         target=config.get('translate', 'endLang'),
+                                                         region=region)
+            case "QcriTranslator":
+                translate_instance = QcriTranslator(source='auto',
                                                     target=config.get('translate', 'endLang'),
-                                                    email=email)
-        elif translator == "YandexTranslator":
-            translate_instance = YandexTranslator(source=config.get('translate', 'startLang'),
-                                                  target=config.get('translate', 'endLang'),
-                                                  api_key=key)
-        elif translator == "MicrosoftTranslator":
-            translate_instance = MicrosoftTranslator(api_key=key,
-                                                     source=config.get('translate', 'startLang'),
+                                                    api_key=key)
+            case "DeeplTranslator":
+                translate_instance = DeeplTranslator(source=config.get('translate', 'startlang'),
                                                      target=config.get('translate', 'endLang'),
-                                                     region=region)
-        elif translator == "QcriTranslator":
-            translate_instance = QcriTranslator(source='auto',
-                                                target=config.get('translate', 'endLang'),
-                                                api_key=key)
-        elif translator == "DeeplTranslator":
-            translate_instance = DeeplTranslator(source=config.get('translate', 'startlang'),
-                                                 target=config.get('translate', 'endLang'),
-                                                 api_key=key,
-                                                 use_free_api=not pro)
-        elif translator == "LibreTranslator":
-            translate_instance = LibreTranslator(source=config.get('translate', 'startlang'),
-                                                 target=config.get('translate', 'endLang'),
-                                                 api_key=key,
-                                                 custom_url=url)
-        elif translator == "PapagoTranslator":
-            translate_instance = PapagoTranslator(source='auto',
-                                                  target=config.get('translate', 'endLang'),
-                                                  client_id=client_id,
-                                                  secret_key=key)
-        elif translator == "ChatGptTranslator":
-            translate_instance = ChatGptTranslator(source='auto', target=config.get('translate', 'endLang'))
-        elif translator == "BaiduTranslator":
-            translate_instance = BaiduTranslator(source=config.get('translate', 'startlang'),
-                                                 target=config.get('translate', 'endLang'),
-                                                 appid=appid,
-                                                 appkey=key)
+                                                     api_key=key,
+                                                     use_free_api=not pro)
+            case "LibreTranslator":
+                translate_instance = LibreTranslator(source=config.get('translate', 'startlang'),
+                                                     target=config.get('translate', 'endLang'),
+                                                     api_key=key,
+                                                     custom_url=url)
+            case "PapagoTranslator":
+                translate_instance = PapagoTranslator(source='auto',
+                                                      target=config.get('translate', 'endLang'),
+                                                      client_id=client_id,
+                                                      secret_key=key)
+            case "ChatGptTranslator":
+                translate_instance = ChatGptTranslator(source='auto', target=config.get('translate', 'endLang'))
+            case "BaiduTranslator":
+                translate_instance = BaiduTranslator(source=config.get('translate', 'startlang'),
+                                                     target=config.get('translate', 'endLang'),
+                                                     appid=appid,
+                                                     appkey=key)
         # elif translator == "DeepLearningTranslator":
         #     translate_instance = BaiduTranslator(source=config.get('translate', 'startlang'),
         #                                          target=config.get('translate', 'endLang'),
@@ -306,14 +333,14 @@ def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
 
 
-async def main(wav_files_path):
-    logging.info("Starting main function execution...")
-    try:
-        await asyncio.gather(mainrun(utils.args['listvoices']), remove_stale_temp_files(wav_files_path))
-    except Exception as e:
-        logging.error(f"Error in main function: {e}", exc_info=True)
-    finally:
-        logging.info("Main function execution complete.")
+# async def main(wav_files_path):
+#     logging.info("Starting main function execution...")
+#     try:
+#         # await asyncio.gather(mainrun(utils.args['listvoices']), remove_stale_temp_files(wav_files_path))
+#     except Exception as e:
+#         logging.error(f"Error in main function: {e}", exc_info=True)
+#     finally:
+#         logging.info("Main function execution complete.")
 
 
 async def mainrun(listvoices: bool):
@@ -361,86 +388,6 @@ async def mainrun(listvoices: bool):
         except Exception as e:
             logging.error(f"Runtime Error: {e}", exc_info=True)
             # Handle error (e.g., show dialog)
-
-
-def init_tts(engine):
-    if engine == 'azureTTS':
-        key = utils.config.get('azureTTS', 'key')
-        location = utils.config.get('azureTTS', 'location')
-        voiceid = utils.config.get('azureTTS', 'voiceid')
-        parts = voiceid.split('-')
-        lang = parts[0] + '-' + parts[1]
-        client = MicrosoftClient((key, location))
-        return MicrosoftTTS(client=client, voice=voiceid, lang=lang)
-    elif engine == 'gTTS':
-        creds_file = utils.config.get('googleTTS', 'creds_file')
-        voiceid = utils.config.get('googleTTS', 'voiceid')
-        client = GoogleClient(credentials=creds_file)
-        return GoogleTTS(client=client, voice=voiceid)
-    elif engine == 'sapi5':
-        voiceid = utils.config.get('sapi5TTS', 'voiceid')
-        client = SAPIClient()
-        client._client.setProperty('voice', voiceid)
-        client._client.setProperty('rate', utils.config.get('TTS', 'rate'))
-        client._client.setProperty('volume', utils.config.get('TTS', 'volume'))
-        return SAPITTS(client=client)
-    elif engine == 'mms':
-        voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
-        if getattr(sys, 'frozen', False):
-            home_directory = os.path.expanduser("~")
-            mms_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper',
-                                          'models')
-        else:
-            app_data_path = os.path.abspath(os.path.dirname(__file__))
-            mms_cache_path = os.path.join(app_data_path, 'models')
-        if not os.path.isdir(mms_cache_path):
-            os.mkdir(mms_cache_path)
-        client = SherpaOnnxClient(model_path=mms_cache_path, tokens_path=None, voice_id=voiceid)
-        return SherpaOnnxTTS(client)
-    else:
-        return pyttsx3.init(engine)
-
-
-def speak(text=''):
-    file = utils.check_history(text)
-    if file is not None and os.path.isfile(file):
-        utils.play_audio(file, file=True)
-        print("Speech synthesized for text [{}] from cache.".format(text))
-        logging.info("Speech synthesized for text [{}] from cache.".format(text))
-        return
-
-    ttsengine = utils.config.get('TTS', 'engine')
-
-    # Check if the TTS client is already in memory
-    if ttsengine in tts_clients:
-        tts_client = tts_clients[ttsengine]
-    else:
-        # Initialize the TTS client based on the engine
-        tts_client = init_tts(ttsengine)
-
-        # Store the client for future use
-        tts_clients[ttsengine] = tts_client
-
-    # Use the TTS client
-    if ttsengine == 'gspeak':
-        gSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'azureTTS':
-        if utils.args['style']:
-            azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
-        else:
-            azureSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'gTTS':
-        googleSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'sapi5':
-        sapiSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'mms':
-        mmsSpeak(text, ttsengine, tts_client)
-    else:
-        tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
-        tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
-        tts_client.setProperty('volume', utils.config.get('TTS', 'volume'))
-        tts_client.say(text)
-        tts_client.runAndWait()
 
 
 if __name__ == '__main__':

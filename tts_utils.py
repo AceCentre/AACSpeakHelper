@@ -14,6 +14,7 @@ from threading import Thread
 # warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 utils = None
+voices = None
 # Global dictionary to store TTS clients
 tts_clients = {}
 
@@ -59,6 +60,23 @@ def init(module):
     # from utils import play_audio, save_audio, config, check_history, args
     global utils
     utils = module
+    ttsengine = utils.config.get('TTS', 'engine')
+    match ttsengine:
+        case 'gspeak':
+             # TODO: check tts-wrapper
+            tts_client = GSPEAK()
+        case 'azureTTS':
+            tts_client = init_azure_tts()
+        case 'gTTS':
+            tts_client = init_google_tts()
+        case 'sapi5':
+            tts_client = init_sapi_tts()
+        case 'SherpaOnnxTTS':
+            tts_client = init_onnx_tts()
+        case _:
+            tts_client = pyttsx3.init(ttsengine)
+    tts_clients[ttsengine] = tts_client
+
 
 
 class GSPEAK:
@@ -113,58 +131,72 @@ def init_onnx_tts():
     return SherpaOnnxTTS(client)
 
 
-def speak(text=''):
+def speak(text='', list_voices=False):
+    global voices
+    ttsengine = utils.config.get('TTS', 'engine')
     file = utils.check_history(text)
     if file is not None and os.path.isfile(file):
+        if list_voices:
+            tts_client = tts_clients[ttsengine]
+            voices = tts_client.get_voices()
+            return
+        else:
+            voices = None
+            return
         utils.play_audio(file, file=True)
         print("Speech synthesized for text [{}] from cache.".format(text))
         logging.info("Speech synthesized for text [{}] from cache.".format(text))
         return
-
-    ttsengine = utils.config.get('TTS', 'engine')
 
     # Check if the TTS client is already in memory
     if ttsengine in tts_clients:
         tts_client = tts_clients[ttsengine]
     else:
         # Initialize the TTS client based on the engine
-        if ttsengine == 'gspeak':
-            # TODO: check tts-wrapper
-            tts_client = GSPEAK()
-        elif ttsengine == 'azureTTS':
-            tts_client = init_azure_tts()
-        elif ttsengine == 'gTTS':
-            tts_client = init_google_tts()
-        elif ttsengine == 'sapi5':
-            tts_client = init_sapi_tts()
-        elif ttsengine == 'SherpaOnnxTTS':
-            tts_client = init_onnx_tts()
-        else:
-            tts_client = pyttsx3.init(ttsengine)
+        match ttsengine:
+            case 'gspeak':
+                # TODO: check tts-wrapper
+                tts_client = GSPEAK()
+            case 'azureTTS':
+                tts_client = init_azure_tts()
+            case 'gTTS':
+                tts_client = init_google_tts()
+            case 'sapi5':
+                tts_client = init_sapi_tts()
+            case 'SherpaOnnxTTS':
+                tts_client = init_onnx_tts()
+            case _:
+                tts_client = pyttsx3.init(ttsengine)
 
         # Store the client for future use
         tts_clients[ttsengine] = tts_client
-
-    # Use the TTS client
-    if ttsengine == 'gspeak':
-        gSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'azureTTS':
-        if utils.args['style']:
-            azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
-        else:
-            azureSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'gTTS':
-        googleSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'sapi5':
-        sapiSpeak(text, ttsengine, tts_client)
-    elif ttsengine == 'SherpaOnnxTTS':
-        onnxSpeak(text, ttsengine, tts_client)
+    if list_voices:
+        voices = tts_client.get_voices()
+        return
     else:
-        tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
-        tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
-        tts_client.setProperty('volume', utils.config.get('TTS', 'volume'))
-        tts_client.say(text)
-        tts_client.runAndWait()
+        voices = None
+        return
+    # Use the TTS client
+    match ttsengine:
+        case 'gspeak':
+            gSpeak(text, ttsengine, tts_client)
+        case 'azureTTS':
+            if utils.args['style']:
+                azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
+            else:
+                azureSpeak(text, ttsengine, tts_client)
+        case 'gTTS':
+            googleSpeak(text, ttsengine, tts_client)
+        case 'sapi5':
+            sapiSpeak(text, ttsengine, tts_client)
+        case 'SherpaOnnxTTS':
+            onnxSpeak(text, ttsengine, tts_client)
+        case _:
+            tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
+            tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
+            tts_client.setProperty('volume', utils.config.get('TTS', 'volume'))
+            tts_client.say(text)
+            tts_client.runAndWait()
 
 
 def onnxSpeak(text: str, engine, tts_client):
@@ -205,18 +237,19 @@ def gSpeak(text: str, engine, tts_client):
 def ttsWrapperSpeak(text: str, tts, engine):
     # Render the audio to bytes
     fmt = 'wav'
-    if isinstance(tts, SAPITTS):
-        audio_bytes = tts.synth_to_bytes(text, 'wav')
-    elif isinstance(tts, SherpaOnnxTTS):
-        audio_bytes = tts.synth_to_bytes(text, 'wav')
-    elif isinstance(tts, AbstractTTS):
-        audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
-    elif isinstance(tts, GSPEAK):
-        audio_bytes = tts.synth_to_bytes(text)
-        fmt = 'mp3'
-    else:
-        logging.error(str(type(tts)) + " TTS Engine is Invalid.")
-        raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
+    match tts:
+        case SAPITTS():
+            audio_bytes = tts.synth_to_bytes(text, 'wav')
+        case SherpaOnnxTTS():
+            audio_bytes = tts.synth_to_bytes(text, 'wav')
+        case AbstractTTS():
+            audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
+        case GSPEAK():
+            audio_bytes = tts.synth_to_bytes(text)
+            fmt = 'mp3'
+        case _:
+            logging.error(str(type(tts)) + " TTS Engine is Invalid.")
+            raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
     try:
         playText = Thread(target=playSpeech, args=(audio_bytes, text, tts))
         saveText = Thread(target=saveSpeech, args=(audio_bytes, text, engine, fmt, tts))
