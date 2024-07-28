@@ -115,7 +115,7 @@ def play_wave(wf):
 
     def callback(in_data, frame_count, time_info, status):
         data = wf.readframes(frame_count)
-        return (data, pyaudio.paContinue)
+        return data, pyaudio.paContinue
 
     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
                     channels=wf.getnchannels(),
