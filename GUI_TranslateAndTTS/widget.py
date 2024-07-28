@@ -123,37 +123,38 @@ class Widget(QWidget):
             self.bypassTTS = self.config.getboolean('TTS', 'bypass_tts')
             self.provider = self.config.get('translate', 'provider')
             self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
-            if self.provider == 'MyMemoryTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-            if self.provider == 'LibreTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-            if self.provider == 'DeeplTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-            if self.provider == 'MicrosoftTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-            if self.provider == 'YandexTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
-            if self.provider == 'GoogleTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.google))
-            if self.provider == 'LingueeTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
-            if self.provider == 'PonsTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.pons))
-            if self.provider == 'QCRITranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
-            if self.provider == 'PapagoTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.papago))
-            if self.provider == 'BaiduTranslator':
-                self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+            match self.provider:
+                case 'MyMemoryTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
+                case 'LibreTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
+                case 'DeeplTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
+                case 'MicrosoftTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
+                case 'YandexTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
+                case 'GoogleTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.google))
+                case 'LingueeTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
+                case 'PonsTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.pons))
+                case 'QCRITranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
+                case 'PapagoTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.papago))
+                case 'BaiduTranslator':
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
             self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
             self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
             self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
@@ -184,42 +185,43 @@ class Widget(QWidget):
 
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
             self.voiceid_onnx = self.config.get('SherpaOnnxTTS', 'voiceid')
-            if self.ttsEngine == "azureTTS":
-                self.comboBox = 'Azure TTS'
-                self.ui.stackedWidget.setCurrentIndex(0)
-                self.ui.ttsEngineBox.setCurrentText('Azure TTS')
-            elif self.ttsEngine == "gTTS":
-                self.comboBox = 'Google TTS'
-                self.ui.stackedWidget.setCurrentIndex(1)
-                self.ui.ttsEngineBox.setCurrentText('Google TTS')
-            elif self.ttsEngine == "gspeak":
-                self.comboBox = 'GSpeak'
-                self.ui.stackedWidget.setCurrentIndex(2)
-                self.ui.ttsEngineBox.setCurrentText('GSpeak')
-            elif self.ttsEngine == "sapi5":
-                self.comboBox = 'Sapi5 (Windows)'
-                self.ui.stackedWidget.setCurrentIndex(3)
-                self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
-            elif self.ttsEngine == "SherpaOnnxTTS":
-                self.comboBox = 'Sherpa-ONNX'
-                self.ui.stackedWidget.setCurrentIndex(6)
-                self.ui.ttsEngineBox.setCurrentText('Sherpa-ONNX')
-            elif self.ttsEngine == "espeak":
-                self.comboBox = 'espeak (Unsupported)'
-                self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.ttsEngineBox.setCurrentText('espeak (Unsupported)')
-            elif self.ttsEngine == "nsss":
-                self.comboBox = 'NSS (Mac Only)'
-                self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
-            elif self.ttsEngine == "coqui":
-                self.comboBox = 'coqui_ai_tts (Unsupported)'
-                self.ui.stackedWidget.setCurrentIndex(5)
-                self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
-            else:
-                self.comboBox = 'GSpeak'
-                self.ui.stackedWidget.setCurrentIndex(2)
-                self.ui.ttsEngineBox.setCurrentText('GSpeak')
+            match self.ttsEngine:
+                case "azureTTS":
+                    self.comboBox = 'Azure TTS'
+                    self.ui.stackedWidget.setCurrentIndex(0)
+                    self.ui.ttsEngineBox.setCurrentText('Azure TTS')
+                case "gTTS":
+                    self.comboBox = 'Google TTS'
+                    self.ui.stackedWidget.setCurrentIndex(1)
+                    self.ui.ttsEngineBox.setCurrentText('Google TTS')
+                case "gspeak":
+                    self.comboBox = 'GSpeak'
+                    self.ui.stackedWidget.setCurrentIndex(2)
+                    self.ui.ttsEngineBox.setCurrentText('GSpeak')
+                case "sapi5":
+                    self.comboBox = 'Sapi5 (Windows)'
+                    self.ui.stackedWidget.setCurrentIndex(3)
+                    self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
+                case "SherpaOnnxTTS":
+                    self.comboBox = 'Sherpa-ONNX'
+                    self.ui.stackedWidget.setCurrentIndex(6)
+                    self.ui.ttsEngineBox.setCurrentText('Sherpa-ONNX')
+                case "espeak":
+                    self.comboBox = 'espeak (Unsupported)'
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText('espeak (Unsupported)')
+                case "nsss":
+                    self.comboBox = 'NSS (Mac Only)'
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
+                case "coqui":
+                    self.comboBox = 'coqui_ai_tts (Unsupported)'
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
+                case _:
+                    self.comboBox = 'GSpeak'
+                    self.ui.stackedWidget.setCurrentIndex(2)
+                    self.ui.ttsEngineBox.setCurrentText('GSpeak')
             self.set_Translate_dropdown(self.translate_languages)
 
             self.set_azure_voice(self.voiceidAzure)
@@ -314,41 +316,42 @@ class Widget(QWidget):
         self.lock = False
 
     def onTTSEngineToggled(self, text):
-        if text == "Azure TTS":
-            self.ttsEngine = "azureTTS"
-            self.ui.stackedWidget.setCurrentIndex(0)
-            if self.screenSize.height() > 800:
-                self.resize(588, 667)
-        elif text == "Google TTS":
-            self.ttsEngine = "gTTS"
-            self.ui.stackedWidget.setCurrentIndex(1)
-            if self.screenSize.height() > 800:
-                self.resize(588, 667)
-        elif text == "GSpeak":
-            self.resize(588, 400)
-            self.ttsEngine = "gspeak"
-            self.ui.stackedWidget.setCurrentIndex(2)
-        elif text == "Sapi5 (Windows)":
-            self.resize(588, 400)
-            self.ttsEngine = "sapi5"
-            self.ui.stackedWidget.setCurrentIndex(3)
-        elif text == "Sherpa-ONNX":
-            # self.resize(588, 400)
-            self.ttsEngine = "SherpaOnnxTTS"
-            self.ui.stackedWidget.setCurrentIndex(6)
-            if self.screenSize.height() > 800:
-                self.resize(588, 667)
-        else:
-            self.resize(588, 400)
-            self.ui.stackedWidget.setCurrentIndex(5)
-            if text == "espeak (Unsupported)":
-                self.ttsEngine = "espeak"
-            elif text == "NSS (Mac Only)":
-                self.ttsEngine = "nsss"
-            elif text == "coqui_ai_tts (Unsupported)":
-                self.ttsEngine = "coqui"
-            else:
+        match text:
+            case "Azure TTS":
                 self.ttsEngine = "azureTTS"
+                self.ui.stackedWidget.setCurrentIndex(0)
+                if self.screenSize.height() > 800:
+                    self.resize(588, 667)
+            case "Google TTS":
+                self.ttsEngine = "gTTS"
+                self.ui.stackedWidget.setCurrentIndex(1)
+                if self.screenSize.height() > 800:
+                    self.resize(588, 667)
+            case "GSpeak":
+                self.resize(588, 400)
+                self.ttsEngine = "gspeak"
+                self.ui.stackedWidget.setCurrentIndex(2)
+            case "Sapi5 (Windows)":
+                self.resize(588, 400)
+                self.ttsEngine = "sapi5"
+                self.ui.stackedWidget.setCurrentIndex(3)
+            case "Sherpa-ONNX":
+                # self.resize(588, 400)
+                self.ttsEngine = "SherpaOnnxTTS"
+                self.ui.stackedWidget.setCurrentIndex(6)
+                if self.screenSize.height() > 800:
+                    self.resize(588, 667)
+            case _:
+                self.resize(588, 400)
+                self.ui.stackedWidget.setCurrentIndex(5)
+                if text == "espeak (Unsupported)":
+                    self.ttsEngine = "espeak"
+                elif text == "NSS (Mac Only)":
+                    self.ttsEngine = "nsss"
+                elif text == "coqui_ai_tts (Unsupported)":
+                    self.ttsEngine = "coqui"
+                else:
+                    self.ttsEngine = "azureTTS"
         self.setParameter(self.ui.comboBox_provider.currentText())
 
     def OnSavePressed(self, permanent=True):
@@ -445,37 +448,6 @@ class Widget(QWidget):
         self.config.add_section('appCache') if not self.config.has_section('appCache') else print('')
         self.config.set('appCache', 'threshold', str(self.ui.spinBox_threshold.value()))
 
-        # start_lang_is_Kurdish = self.startLang == 'ckb' or self.startLang == 'ku'
-        # end_lang_is_Kurdish = self.endLang == 'ckb' or self.endLang == 'ku'
-        # prompt1 = False
-        # prompt2 = False
-        #
-        # if not self.notranslate:
-        #     if self.ttsEngine != "kurdishTTS":
-        #         if end_lang_is_Kurdish:
-        #             prompt1 = True
-        #     else:
-        #         if not end_lang_is_Kurdish:
-        #             prompt2 = True
-
-        # msg = ""
-        # if prompt1:
-        #     msg = 'Do you really want to save?\n'
-        #     msg += 'Tip:\n'
-        #     msg += 'Choose Kurdish TTS Engine for these settings.'
-        #
-        # if prompt2:
-        #     msg = 'Do you really want to save?\n'
-        #     msg += 'Tip:\n'
-        #     msg += 'Choose TTS Engine other than Kurdish TTS.'
-        #
-        # if prompt1 or prompt2:
-        #     reply = QMessageBox.question(self, 'Confirmation', msg,
-        #                                  QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        #
-        #     if reply == QMessageBox.No:
-        #         return
-
         # Write the configuration to a file
         if permanent:
             with open(self.config_path, 'w') as configfile:
@@ -519,96 +491,97 @@ class Widget(QWidget):
     def setParameter(self, string):
         self.ui.comboBox_writeLang.clear()
         self.ui.comboBox_targetLang.clear()
-        if string == 'GoogleTranslator':
-            try:
-                self.translate_languages = Google_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.google))
-        if string == 'MyMemoryTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
-                    self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
-                self.translate_languages = MyMemory_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-        if string == 'LibreTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.LibreTranslate_secret_key.setText(
-                        self.config.get('translate', 'LibreTranslator_secret_key'))
-                    self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
-                self.translate_languages = Libre_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(
-                self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-        if string == 'DeeplTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
-                    self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
-                self.translate_languages = DeepL_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-        if string == 'MicrosoftTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
-                    self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
-                self.translate_languages = Microsoft_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-        if string == 'PonsTranslator':
-            try:
-                self.translate_languages = Pons_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
-        if string == 'LingueeTranslator':
-            try:
-                self.translate_languages = Linguee_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
-        if string == 'PapagoTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
-                    self.ui.papago_client_id.setText(self.config.get('translate', 'Papagotranslator_client_id'))
-                self.translate_languages = Papago_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
-        if string == 'QcriTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
-                self.translate_languages = Qcri_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
-        if string == 'BaiduTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
-                    self.ui.baidu_appid.setText(self.config.get('translate', 'BaiduTranslator_appid'))
-                self.translate_languages = Baidu_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
-        if string == 'YandexTranslator':
-            try:
-                if os.path.exists(self.config_path):
-                    self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
-                self.translate_languages = Yandex_Translator
-            except Exception as e:
-                logging.error("Configuration Error: {}".format(e), exc_info=True)
-            self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
+        match string:
+            case 'GoogleTranslator':
+                try:
+                    self.translate_languages = Google_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.google))
+            case 'MyMemoryTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
+                        self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
+                    self.translate_languages = MyMemory_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
+            case 'LibreTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.LibreTranslate_secret_key.setText(
+                            self.config.get('translate', 'LibreTranslator_secret_key'))
+                        self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
+                    self.translate_languages = Libre_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
+            case 'DeeplTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
+                        self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
+                    self.translate_languages = DeepL_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
+            case 'MicrosoftTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
+                        self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
+                    self.translate_languages = Microsoft_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
+            case 'PonsTranslator':
+                try:
+                    self.translate_languages = Pons_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
+            case 'LingueeTranslator':
+                try:
+                    self.translate_languages = Linguee_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
+            case 'PapagoTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
+                        self.ui.papago_client_id.setText(self.config.get('translate', 'Papagotranslator_client_id'))
+                    self.translate_languages = Papago_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
+            case 'QcriTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
+                    self.translate_languages = Qcri_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
+            case 'BaiduTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
+                        self.ui.baidu_appid.setText(self.config.get('translate', 'BaiduTranslator_appid'))
+                    self.translate_languages = Baidu_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
+            case 'YandexTranslator':
+                try:
+                    if os.path.exists(self.config_path):
+                        self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
+                    self.translate_languages = Yandex_Translator
+                except Exception as e:
+                    logging.error("Configuration Error: {}".format(e), exc_info=True)
+                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
         self.set_Translate_dropdown(self.translate_languages)
@@ -617,42 +590,32 @@ class Widget(QWidget):
         self.ui.statusBar.setText("")
         if self.lock:
             return
-        if self.ui.ttsEngineBox.currentText() == 'Azure TTS':
-            for text in list(azure_tts_list.keys()):
-                if self.ui.comboBox_targetLang.currentText() in text:
-                    self.ui.statusBar.setText("Azure TTS might be compatible to the Translation Engine")
-                    return
-        if self.ui.ttsEngineBox.currentText() == 'Google TTS':
-            for text in list(google_TTS_list.keys()):
-                if self.ui.comboBox_targetLang.currentText() in text:
-                    self.ui.statusBar.setText("Google TTS might be compatible to the Translation Engine")
-                    return
-        if self.ui.ttsEngineBox.currentText() == 'GSpeak':
-            for text in list(gSpeak_TTS_list.keys()):
-                if self.ui.comboBox_targetLang.currentText() in text:
-                    self.ui.statusBar.setText("GSpeak might be compatible to the Translation Engine")
-                    return
-        if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
-            pass
-        if self.ui.ttsEngineBox.currentText() == 'NSS (Mac Only)':
-            pass
-        if self.ui.ttsEngineBox.currentText() == 'coqui_ai_tts (Unsupported)':
-            pass
-        if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
-            pass
-        # if self.ui.ttsEngineBox.currentText() == 'Kurdish TTS':
-        #     items = [self.ui.comboBox_targetLang.itemText(i) for i in range(self.ui.comboBox_targetLang.count())]
-        #     kurdish_list = []
-        #     for item in items:
-        #         if "Kurdish" in item:
-        #             kurdish_list.append(item)
-        #     if len(kurdish_list) > 0:
-        #         self.lock = True
-        #         self.ui.comboBox_targetLang.clear()
-        #         self.ui.comboBox_targetLang.addItems(sorted(kurdish_list))
-        #         self.ui.statusBar.setText("Kurdish TTS might be compatible to the Translation Engine")
-        #         self.lock = False
-        #         return
+        match self.ui.ttsEngineBox.currentText():
+            case 'Azure TTS':
+                for text in list(azure_tts_list.keys()):
+                    if self.ui.comboBox_targetLang.currentText() in text:
+                        self.ui.statusBar.setText("Azure TTS might be compatible to the Translation Engine")
+                        return
+            case 'Google TTS':
+                for text in list(google_TTS_list.keys()):
+                    if self.ui.comboBox_targetLang.currentText() in text:
+                        self.ui.statusBar.setText("Google TTS might be compatible to the Translation Engine")
+                        return
+            case 'GSpeak':
+                for text in list(gSpeak_TTS_list.keys()):
+                    if self.ui.comboBox_targetLang.currentText() in text:
+                        self.ui.statusBar.setText("GSpeak might be compatible to the Translation Engine")
+                        return
+            case _:
+                pass
+            # if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
+            #     pass
+            # if self.ui.ttsEngineBox.currentText() == 'NSS (Mac Only)':
+            #     pass
+            # if self.ui.ttsEngineBox.currentText() == 'coqui_ai_tts (Unsupported)':
+            #     pass
+            # if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
+            #     pass
         # # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
