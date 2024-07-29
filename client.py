@@ -41,6 +41,14 @@ def send_to_pipe(data, retries=3, delay=1):
                 win32file.OPEN_EXISTING,
                 0, None)
             win32file.WriteFile(handle, json.dumps(data).encode())
+            try:
+                result, data = win32file.ReadFile(handle, 128 * 1024)
+                if result == 0:
+                    available_voices = data.decode()
+                    print(available_voices)
+                    logging.info(f"Available Voices : {available_voices}")
+            except Exception as readError:
+                print(readError)
             win32file.CloseHandle(handle)
             break
         except pywintypes.error as e:

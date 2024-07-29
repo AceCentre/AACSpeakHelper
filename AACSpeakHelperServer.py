@@ -94,6 +94,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 class PipeServerThread(QThread):
     message_received = Signal(str)
+    voices = None
 
     def run(self):
         pipe_name = r'\\.\pipe\AACSpeakHelper'
@@ -117,12 +118,18 @@ class PipeServerThread(QThread):
                     message = data.decode()
                     logging.info(f"Received data: {message[:50]}...")
                     self.message_received.emit(message)
-
+                    get_voices = json.loads(message)['args']['listvoices']
+                    # Extract data from the received message
                 logging.info("Processing complete. Ready for next connection.")
             except Exception as e:
                 logging.error(f"Pipe server error: {e}", exc_info=True)
             finally:
                 if pipe:
+                    while get_voices:
+                        if self.voices:
+                            win32file.WriteFile(pipe, json.dumps(self.voices).encode())
+                            self.voices = None
+                            break
                     win32file.CloseHandle(pipe)
                 logging.info("Pipe closed. Reopening for next connection.")
 
@@ -220,7 +227,8 @@ class MainWindow(QWidget):
             if not config.getboolean('TTS', 'bypass_tts', fallback=False):
                 tts_utils.speak(text_to_process, args['listvoices'])
             if tts_utils.voices:
-                self.tray_icon.showMessage('Voice List', str(tts_utils.voices), self.icon, 5000)
+                # self.tray_icon.showMessage('Voice List', str(tts_utils.voices), self.icon, 5000)
+                self.pipe_thread.voices = tts_utils.voices
             # Replace clipboard if specified
             if config.getboolean('translate', 'replacepb') and text_to_process is not None:
                 pyperclip.copy(text_to_process)
