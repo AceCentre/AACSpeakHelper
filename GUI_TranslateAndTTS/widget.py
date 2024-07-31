@@ -657,7 +657,8 @@ class Widget(QWidget):
             for index in range(self.ui.onnx_listWidget.count()):
                 item = self.ui.onnx_listWidget.item(index)
                 # print(item.toolTip())
-                if f'({item.toolTip()})' in text:
+                # if f'({item.toolTip()})' in text:
+                if text == item.text():
                     self.onnx_row = self.ui.onnx_listWidget.row(item)
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     break
