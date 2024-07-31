@@ -205,7 +205,6 @@ class MainWindow(QWidget):
 
             # Initialize TTS
             tts_utils.init(utils)
-
             # Process the clipboard text
             if config.getboolean('translate', 'noTranslate'):
                 text_to_process = clipboard_text
@@ -337,63 +336,6 @@ def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     stop = time.perf_counter() - start
     utils.clear_history(file_list)
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
-
-
-# async def main(wav_files_path):
-#     logging.info("Starting main function execution...")
-#     try:
-#         # await asyncio.gather(mainrun(utils.args['listvoices']), remove_stale_temp_files(wav_files_path))
-#     except Exception as e:
-#         logging.error(f"Error in main function: {e}", exc_info=True)
-#     finally:
-#         logging.info("Main function execution complete.")
-
-
-async def mainrun(listvoices: bool):
-    config = utils.config
-    if listvoices:
-        try:
-            engine = pyttsx3.init(config.get('TTS', 'engine'))
-            voices = engine.getProperty('voices')
-            for voice in voices:
-                print(voice)
-        except Exception as e:
-            logging.error(f"List Voice Error: {e}", exc_info=True)
-            logging.error("List Voice Error!", exc_info=True)
-            result = utils.ynbox(
-                str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to open the '
-                         'Configuration Setup?',
-                'List Voice Error')
-            if result:
-                utils.configure_app()
-            else:
-                return
-    else:
-        try:
-            start = time.perf_counter()
-            if config.getboolean('translate', 'noTranslate'):
-                clipboard_text = pyperclip.paste()
-                logging.info(f"Text from clipboard: [{clipboard_text}].")
-            else:
-                clipboard = translate_clipboard()
-
-            stop = time.perf_counter() - start
-            logging.info(
-                f"{'Clipboard' if config.getboolean('translate', 'noTranslate') else 'Translation'} runtime is {stop:0.5f} seconds.")
-
-            if not config.getboolean('TTS', 'bypass_tts', fallback=False):
-                start = time.perf_counter()
-                logging.info(f"Text to Speech: {clipboard}")
-                tts_utils.speak(clipboard)
-                stop = time.perf_counter() - start
-                logging.info(f"TTS runtime is {stop:0.5f} seconds.")
-
-            if config.getboolean('translate', 'replacepb') and clipboard is not None:
-                pyperclip.copy(clipboard)
-
-        except Exception as e:
-            logging.error(f"Runtime Error: {e}", exc_info=True)
-            # Handle error (e.g., show dialog)
 
 
 if __name__ == '__main__':
