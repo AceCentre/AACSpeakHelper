@@ -1,6 +1,11 @@
 import logging
 import os
 import sys
+import warnings
+
+import unicodedata
+
+warnings.filterwarnings("ignore")
 
 
 def setup_logging():
@@ -27,13 +32,11 @@ def setup_logging():
 
 logfile = setup_logging()
 
-import asyncio
 import json
 import sys
 import time
 import pyperclip
 import pyttsx3
-import pywintypes
 import win32file
 import win32pipe
 from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
@@ -41,7 +44,6 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import QThread, Signal, Slot, QTimer
 from deep_translator import *
 import utils
-from GUI_TranslateAndTTS.language_dictionary import *
 import tts_utils
 import subprocess
 import configparser
@@ -120,6 +122,8 @@ class PipeServerThread(QThread):
                     self.message_received.emit(message)
                     get_voices = json.loads(message)['args']['listvoices']
                     # Extract data from the received message
+                else:
+                    get_voices = None
                 logging.info("Processing complete. Ready for next connection.")
             except Exception as e:
                 logging.error(f"Pipe server error: {e}", exc_info=True)
@@ -147,9 +151,11 @@ class MainWindow(QWidget):
         self.pipe_thread = None
         self.tray_icon = None
         self.icon = QIcon('assets/translate.ico')
+        self.icon_loading = QIcon('assets/translate_loading.ico')
         self.init_ui()
         self.init_pipe_server()
         self.init_cache_cleaner()
+        self.tray_icon.setToolTip('Waiting for new client...')
 
     def init_ui(self):
         self.tray_icon = SystemTrayIcon(self.icon, self)
@@ -169,6 +175,8 @@ class MainWindow(QWidget):
     @Slot(str)
     def handle_message(self, message):
         try:
+            self.tray_icon.setToolTip('Handling new message ...')
+            self.tray_icon.setIcon(self.icon_loading)
             logging.info(f"Handling new message: {message[:50]}...")
             data = json.loads(message)
 
@@ -197,25 +205,6 @@ class MainWindow(QWidget):
 
             # Initialize TTS
             tts_utils.init(utils)
-            # if args['listvoices']:
-            #     try:
-            #         engine = pyttsx3.init(config.get('TTS', 'engine'))
-            #         voices = engine.getProperty('voices')
-            #         for voice in voices:
-            #             print(voice)
-            #         self.tray_icon.showMessage('Voice List', '', self.icon, 5000)
-            #     except Exception as e:
-            #         logging.error(f"List Voice Error: {e}", exc_info=True)
-            #         logging.error("List Voice Error!", exc_info=True)
-            #         result = utils.ynbox(
-            #             str(e) + '\n\nlistvoices method not supported for specified TTS Engine.\n\n Do You want to '
-            #                      'open the'
-            #                      'Configuration Setup?',
-            #             'List Voice Error')
-            #         if result:
-            #             utils.configure_app()
-            #         else:
-            #             return
 
             # Process the clipboard text
             if config.getboolean('translate', 'noTranslate'):
@@ -227,7 +216,6 @@ class MainWindow(QWidget):
             if not config.getboolean('TTS', 'bypass_tts', fallback=False):
                 tts_utils.speak(text_to_process, args['listvoices'])
             if tts_utils.voices:
-                # self.tray_icon.showMessage('Voice List', str(tts_utils.voices), self.icon, 5000)
                 self.pipe_thread.voices = tts_utils.voices
             # Replace clipboard if specified
             if config.getboolean('translate', 'replacepb') and text_to_process is not None:
@@ -236,6 +224,8 @@ class MainWindow(QWidget):
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.tray_icon.update_last_run_info(current_time, "N/A")
             logging.info(f"Processed message at {current_time}")
+            self.tray_icon.setIcon(self.icon)
+            self.tray_icon.setToolTip('Waiting for new client...')
         except Exception as e:
             logging.error(f"Error handling message: {e}", exc_info=True)
         finally:
@@ -306,12 +296,20 @@ def translate_clipboard(text, config):
         #                                          appkey=key)
         logging.info('Translation Provider is {}'.format(translator))
         logging.info(f'Text [{config.get("translate", "startLang")}]: {text}')
-
+        if config.get("translate", "endLang") in ['ckb' 'ku', 'kmr', 'kmr-TR', 'ckb-IQ']:
+            text = normalize_text(text)
         translation = translate_instance.translate(text)
         logging.info(f'Translation [{config.get("translate", "endLang")}]: {translation}')
         return translation
     except Exception as e:
         logging.error(f"Translation Error: {e}", exc_info=True)
+
+
+def normalize_text(text: str):
+    normalizedText = unicodedata.normalize('NFC', text)
+    print("Normalized Text: " + normalizedText)
+    logging.info("Normalized Text: {}".format(normalizedText))
+    return normalizedText
 
 
 def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
