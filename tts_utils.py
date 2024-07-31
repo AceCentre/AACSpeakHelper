@@ -17,6 +17,7 @@ utils = None
 voices = None
 # Global dictionary to store TTS clients
 tts_clients = {}
+tts_voiceid = {}
 
 VALID_STYLES = [
     "advertisement_upbeat",
@@ -63,7 +64,7 @@ def init(module):
     ttsengine = utils.config.get('TTS', 'engine')
     match ttsengine:
         case 'gspeak':
-             # TODO: check tts-wrapper
+            # TODO: check tts-wrapper
             tts_client = GSPEAK()
         case 'azureTTS':
             tts_client = init_azure_tts()
@@ -76,7 +77,6 @@ def init(module):
         case _:
             tts_client = pyttsx3.init(ttsengine)
     tts_clients[ttsengine] = tts_client
-
 
 
 class GSPEAK:
@@ -131,9 +131,13 @@ def init_onnx_tts():
     return SherpaOnnxTTS(client)
 
 
-def speak(text='', list_voices=False):
+def speak(text='', list_voices=False, voice_id=None):
     global voices
     ttsengine = utils.config.get('TTS', 'engine')
+    voice_id = utils.config.get(ttsengine, 'voiceid')
+    print(voice_id)
+    if not voice_id:
+        voice_id = utils.config.get('TTS', 'voiceid')
     file = utils.check_history(text)
     if file is not None and os.path.isfile(file):
         if list_voices:
@@ -142,15 +146,15 @@ def speak(text='', list_voices=False):
             return
         else:
             voices = None
-            return
         utils.play_audio(file, file=True)
         print("Speech synthesized for text [{}] from cache.".format(text))
         logging.info("Speech synthesized for text [{}] from cache.".format(text))
         return
-
+    print("Speech synthesized for text [{}].".format(text))
     # Check if the TTS client is already in memory
     if ttsengine in tts_clients:
         tts_client = tts_clients[ttsengine]
+        #print(tts_client.voice_id, utils.config.get(ttsengine, 'voiceid'))
     else:
         # Initialize the TTS client based on the engine
         match ttsengine:
@@ -170,12 +174,17 @@ def speak(text='', list_voices=False):
 
         # Store the client for future use
         tts_clients[ttsengine] = tts_client
+    if ttsengine not in tts_voiceid:
+        tts_voiceid[ttsengine] = {voice_id: tts_client}
+    else:
+        if voice_id not in tts_voiceid[ttsengine]:
+            tts_voiceid[ttsengine][voice_id] = tts_client
+    print(tts_voiceid)
     if list_voices:
         voices = tts_client.get_voices()
         return
     else:
         voices = None
-        return
     # Use the TTS client
     match ttsengine:
         case 'gspeak':
