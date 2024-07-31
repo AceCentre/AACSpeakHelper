@@ -48,7 +48,8 @@ def send_to_pipe(data, retries=3, delay=1):
                     print(available_voices)
                     logging.info(f"Available Voices : {available_voices}")
             except Exception as readError:
-                print(readError)
+                if '109' not in str(readError):
+                    print(readError)
             win32file.CloseHandle(handle)
             break
         except pywintypes.error as e:
