@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import warnings
-
 import unicodedata
 
 warnings.filterwarnings("ignore")
@@ -36,7 +35,6 @@ import json
 import sys
 import time
 import pyperclip
-import pyttsx3
 import win32file
 import win32pipe
 from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
@@ -199,7 +197,6 @@ class MainWindow(QWidget):
                 config['App'] = {}
             config['App']['config_path'] = config_path
             config['App']['audio_files_path'] = audio_files_path
-
             # Initialize utils with the new config and args
             utils.init(config, args)
 
