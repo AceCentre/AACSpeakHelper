@@ -191,7 +191,9 @@ class MainWindow(QWidget):
             # Get the config path from the received config
             config_path = config.get('App', 'config_path', fallback=None)
             # Use utils.get_paths to get the paths
-            config_path, audio_files_path = utils.get_paths(config_path)
+            # config_path, audio_files_path = utils.get_paths(config_path)
+            # TODO: Disable config_path for now
+            config_path, audio_files_path = utils.get_paths()
 
             if 'App' not in config:
                 config['App'] = {}
