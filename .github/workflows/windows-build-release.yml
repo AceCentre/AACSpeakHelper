@@ -23,7 +23,6 @@ jobs:
         venv/Scripts/activate
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install git+https://github.com/willwade/tts-wrapper#egg=tts-wrapper[google,microsoft,sapi,mms]
     - name: Build Apps
       run: |
        venv/Scripts/activate
