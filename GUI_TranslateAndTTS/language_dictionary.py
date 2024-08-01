@@ -506,12 +506,15 @@ onnx_voices = [{'id': 'abi', 'name': 'Abidji', 'gender': 'N', 'language_codes': 
               {'id': 'xuo', 'name': 'Kuo', 'gender': 'N', 'language_codes': ['xuo']},
               {'id': 'key', 'name': 'Kupia', 'gender': 'N', 'language_codes': ['key']},
               {'id': 'kpz', 'name': 'Kupsapiiny', 'gender': 'N', 'language_codes': ['kpz']},
-              {'id': 'knk', 'name': 'Kuranko', 'gender': 'N', 'language_codes': ['knk']}, {
-                  'id': 'kmr-script_latin', 'name': 'Kurdish, Northern', 'gender': 'N',
-                  'language_codes': ['kmr-script_latin']}, {
-                  'id': 'kmr-script_arabic', 'name': 'Kurdish, Northern', 'gender': 'N',
-                  'language_codes': ['kmr-script_arabic']}, {
-                  'id': 'kmr-script_cyrillic', 'name': 'Kurdish, Northern', 'gender': 'N',
+              {'id': 'knk', 'name': 'Kuranko', 'gender': 'N', 'language_codes': ['knk']},
+               {
+                  'id': 'kmr-script_latin', 'name': 'Kurdish, Northern [Latin]', 'gender': 'N',
+                  'language_codes': ['kmr-script_latin']},
+               {
+                  'id': 'kmr-script_arabic', 'name': 'Kurdish, Northern [Arabic]', 'gender': 'N',
+                  'language_codes': ['kmr-script_arabic']},
+               {
+                  'id': 'kmr-script_cyrillic', 'name': 'Kurdish, Northern [Cyrillic]', 'gender': 'N',
                   'language_codes': ['kmr-script_cyrillic']},
               {'id': 'xua', 'name': 'Kurumba, Alu', 'gender': 'N', 'language_codes': ['xua']},
               {'id': 'kru', 'name': 'Kurux', 'gender': 'N', 'language_codes': ['kru']},
