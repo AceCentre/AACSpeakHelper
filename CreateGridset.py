@@ -68,7 +68,7 @@ def modify_gridset(gridset_path, LocalAppPath):
 
 if __name__ == "__main__":
     app_data_path = os.environ.get('APPDATA', '')  # Changed to APPDATA
-    gridset_location = os.path.join(app_data_path, 'AACSpeakHelper',
+    gridset_location = os.path.join(app_data_path, 'Ace Centre', 'AACSpeakHelper',
                                     'TranslateAndTTS DemoGridset.gridset')  # Updated path
 
     # Assuming the original gridset is located at 'TranslateAndTTS DemoGridset.gridset' within the APPDATA folder

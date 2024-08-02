@@ -8,6 +8,6 @@ langcodes[data]
 deep-translator[ai]
 setuptools==65.5.0
 pytz==2024.1
-tts-wrapper[google,microsoft,sapi,sherpaonnx,googleTrans]@git+https://github.com/willwade/tts-wrapper
+py3-tts-wrapper[google,microsoft,sapi,sherpaonnx,googletrans]
 comtypes
 pyaudio

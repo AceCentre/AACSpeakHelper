@@ -2,7 +2,7 @@
 
 #### Step 1: Download
 
-Download the installer from [our latest release.](https://github.com/AceCentre/TranslateAndTTS/releases/latest/download/TranslateAndTTS.exe)
+Download the installer from [our latest release.](https://github.com/AceCentre/AACSpeakHelper/releases/latest/download/AACSpeakHelper.exe)
 
 #### Step 2: Install
 

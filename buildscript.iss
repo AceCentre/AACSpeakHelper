@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AACSpeakHelper"
-#define MyAppVersion "2.2.0"
+#define MyAppVersion "2.3.0"
 #define MyAppPublisher "Ace Centre"
 #define MyAppURL "https://acecentre.org.uk"
 #define MyAppExeName "client.exe"
@@ -42,11 +42,13 @@ Source: "dist\client\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs c
 Source: "dist\AACSpeakHelperServer\AACSpeakHelperServer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\AACSpeakHelperServer\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "assets\translate.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "settings.cfg"; DestDir: "{userappdata}\AACSpeakHelper"; Flags: ignoreversion
+Source: "settings.cfg"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\Configure AACSpeakHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\AACSpeakHelper"; Flags: ignoreversion
+Source: "assets\translate.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
+Source: "assets\translate_loading.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
+Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
