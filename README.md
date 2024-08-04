@@ -24,10 +24,9 @@ AAC Speak Helper reads the text once the text is copied to the clipboard (using 
 
 ## Developer details
 
-see
+see [this mermaid graph](https://www.mermaidchart.com/raw/bc383b62-6f3e-47de-b168-90786a151ea5?theme=light&version=v0.1&format=svg)
 
 ![Overview of project](./assets/developer-overview.png)
-<img src="./assets/developer-overview.png">
 
 See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). 
 
