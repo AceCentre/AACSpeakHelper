@@ -24,9 +24,12 @@ AAC Speak Helper reads the text once the text is copied to the clipboard (using 
 
 ## Developer details
 
-See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). Note it works on Python 3.10 or 3.11. The dependencies aren't well covered on all other versions (and there are a lot!)
+see
 
-NB: On some machines you cant build monotonic_align with anything other than 3.11.3 or 3.11.4. We have a .python-version of 3.11.4 but you may need to overrride this to get it to work.
+![Overview of project](./assets/developer-overview.png)
+<img src="./assets/developer-overview.png">
+
+See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). 
 
 ```bash
 python -m venv venv
