@@ -56,6 +56,8 @@ class Widget(QWidget):
         self.ui.tabWidget.setTabText(0, "TTS Engine")
         self.ui.tabWidget.setTabText(1, "Translate Settings")
         self.ui.tabWidget.setTabText(2, "Application Settings")
+        self.ui.tabWidget.setTabText(3, "Advanced Settings")
+
         self.tts_dict = {}
         # self.generate_translate_list()
         self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
@@ -1029,7 +1031,6 @@ class Widget(QWidget):
         # self.ui.onnx_listWidget.addItems(voices.keys())
 
         self.ui.onnx_listWidget.itemClicked.connect(self.printItem)
-        self.ui.search_language.textChanged.connect(self.searchItem)
 
     def printItem(self, item):
         self.ui.onnx_listWidget.setCurrentItem(item)
