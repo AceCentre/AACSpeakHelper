@@ -25,7 +25,7 @@ jobs:
     - name: Build Apps
       run: |
         poetry env use python
-        poetry run build-exe
+        .\build_executable.bat
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
