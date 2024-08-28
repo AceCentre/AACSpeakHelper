@@ -23,7 +23,7 @@ jobs:
           poetry install
       - name: Build Apps
         run: |
-          poetry env use python
+          poetry run python -c "import site; print(site.getsitepackages()[0])"
           .\build_executable.bat
       - name: Verify Output Directory
         run: |
