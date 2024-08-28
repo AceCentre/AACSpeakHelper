@@ -33,7 +33,7 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 
 ## Prerequisites
 
-1. **Install Python 3.10** (or higher) for Windows from the [official Python website](https://www.python.org/downloads/release/python-31011/).
+1. **Install Python 3.11** (or higher) for Windows from the [official Python website](https://www.python.org/downloads/release/python-31011/).
 
 2. **Install Poetry** if you don't have it already. You can install Poetry by running:
 
