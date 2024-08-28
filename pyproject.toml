@@ -26,3 +26,6 @@ py3-tts-wrapper = {extras = ["google", "googletrans", "microsoft", "sapi", "sher
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+build-exe = "build_executable.bat"
