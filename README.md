@@ -39,7 +39,7 @@ pip install -r requirements.txt
 then run the server
 
 ```bash
-python AACSpeakHelper.py
+python AACSpeakHelperServer.py
 ```
 
 add some text to your buffer and run 
