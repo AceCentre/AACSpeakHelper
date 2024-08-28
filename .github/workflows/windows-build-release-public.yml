@@ -23,6 +23,7 @@ jobs:
           poetry install
       - name: Build Apps
         run: |
+          call poetry env use python
           poetry run build-exe
       - name: Verify Output Directory
         run: |
