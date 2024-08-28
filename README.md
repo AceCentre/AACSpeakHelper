@@ -58,8 +58,8 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
 1. **Clone the Repository** if you haven't already:
 
     ```sh
-    git clone https://github.com/AceCentre/FaceCommander.git
-    cd FaceCommander
+    git clone https://github.com/AceCentre/AACSpeakHelper.git
+    cd AACSpeakHelper
     ```
 
 2. **Create a Virtual Environment and Install Dependencies**:
