@@ -30,24 +30,106 @@ see [this mermaid graph](https://www.mermaidchart.com/raw/bc383b62-6f3e-47de-b16
 
 See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). 
 
-```bash
-python -m venv venv
-.\venv\Scripts\Activate
-pip install -r requirements.txt
-```
 
-then run the server
+## Prerequisites
 
-```bash
-python AACSpeakHelperServer.py
-```
+1. **Install Python 3.10** (or higher) for Windows from the [official Python website](https://www.python.org/downloads/release/python-31011/).
 
-add some text to your buffer and run 
+2. **Install Poetry** if you don't have it already. You can install Poetry by running:
 
-```bash
-python client.py
-```
-Running the GUI can be fun. 
+    ```sh
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
+
+    Alternatively, on Windows, you can use:
+
+    ```sh
+    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+    ```
+
+    Ensure that Poetry is available in your PATH. You can verify this by running:
+
+    ```sh
+    poetry --version
+    ```
+
+## Setting Up the Development Environment
+
+1. **Clone the Repository** if you haven't already:
+
+    ```sh
+    git clone https://github.com/AceCentre/FaceCommander.git
+    cd FaceCommander
+    ```
+
+2. **Create a Virtual Environment and Install Dependencies**:
+
+    Poetry automatically handles virtual environments, so you don't need to manually create one. Simply run:
+
+    ```sh
+    poetry install
+    ```
+
+    This command will:
+    
+    - Create a virtual environment in the `.venv` directory within your project.
+    - Install all dependencies listed in `pyproject.toml` and lock them in `poetry.lock`.
+
+3. **Activate the Virtual Environment** (if needed):
+
+    While Poetry typically handles this automatically, you can activate the virtual environment manually if required:
+
+    ```sh
+    poetry shell
+    ```
+
+## Running the Application
+
+1. **Run the Server**:
+
+    With the virtual environment active, you can run the application directly:
+
+    ```sh
+    poetry run python AACSpeakHelperServer.py
+    ```
+
+    This ensures that the Python interpreter and dependencies used are from the Poetry-managed environment.
+    
+    to call the client now you do (in a different terminal/console)
+
+
+    ```sh
+    poetry run python client.py
+    ```
+
+    And GUI
+
+
+    ```sh
+    poetry run python GUI_TranslateAndTTS/widget.py
+    ```
+    
+    
+## Additional Tips
+
+- **Adding Dependencies**: To add new dependencies, use:
+
+    ```sh
+    poetry add <package_name>
+    ```
+
+- **Updating Dependencies**: To update all dependencies to their latest versions (within the constraints defined):
+
+    ```sh
+    poetry update
+    ```
+
+- **Exiting the Virtual Environment**: To exit the Poetry shell (virtual environment), simply type:
+
+    ```sh
+    exit
+    ```
+    
 
 
 ## Troubleshooting
