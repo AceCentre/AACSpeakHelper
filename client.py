@@ -19,10 +19,10 @@ def get_config_path():
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.cfg')
 
 
-def load_config(config_path):
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    return config
+def load_config(configuration_path):
+    configuration = configparser.ConfigParser()
+    configuration.read(configuration_path)
+    return configuration
 
 
 def get_clipboard_text():
@@ -60,15 +60,17 @@ def send_to_pipe(data, retries=3, delay=1):
 
 
 if __name__ == '__main__':
+    default_path = get_config_path()
     parser = argparse.ArgumentParser(description='AACSpeakHelper Client')
-    parser.add_argument('-c', '--config', help='Path to a defined config file', required=False, default='')
+    parser.add_argument('-c', '--config', help='Path to a defined config file', required=False, default=default_path)
     parser.add_argument('-l', '--listvoices', help='List Voices to see whats available', action="store_true")
     parser.add_argument('-p', '--preview', help='Preview Only', action="store_true")
     parser.add_argument('-s', '--style', help='Voice style for Azure TTS', default='')
     parser.add_argument('-sd', '--styledegree', type=float, help='Degree of style for Azure TTS', default=None)
     args = vars(parser.parse_args())
 
-    config_path = args['config'] if args['config'] else get_config_path()
+    # config_path = args['config'] if args['config'] else get_config_path()
+    config_path = args['config']
     config = load_config(config_path)
 
     clipboard_text = get_clipboard_text()
