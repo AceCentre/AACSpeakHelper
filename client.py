@@ -10,21 +10,6 @@ import os
 import json
 import configparser
 
-
-def get_config_path():
-    if getattr(sys, 'frozen', False):
-        home_directory = os.path.expanduser("~")
-        return os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper', 'settings.cfg')
-    else:
-        return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'settings.cfg')
-
-
-def load_config(config_path):
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    return config
-
-
 def get_clipboard_text():
     return pyperclip.paste()
 

@@ -1,50 +1,35 @@
+# import logging
+# import os
+# import sys
+# import warnings
+# import unicodedata
+# import json
+# import sys
+# import time
+# import pyperclip
+# import win32file
+# import win32pipe
+# from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
+# from PySide6.QtGui import QIcon, QAction
+# from PySide6.QtCore import QThread, Signal, Slot, QTimer
+# from deep_translator import *
+# import utils
+# import tts_utils
+# import subprocess
+# import configparser
+# from src.init import init
+
 import logging
-import os
-import sys
-import warnings
-import unicodedata
+from server.setup_logging import setup_logging
 
-warnings.filterwarnings("ignore")
+logger = logging.getLogger(__name__)
 
+if __name__ == '__main__':
+    setup_logging()
 
-def setup_logging():
-    if getattr(sys, 'frozen', False):
-        # If the application is run as a bundle, use the AppData directory
-        log_dir = os.path.join(os.path.expanduser("~"), 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
-    else:
-        # If run from a Python environment, use the current directory
-        log_dir = os.path.dirname(os.path.abspath(__file__))
-
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    log_file = os.path.join(log_dir, 'app.log')
-
-    logging.basicConfig(
-        filename=log_file,
-        filemode='a',
-        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
-        level=logging.DEBUG
-    )
-
-    return log_file
-
-
-logfile = setup_logging()
-
-import json
-import sys
-import time
-import pyperclip
-import win32file
-import win32pipe
-from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
-from PySide6.QtGui import QIcon, QAction
-from PySide6.QtCore import QThread, Signal, Slot, QTimer
-from deep_translator import *
-import utils
-import tts_utils
-import subprocess
-import configparser
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    sys.exit(app.exec())
 
 
 class SystemTrayIcon(QSystemTrayIcon):
@@ -52,15 +37,12 @@ class SystemTrayIcon(QSystemTrayIcon):
         super().__init__(icon, parent)
         self.parent = parent
         menu = QMenu(parent)
-        self.config_path, self.audio_files_path = utils.get_paths(None)
-        logging.info(f"Config path: {self.config_path}")
-        logging.info(f"Audio files path: {self.audio_files_path}")
 
         openLogsAction = QAction("Open logs", self)
         menu.addAction(openLogsAction)
         openLogsAction.triggered.connect(self.open_logs)
 
-        openCacheAction = QAction("Open Cache", self)
+        openCacheAction = QAction("Open audio folder", self)
         menu.addAction(openCacheAction)
         openCacheAction.triggered.connect(self.open_cache)
 
@@ -83,13 +65,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         self.lastRunAction.setText(f"Last run at {last_run_time} - took {duration} secs")
 
     def open_logs(self):
-        logging.info("Opening logs...")
-        subprocess.Popen(['notepad', logfile])
+        subprocess.Popen(['notepad', get_log_path()])
 
     def open_cache(self):
         logging.info("Opening cache...")
         subprocess.Popen(['explorer', self.audio_files_path])
-        # Implement cache opening logic here
 
 
 class PipeServerThread(QThread):
@@ -189,21 +169,22 @@ class MainWindow(QWidget):
                 config[section] = options
 
             # Get the config path from the received config
-            config_path = config.get('App', 'config_path', fallback=None)
+            # config_path = config.get('App', 'config_path', fallback=None)
             # Use utils.get_paths to get the paths
             # config_path, audio_files_path = utils.get_paths(config_path)
             # TODO: Disable config_path for now
-            config_path, audio_files_path = utils.get_paths()
+            # audio_files_path = get_paths()
 
-            if 'App' not in config:
-                config['App'] = {}
-            config['App']['config_path'] = config_path
-            config['App']['audio_files_path'] = audio_files_path
+            # if 'App' not in config:
+            #     config['App'] = {}
+            # config['App']['config_path'] = config_path
+            # config['App']['audio_files_path'] = audio_files_path
             # Initialize utils with the new config and args
-            utils.init(config, args)
+            # init(config, args)
+
+            print(config)
 
             # Initialize TTS
-            tts_utils.init(utils)
             # Process the clipboard text
             if config.getboolean('translate', 'noTranslate'):
                 text_to_process = clipboard_text
@@ -337,7 +318,3 @@ def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    sys.exit(app.exec())
