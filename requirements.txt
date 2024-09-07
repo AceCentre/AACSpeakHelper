@@ -11,3 +11,4 @@ pytz==2024.1
 py3-tts-wrapper[google,microsoft,sapi,sherpaonnx,googletrans]
 comtypes
 pyaudio
+python-dotenv
