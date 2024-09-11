@@ -1,0 +1,14 @@
+pyinstaller
+pyperclip==1.8.2
+configparser==6.0.0
+translate==3.6.1
+PySide6==6.5.2
+posthog==3.0.2
+langcodes[data]
+deep-translator[ai]
+setuptools==65.5.0
+pytz==2024.1
+py3-tts-wrapper[google,microsoft,sapi,sherpaonnx,googletrans]
+comtypes
+pyaudio
+python-dotenv

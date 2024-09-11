@@ -18,17 +18,17 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractButton, QAbstractSpinBox, QApplication, QCheckBox,
     QComboBox, QDialogButtonBox, QFormLayout, QFrame,
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QPushButton,
-    QSizePolicy, QSlider, QSpacerItem, QSpinBox,
-    QStackedWidget, QTabWidget, QTextBrowser, QVBoxLayout,
-    QWidget)
+    QLineEdit, QListWidget, QListWidgetItem, QProgressBar,
+    QPushButton, QSizePolicy, QSlider, QSpacerItem,
+    QSpinBox, QStackedWidget, QTabWidget, QTextBrowser,
+    QVBoxLayout, QWidget)
 import resources_rc
 
 class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(619, 400)
+        Widget.resize(627, 418)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -94,53 +94,32 @@ class Ui_Widget(object):
         self.gridLayout_4.setSpacing(3)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.label_9 = QLabel(self.formWidget_4)
-        self.label_9.setObjectName(u"label_9")
-        font = QFont()
-        font.setPointSize(10)
-        self.label_9.setFont(font)
-
-        self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
-
-        self.checkBox_saveAudio = QCheckBox(self.formWidget_4)
-        self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
-        self.checkBox_saveAudio.setFont(font)
-        self.checkBox_saveAudio.setChecked(True)
-
-        self.gridLayout_4.addWidget(self.checkBox_saveAudio, 2, 1, 1, 1)
-
-        self.lineEdit_region = QLineEdit(self.formWidget_4)
-        self.lineEdit_region.setObjectName(u"lineEdit_region")
-
-        self.gridLayout_4.addWidget(self.lineEdit_region, 1, 1, 1, 1)
-
-        self.label_10 = QLabel(self.formWidget_4)
-        self.label_10.setObjectName(u"label_10")
-        self.label_10.setFont(font)
-
-        self.gridLayout_4.addWidget(self.label_10, 1, 0, 1, 1)
-
-        self.lineEdit_key = QLineEdit(self.formWidget_4)
-        self.lineEdit_key.setObjectName(u"lineEdit_key")
-
-        self.gridLayout_4.addWidget(self.lineEdit_key, 0, 1, 1, 1)
-
         self.groupBox_2 = QGroupBox(self.formWidget_4)
         self.groupBox_2.setObjectName(u"groupBox_2")
-        font1 = QFont()
-        font1.setPointSize(10)
-        font1.setBold(True)
-        self.groupBox_2.setFont(font1)
-        self.groupBox_2.setStyleSheet(u"border: ")
+        font = QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        self.groupBox_2.setFont(font)
+        self.groupBox_2.setStyleSheet(u"")
         self.groupBox_2.setAlignment(Qt.AlignCenter)
         self.groupBox_2.setFlat(False)
         self.verticalLayout_7 = QVBoxLayout(self.groupBox_2)
         self.verticalLayout_7.setSpacing(0)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.verticalLayout_7.setContentsMargins(2, 2, 2, 2)
+        self.azure_progressBar = QProgressBar(self.groupBox_2)
+        self.azure_progressBar.setObjectName(u"azure_progressBar")
+        self.azure_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.azure_progressBar.setStyleSheet(u"")
+        self.azure_progressBar.setValue(0)
+        self.azure_progressBar.setAlignment(Qt.AlignCenter)
+        self.azure_progressBar.setTextVisible(True)
+
+        self.verticalLayout_7.addWidget(self.azure_progressBar)
+
         self.listWidget_voiceazure = QListWidget(self.groupBox_2)
         self.listWidget_voiceazure.setObjectName(u"listWidget_voiceazure")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
@@ -152,7 +131,64 @@ class Ui_Widget(object):
         self.verticalLayout_7.addWidget(self.listWidget_voiceazure)
 
 
-        self.gridLayout_4.addWidget(self.groupBox_2, 3, 0, 1, 2)
+        self.gridLayout_4.addWidget(self.groupBox_2, 4, 0, 1, 2)
+
+        self.frame_4 = QFrame(self.formWidget_4)
+        self.frame_4.setObjectName(u"frame_4")
+        self.frame_4.setFrameShape(QFrame.StyledPanel)
+        self.frame_4.setFrameShadow(QFrame.Raised)
+        self.gridLayout_13 = QGridLayout(self.frame_4)
+        self.gridLayout_13.setObjectName(u"gridLayout_13")
+        self.lineEdit_region = QLineEdit(self.frame_4)
+        self.lineEdit_region.setObjectName(u"lineEdit_region")
+        self.lineEdit_region.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_13.addWidget(self.lineEdit_region, 0, 1, 1, 1)
+
+        self.lineEdit_key = QLineEdit(self.frame_4)
+        self.lineEdit_key.setObjectName(u"lineEdit_key")
+        self.lineEdit_key.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_13.addWidget(self.lineEdit_key, 2, 1, 1, 1)
+
+        self.label_9 = QLabel(self.frame_4)
+        self.label_9.setObjectName(u"label_9")
+        font1 = QFont()
+        font1.setPointSize(10)
+        self.label_9.setFont(font1)
+
+        self.gridLayout_13.addWidget(self.label_9, 0, 0, 1, 1)
+
+        self.label_10 = QLabel(self.frame_4)
+        self.label_10.setObjectName(u"label_10")
+        self.label_10.setFont(font1)
+
+        self.gridLayout_13.addWidget(self.label_10, 2, 0, 1, 1)
+
+        self.pushButton = QPushButton(self.frame_4)
+        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton.setMinimumSize(QSize(0, 30))
+        self.pushButton.setStyleSheet(u"")
+
+        self.gridLayout_13.addWidget(self.pushButton, 0, 2, 1, 1)
+
+        self.checkBox_saveAudio = QCheckBox(self.frame_4)
+        self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
+        self.checkBox_saveAudio.setFont(font1)
+        self.checkBox_saveAudio.setChecked(True)
+
+        self.gridLayout_13.addWidget(self.checkBox_saveAudio, 2, 2, 1, 1)
+
+
+        self.gridLayout_4.addWidget(self.frame_4, 0, 0, 1, 2)
 
 
         self.gridLayout_10.addWidget(self.formWidget_4, 0, 0, 1, 1)
@@ -169,7 +205,7 @@ class Ui_Widget(object):
         self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.label_6 = QLabel(self.gridWidget_2)
         self.label_6.setObjectName(u"label_6")
-        self.label_6.setFont(font)
+        self.label_6.setFont(font1)
 
         self.gridLayout_6.addWidget(self.label_6, 0, 0, 1, 1)
 
@@ -201,10 +237,23 @@ class Ui_Widget(object):
 
         self.groupBox_3 = QGroupBox(self.gridWidget_2)
         self.groupBox_3.setObjectName(u"groupBox_3")
-        self.groupBox_3.setFont(font1)
+        self.groupBox_3.setFont(font)
         self.groupBox_3.setAlignment(Qt.AlignCenter)
         self.verticalLayout_8 = QVBoxLayout(self.groupBox_3)
+        self.verticalLayout_8.setSpacing(0)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
+        self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
+        self.gTTS_progressBar = QProgressBar(self.groupBox_3)
+        self.gTTS_progressBar.setObjectName(u"gTTS_progressBar")
+        self.gTTS_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.gTTS_progressBar.setFont(font)
+        self.gTTS_progressBar.setStyleSheet(u"")
+        self.gTTS_progressBar.setValue(0)
+        self.gTTS_progressBar.setAlignment(Qt.AlignCenter)
+        self.gTTS_progressBar.setTextVisible(True)
+
+        self.verticalLayout_8.addWidget(self.gTTS_progressBar)
+
         self.listWidget_voicegoogle = QListWidget(self.groupBox_3)
         self.listWidget_voicegoogle.setObjectName(u"listWidget_voicegoogle")
         self.listWidget_voicegoogle.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -386,6 +435,7 @@ class Ui_Widget(object):
         self.onnx_page.setObjectName(u"onnx_page")
         self.verticalLayout_17 = QVBoxLayout(self.onnx_page)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.verticalLayout_17.setContentsMargins(2, 2, 2, 2)
         self.frame_3 = QFrame(self.onnx_page)
         self.frame_3.setObjectName(u"frame_3")
         self.frame_3.setFrameShape(QFrame.StyledPanel)
@@ -423,10 +473,33 @@ class Ui_Widget(object):
 
         self.verticalLayout_17.addWidget(self.search_language)
 
-        self.onnx_listWidget = QListWidget(self.onnx_page)
-        self.onnx_listWidget.setObjectName(u"onnx_listWidget")
+        self.groupBox = QGroupBox(self.onnx_page)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setFont(font)
+        self.groupBox.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_18 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_18.setSpacing(0)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.verticalLayout_18.setContentsMargins(2, 2, 2, 2)
+        self.onnx_progressBar = QProgressBar(self.groupBox)
+        self.onnx_progressBar.setObjectName(u"onnx_progressBar")
+        self.onnx_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.onnx_progressBar.setStyleSheet(u"")
+        self.onnx_progressBar.setValue(0)
+        self.onnx_progressBar.setAlignment(Qt.AlignCenter)
+        self.onnx_progressBar.setTextVisible(True)
+        self.onnx_progressBar.setInvertedAppearance(False)
 
-        self.verticalLayout_17.addWidget(self.onnx_listWidget)
+        self.verticalLayout_18.addWidget(self.onnx_progressBar)
+
+        self.onnx_listWidget = QListWidget(self.groupBox)
+        self.onnx_listWidget.setObjectName(u"onnx_listWidget")
+        self.onnx_listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.verticalLayout_18.addWidget(self.onnx_listWidget)
+
+
+        self.verticalLayout_17.addWidget(self.groupBox)
 
         self.stackedWidget.addWidget(self.onnx_page)
 
@@ -722,6 +795,11 @@ class Ui_Widget(object):
 
         self.horizontalLayout.addWidget(self.open_cache)
 
+        self.updateButton = QPushButton(self.frame)
+        self.updateButton.setObjectName(u"updateButton")
+
+        self.horizontalLayout.addWidget(self.updateButton)
+
         self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_4)
@@ -820,10 +898,11 @@ class Ui_Widget(object):
         self.ttsEngineBox.setItemText(6, QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
         self.ttsEngineBox.setItemText(7, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
-        self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
-        self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
-        self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
+        self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
+        self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
+        self.pushButton.setText(QCoreApplication.translate("Widget", u"Load Credentials", None))
+        self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
         self.browseButton.setText(QCoreApplication.translate("Widget", u"Browse", None))
         self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
@@ -856,6 +935,7 @@ class Ui_Widget(object):
         self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
         self.onnx_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
+        self.groupBox.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TextToSpeechSetting), QCoreApplication.translate("Widget", u"Tab 1", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
@@ -901,6 +981,7 @@ class Ui_Widget(object):
         self.spinBox_threshold.setSuffix(QCoreApplication.translate("Widget", u" day(s)", None))
         self.clear_cache.setText(QCoreApplication.translate("Widget", u"Clear Cache", None))
         self.open_cache.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
+        self.updateButton.setText(QCoreApplication.translate("Widget", u"Update Voice Models", None))
         self.checkBox_stats.setText(QCoreApplication.translate("Widget", u"Allow The Application to Collecting Stats", None))
         self.label_11.setText(QCoreApplication.translate("Widget", u"Application Path: ", None))
         self.appPath.setText("")

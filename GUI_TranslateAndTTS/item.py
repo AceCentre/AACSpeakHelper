@@ -16,15 +16,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QLabel,
-    QPushButton, QSizePolicy, QStackedWidget, QVBoxLayout,
-    QWidget)
+    QPushButton, QSizePolicy, QSpacerItem, QStackedWidget,
+    QVBoxLayout, QWidget)
 import resources_rc
 
 class Ui_item(object):
     def setupUi(self, item):
         if not item.objectName():
             item.setObjectName(u"item")
-        item.resize(333, 53)
+        item.resize(325, 91)
         self.verticalLayout = QVBoxLayout(item)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -40,6 +40,33 @@ class Ui_item(object):
         self.gridLayout.setSpacing(2)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(5, 5, 5, 5)
+        self.photo = QLabel(self.stackedWidgetPage1)
+        self.photo.setObjectName(u"photo")
+        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.photo.sizePolicy().hasHeightForWidth())
+        self.photo.setSizePolicy(sizePolicy)
+        self.photo.setMaximumSize(QSize(40, 40))
+        self.photo.setPixmap(QPixmap(u":/images/images/person.png"))
+        self.photo.setScaledContents(True)
+
+        self.gridLayout.addWidget(self.photo, 0, 0, 3, 1)
+
+        self.name = QLabel(self.stackedWidgetPage1)
+        self.name.setObjectName(u"name")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.name.sizePolicy().hasHeightForWidth())
+        self.name.setSizePolicy(sizePolicy1)
+        font = QFont()
+        font.setPointSize(15)
+        font.setBold(True)
+        self.name.setFont(font)
+
+        self.gridLayout.addWidget(self.name, 0, 2, 2, 1)
+
         self.line = QFrame(self.stackedWidgetPage1)
         self.line.setObjectName(u"line")
         self.line.setFrameShadow(QFrame.Sunken)
@@ -50,52 +77,31 @@ class Ui_item(object):
 
         self.play = QPushButton(self.stackedWidgetPage1)
         self.play.setObjectName(u"play")
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.play.sizePolicy().hasHeightForWidth())
         self.play.setSizePolicy(sizePolicy)
+        self.play.setMaximumSize(QSize(30, 30))
         icon = QIcon()
         icon.addFile(u":/images/images/play-round-icon.png", QSize(), QIcon.Normal, QIcon.Off)
         self.play.setIcon(icon)
-        self.play.setIconSize(QSize(25, 25))
+        self.play.setIconSize(QSize(30, 30))
         self.play.setFlat(True)
 
-        self.gridLayout.addWidget(self.play, 0, 3, 3, 1)
+        self.gridLayout.addWidget(self.play, 0, 4, 3, 1)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 3, 1, 1)
 
         self.gender = QLabel(self.stackedWidgetPage1)
         self.gender.setObjectName(u"gender")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.gender.sizePolicy().hasHeightForWidth())
         self.gender.setSizePolicy(sizePolicy1)
-        font = QFont()
-        font.setPointSize(8)
-        self.gender.setFont(font)
-
-        self.gridLayout.addWidget(self.gender, 2, 2, 1, 1)
-
-        self.name = QLabel(self.stackedWidgetPage1)
-        self.name.setObjectName(u"name")
-        sizePolicy1.setHeightForWidth(self.name.sizePolicy().hasHeightForWidth())
-        self.name.setSizePolicy(sizePolicy1)
         font1 = QFont()
-        font1.setPointSize(9)
-        font1.setBold(True)
-        self.name.setFont(font1)
+        font1.setPointSize(12)
+        self.gender.setFont(font1)
+        self.gender.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignTop)
 
-        self.gridLayout.addWidget(self.name, 0, 2, 2, 1)
-
-        self.photo = QLabel(self.stackedWidgetPage1)
-        self.photo.setObjectName(u"photo")
-        sizePolicy.setHeightForWidth(self.photo.sizePolicy().hasHeightForWidth())
-        self.photo.setSizePolicy(sizePolicy)
-        self.photo.setMaximumSize(QSize(25, 25))
-        self.photo.setPixmap(QPixmap(u":/images/images/person.png"))
-        self.photo.setScaledContents(True)
-
-        self.gridLayout.addWidget(self.photo, 0, 0, 3, 1)
+        self.gridLayout.addWidget(self.gender, 2, 2, 1, 2)
 
         self.stackedWidget.addWidget(self.stackedWidgetPage1)
         self.page = QWidget()
@@ -118,10 +124,10 @@ class Ui_item(object):
 
     def retranslateUi(self, item):
         item.setWindowTitle(QCoreApplication.translate("item", u"Form", None))
+        self.photo.setText("")
+        self.name.setText(QCoreApplication.translate("item", u"Name", None))
         self.play.setText("")
         self.gender.setText(QCoreApplication.translate("item", u"Gender", None))
-        self.name.setText(QCoreApplication.translate("item", u"Name", None))
-        self.photo.setText("")
         self.data.setText("")
     # retranslateUi
 
