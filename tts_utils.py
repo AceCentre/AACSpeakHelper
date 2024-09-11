@@ -10,6 +10,15 @@ from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient
 import warnings
 from threading import Thread
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path='./.env')
+
+
+ms_token = os.getenv('MICROSOFT_TOKEN')
+ms_region = os.getenv('MICROSOFT_REGION')
+google_cred_path = os.getenv('GOOGLE_CREDS_JSON')
+ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
+
 # import dl_translate as dlt
 # warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -76,7 +85,11 @@ class GSPEAK:
 
 def init_azure_tts():
     key = utils.config.get('azureTTS', 'key')
+    if key == '':
+        key = ms_token
     location = utils.config.get('azureTTS', 'location')
+    if location == '':
+        location = ms_region
     voiceid = utils.config.get('azureTTS', 'voiceid')
     parts = voiceid.split('-')
     lang = parts[0] + '-' + parts[1]
@@ -86,6 +99,8 @@ def init_azure_tts():
 
 def init_google_tts():
     creds_file = utils.config.get('googleTTS', 'creds_file')
+    if creds_file == '':
+        creds_file = google_cred_path
     voiceid = utils.config.get('googleTTS', 'voiceid')
     client = GoogleClient(credentials=creds_file)
     return GoogleTTS(client=client, voice=voiceid)
@@ -114,7 +129,7 @@ def init_onnx_tts():
     return SherpaOnnxTTS(client)
 
 
-def speak(text='', list_voices=False, voice_id=None):
+def speak(text='', list_voices=False):
     global voices
     ttsengine = utils.config.get('TTS', 'engine')
     voice_id = utils.config.get(ttsengine, 'voiceid')
@@ -144,7 +159,7 @@ def speak(text='', list_voices=False, voice_id=None):
                 tts_client = GSPEAK()
             case 'azureTTS':
                 tts_client = init_azure_tts()
-            case 'gTTS':
+            case 'googleTTS':
                 tts_client = init_google_tts()
             case 'sapi5':
                 tts_client = init_sapi_tts()
@@ -173,7 +188,7 @@ def speak(text='', list_voices=False, voice_id=None):
                 azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
             else:
                 azureSpeak(text, ttsengine, tts_client)
-        case 'gTTS':
+        case 'googleTTS':
             googleSpeak(text, ttsengine, tts_client)
         case 'sapi5':
             sapiSpeak(text, ttsengine, tts_client)
@@ -231,6 +246,7 @@ def ttsWrapperSpeak(text: str, tts, engine):
         case SherpaOnnxTTS():
             audio_bytes = tts.synth_to_bytes(text, 'wav')
         case AbstractTTS():
+            tts.ssml.clear_ssml()
             audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
         case GSPEAK():
             audio_bytes = tts.synth_to_bytes(text)
