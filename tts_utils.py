@@ -11,8 +11,8 @@ import warnings
 from threading import Thread
 
 from dotenv import load_dotenv
-load_dotenv(dotenv_path='./.env')
 
+load_dotenv(dotenv_path='./.env')
 
 ms_token = os.getenv('MICROSOFT_TOKEN')
 ms_region = os.getenv('MICROSOFT_REGION')
@@ -66,7 +66,6 @@ VALID_STYLES = [
 
 
 def init(module):
-    # from utils import play_audio, save_audio, config, check_history, args
     global utils
     utils = module
 
@@ -125,8 +124,10 @@ def init_onnx_tts():
         onnx_cache_path = os.path.join(app_data_path, 'models')
     if not os.path.isdir(onnx_cache_path):
         os.mkdir(onnx_cache_path)
-    client = SherpaOnnxClient(model_path=onnx_cache_path, tokens_path=None, voice_id=voiceid)
-    return SherpaOnnxTTS(client)
+    client = SherpaOnnxClient(model_path=onnx_cache_path, tokens_path=None)
+    tts = SherpaOnnxTTS(client)
+    tts.set_voice(voice_id=voiceid)
+    return tts
 
 
 def speak(text='', list_voices=False):
@@ -241,43 +242,38 @@ def ttsWrapperSpeak(text: str, tts, engine):
     # Render the audio to bytes
     fmt = 'wav'
     match tts:
-        case SAPITTS():
-            audio_bytes = tts.synth_to_bytes(text, 'wav')
         case SherpaOnnxTTS():
-            audio_bytes = tts.synth_to_bytes(text, 'wav')
+            pass
         case AbstractTTS():
             tts.ssml.clear_ssml()
-            audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
+            text = tts.ssml.add(text)
+        #     audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
         case GSPEAK():
-            audio_bytes = tts.synth_to_bytes(text)
             fmt = 'mp3'
-        case _:
-            logging.error(str(type(tts)) + " TTS Engine is Invalid.")
-            raise Exception(str(type(tts)) + " TTS Engine is Invalid.")
     try:
-        playText = Thread(target=playSpeech, args=(audio_bytes, text, tts))
-        saveText = Thread(target=saveSpeech, args=(audio_bytes, text, engine, fmt, tts))
+        playText = Thread(target=playSpeech, args=(text, engine, fmt, tts))
         playText.start()
-        saveText.start()
     except Exception as e:
         print(e)
 
 
-def playSpeech(audio_bytes, text, tts):
+def playSpeech(text, engine, file_format, tts):
     start = time.perf_counter()
-    if not isinstance(tts, SherpaOnnxTTS):
-        utils.play_audio(audio_bytes)
+    save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
+    if save_audio_file:
+        utils.save_audio(text=text, engine=engine, file_format=file_format, tts=tts)
     else:
-        tts.speak(text)
+        tts.speak_streamed(text)
     stop = time.perf_counter() - start
     print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
     # logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
 
 
-def saveSpeech(audio_bytes, text, engine, format, tts):
+def saveSpeech(text, engine, format, tts):
     save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
     if save_audio_file:
-        utils.save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
+        # utils.save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
+        utils.save_audio(text=text, engine=engine, format=format, tts=tts)
 
 
 def load_deep_learning_translation():

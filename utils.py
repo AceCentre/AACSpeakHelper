@@ -136,21 +136,11 @@ def play_wave(wf):
     p.terminate()
 
 
-def save_audio(audio_bytes: bytes, text: str, engine: str, format: str = 'wav', tts=None):
+def save_audio(text: str, engine: str, file_format: str = 'wav', tts=None):
     timestr = time.strftime("%Y%m%d-%H%M%S.")
-    filename = os.path.join(audio_files_path, timestr + format)
-    if isinstance(tts, SherpaOnnxTTS):
-        channels = 1
-        sample_width = 2
-        with wave.open(filename, "wb") as file:
-            file.setnchannels(channels)
-            file.setsampwidth(sample_width)
-            file.setframerate(16538)
-            file.writeframes(audio_bytes)
-    else:
-        with open(filename, 'wb') as out_file:
-            out_file.write(audio_bytes)
-    sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, timestr + format, engine)
+    filename = os.path.join(audio_files_path, timestr + file_format)
+    tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
+    sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, filename, engine)
     try:
         connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
         connection.execute(sql)
