@@ -22,10 +22,21 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install
+    - name: Inject secrets into environment
+      run: |
+        echo "MICROSOFT_TOKEN=${{ secrets.MICROSOFT_TOKEN }}" >> $GITHUB_ENV
+        echo "MICROSOFT_REGION=${{ secrets.MICROSOFT_REGION }}" >> $GITHUB_ENV
+        echo "GOOGLE_CREDS_JSON=${{ secrets.GOOGLE_CREDS_JSON }}" >> $GITHUB_ENV
+        echo "MICROSOFT_TOKEN_TRANS=${{ secrets.MICROSOFT_TOKEN_TRANS }}" >> $GITHUB_ENV      
     - name: Build Apps
       run: |
         poetry run python -c "import site; print(site.getsitepackages()[0])"
         .\build_executable.bat
+      env:
+        MICROSOFT_TOKEN: ${{ secrets.MICROSOFT_TOKEN }}
+        MICROSOFT_REGION: ${{ secrets.MICROSOFT_REGION }}
+        GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
+        MICROSOFT_TOKEN_TRANS: ${{ secrets.MICROSOFT_TOKEN_TRANS }}
     - name: Upload Installer
       uses: actions/upload-artifact@v3
       with:
