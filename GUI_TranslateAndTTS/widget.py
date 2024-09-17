@@ -17,7 +17,7 @@ from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool, QCoreApp
 from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
-from tts_wrapper import MicrosoftClient, GoogleClient, SherpaOnnxClient
+from tts_wrapper import MicrosoftClient, GoogleClient, SherpaOnnxClient, GoogleTransClient
 
 
 from item import Ui_item
@@ -40,6 +40,7 @@ ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
 class Widget(QWidget):
     def __init__(self, size, parent=None):
         super().__init__(parent)
+        self.threadList = []
         self.translate_instance = None
         self.available_language = None
         self.screenSize = size
@@ -60,7 +61,7 @@ class Widget(QWidget):
         self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
         self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
         self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
-        self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
+        # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.ui.copyApp.clicked.connect(self.copyAppPath)
         self.providers = []
         for translator in providers:
@@ -130,6 +131,8 @@ class Widget(QWidget):
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.generate_onnx_voice_model()
+            self.generate_googleTrans_voice_model()
+            self.poolStarter()
             self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
             self.startLang = self.config.get('translate', 'startLang')
@@ -202,6 +205,7 @@ class Widget(QWidget):
 
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
             self.voiceid_onnx = self.config.get('SherpaOnnxTTS', 'voiceid')
+            self.voiceidGoogleTrans = self.config.get('googleTransSTTS', 'voiceid')
             match self.ttsEngine:
                 case "azureTTS":
                     self.comboBox = 'Azure TTS'
@@ -211,10 +215,10 @@ class Widget(QWidget):
                     self.comboBox = 'Google TTS'
                     self.ui.stackedWidget.setCurrentIndex(1)
                     self.ui.ttsEngineBox.setCurrentText('Google TTS')
-                case "gspeak":
-                    self.comboBox = 'GSpeak'
+                case "googleTransSTTS":
+                    self.comboBox = 'GoogleTranslator TTS'
                     self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText('GSpeak')
+                    self.ui.ttsEngineBox.setCurrentText('GoogleTranslator TTS')
                 case "sapi5":
                     self.comboBox = 'Sapi5 (Windows)'
                     self.ui.stackedWidget.setCurrentIndex(3)
@@ -236,9 +240,9 @@ class Widget(QWidget):
                     self.ui.stackedWidget.setCurrentIndex(5)
                     self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
                 case _:
-                    self.comboBox = 'GSpeak'
+                    self.comboBox = 'GoogleTranslator TTS'
                     self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText('GSpeak')
+                    self.ui.ttsEngineBox.setCurrentText('GoogleTranslator TTS')
             self.set_Translate_dropdown(self.translate_languages)
 
             self.set_azure_voice(self.voiceidAzure)
@@ -274,9 +278,6 @@ class Widget(QWidget):
             self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
             self.ui.onnx_checkBox.setChecked(self.saveAudio)
 
-            # self.ui.checkBox_latin.setChecked(self.config.getboolean('kurdishTTS', 'latin'))
-            # self.ui.checkBox_punctuation.setChecked(self.config.getboolean('kurdishTTS', 'punctuation'))
-
             self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
             self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
 
@@ -284,6 +285,8 @@ class Widget(QWidget):
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.generate_onnx_voice_model()
+            self.generate_googleTrans_voice_model()
+            self.poolStarter()
             self.get_microsoft_language()
             # self.ttsEngine = "azureTTS"
             # self.comboBox = 'Azure TTS'
@@ -301,6 +304,7 @@ class Widget(QWidget):
             self.voiceidAzure = "en-US-JennyNeural"
             self.voiceidGoogle = "en-US-Wavenet-C"
             self.voiceidonnx = "eng"
+            self.voiceidGoogleTrans = "en-co.uk"
 
             self.rate = None
             self.volume = None
@@ -315,6 +319,7 @@ class Widget(QWidget):
 
             self.saveAudio_sapi5 = True
             self.saveAudio_onnx = True
+            self.saveAudio_googleTrans = True
 
             # self.set_azure_voice(self.voiceidAzure)
             # self.set_google_voice(self.voiceidGoogle)
@@ -345,16 +350,16 @@ class Widget(QWidget):
                 self.ui.stackedWidget.setCurrentIndex(1)
                 if self.screenSize.height() > 800:
                     self.resize(588, 667)
-            case "GSpeak":
-                self.resize(588, 400)
-                self.ttsEngine = "gspeak"
+            case "GoogleTranslator TTS":
+                self.ttsEngine = "googleTransSTTS"
                 self.ui.stackedWidget.setCurrentIndex(2)
+                if self.screenSize.height() > 800:
+                    self.resize(588, 667)
             case "Sapi5 (Windows)":
                 self.resize(588, 400)
                 self.ttsEngine = "sapi5"
                 self.ui.stackedWidget.setCurrentIndex(3)
             case "Sherpa-ONNX":
-                # self.resize(588, 400)
                 self.ttsEngine = "SherpaOnnxTTS"
                 self.ui.stackedWidget.setCurrentIndex(6)
                 if self.screenSize.height() > 800:
@@ -381,6 +386,9 @@ class Widget(QWidget):
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         if self.ui.onnx_listWidget.currentItem() is None or self.ui.onnx_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
+            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+            return
+        if self.ui.listWidget_voicegoogleTrans.currentItem() is None or self.ui.listWidget_voicegoogleTrans.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 2:
             self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
             return
         # TODO: Block saving if API-key is blank
@@ -438,6 +446,11 @@ class Widget(QWidget):
                 self.config.set('TTS', 'save_audio_file', str(self.ui.onnx_checkBox.isChecked()))
             else:
                 self.config.set('TTS', 'save_audio_file', str(False))
+        elif self.ttsEngine == 'googleTransSTTS':
+            if permanent:
+                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_googleTrans.isChecked()))
+            else:
+                self.config.set('TTS', 'save_audio_file', str(False))
         else:
             self.config.set('TTS', 'save_audio_file', str(False))
 
@@ -473,11 +486,16 @@ class Widget(QWidget):
             self.config.set('googleTTS', 'voiceid', "en-US-Wavenet-C")
         else:
             self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().toolTip())
+        if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
+            self.config.set('googleTransSTTS', 'voiceid', "en-co.uk")
+        else:
+            self.config.set('googleTransSTTS', 'voiceid', self.ui.listWidget_voicegoogleTrans.currentItem().toolTip())
 
         self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
 
         self.config.add_section('SherpaOnnxTTS') if not self.config.has_section('SherpaOnnxTTS') else print('')
+        self.config.add_section('googleTransSTTS') if not self.config.has_section('googleTransSTTS') else print('')
         if self.ui.onnx_listWidget.currentItem() is None:
             self.config.set('SherpaOnnxTTS', 'voiceid', 'eng')
         else:
@@ -681,12 +699,6 @@ class Widget(QWidget):
                     self.azure_row = self.ui.listWidget_voiceazure.row(item)
                     self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                     break
-            # if self.ui.lineEdit_key.text() == '':
-            #     self.ui.lineEdit_key.setFocus()
-            #     return
-            # if self.ui.lineEdit_region.text() == '':
-            #     self.ui.lineEdit_region.setFocus()
-            #     return
         elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
             parentWidget = self.ui.listWidget_voicegoogle
             for index in range(self.ui.listWidget_voicegoogle.count()):
@@ -695,15 +707,10 @@ class Widget(QWidget):
                     self.google_row = self.ui.listWidget_voicegoogle.row(item)
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     break
-            # if self.ui.credsFilePathEdit.text() == '':
-            #     self.ui.credsFilePathEdit.setFocus()
-            #     return
         elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
             parentWidget = self.ui.onnx_listWidget
             for index in range(self.ui.onnx_listWidget.count()):
                 item = self.ui.onnx_listWidget.item(index)
-                # print(item.toolTip())
-                # if f'({item.toolTip()})' in text:
                 if text == item.text():
                     self.onnx_row = self.ui.onnx_listWidget.row(item)
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
@@ -712,7 +719,14 @@ class Widget(QWidget):
                 self.ui.statusBar.setText(f'Playing: {text}')
             else:
                 self.ui.statusBar.setText(f'Downloading: {text}')
-
+        elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
+            parentWidget = self.ui.listWidget_voicegoogleTrans
+            for index in range(self.ui.listWidget_voicegoogleTrans.count()):
+                item = self.ui.listWidget_voicegoogleTrans.item(index)
+                if text == item.toolTip():
+                    self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                    break
         self.OnSavePressed(False)
         if self.temp_config_file is None:
             return
@@ -720,7 +734,6 @@ class Widget(QWidget):
         pool = QThreadPool.globalInstance()
         runnable = Player(self.temp_config_file)
         runnable.signals.completed.connect(self.enablePlayButtons)
-        # buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
         buttons = parentWidget.findChildren(QPushButton)
         self.movie = QMovie(":/images/images/loading.gif")
         self.movie.updated.connect(self.update_Buttons)
@@ -741,6 +754,8 @@ class Widget(QWidget):
             buttons = self.ui.listWidget_voicegoogle.findChildren(QPushButton)
         elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
             buttons = self.ui.onnx_listWidget.findChildren(QPushButton)
+        elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
+            buttons = self.ui.listWidget_voicegoogleTrans.findChildren(QPushButton)
         self.ui.ttsEngineBox.setEnabled(True)
         for button in buttons:
             button.setEnabled(True)
@@ -761,6 +776,8 @@ class Widget(QWidget):
                 self.ui.listWidget_voicegoogle.setCurrentItem(item)
             elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
                 self.ui.onnx_listWidget.setCurrentItem(item)
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
+                self.ui.listWidget_voicegoogleTrans.setCurrentItem(item)
         except Exception as error:
             pass
 
@@ -768,20 +785,21 @@ class Widget(QWidget):
         try:
             # Set the row when index become zero (no selected item)
             if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
-                # if self.ui.listWidget_voiceazure.currentRow() == 0:
                 if self.ui.listWidget_voiceazure.currentItem() is None:
                     self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                     self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
-                # if self.ui.listWidget_voicegoogle.currentRow() == 0:
                 if self.ui.listWidget_voicegoogle.currentItem() is None:
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.google_row))
             elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
-                # if self.ui.onnx_listWidget.currentRow() == 0:
                 if self.ui.onnx_listWidget.currentItem() is None:
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     self.ui.onnx_listWidget.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.onnx_row))
+            elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
+                if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                    self.ui.listWidget_voicegoogleTrans.setCurrentItem(self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row))
         except Exception as error:
             pass
 
@@ -789,13 +807,13 @@ class Widget(QWidget):
         try:
             self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
+            self.ui.search_language_azure.textChanged.connect(self.searchItem_Azure)
             self.ui.listWidget_voiceazure.setUniformItemSizes(True)
-            pool = QThreadPool.globalInstance()
             azureThread = VoiceLoader(parent=self, tts="Azure TTS")
             azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
             azureThread.signals.itemGenerated.connect(self.load_Azure_items)
             azureThread.signals.completed.connect(lambda: self.load_progress_azure(False))
-            pool.start(azureThread)
+            self.threadList.append(azureThread)
         except Exception as azureError:
             print(str(azureError))
 
@@ -817,19 +835,42 @@ class Widget(QWidget):
             file.close()
         return self.voice_google_list
 
+    def poolStarter(self):
+        try:
+            pool = QThreadPool.globalInstance()
+            for thread in self.threadList:
+                pool.start(thread)
+            self.threadList.clear()
+        except Exception as threadError:
+            print(threadError)
+
     def generate_google_voice_models(self):
         try:
             self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
+            self.ui.search_language_google.textChanged.connect(self.searchItem_Google)
             self.ui.listWidget_voicegoogle.setUniformItemSizes(True)
-            pool = QThreadPool.globalInstance()
             googleThread = VoiceLoader(parent=self, tts="Google TTS")
             googleThread.signals.started.connect(lambda: self.load_progress_google(True))
             googleThread.signals.itemGenerated.connect(self.load_Google_items)
             googleThread.signals.completed.connect(lambda: self.load_progress_google(False))
-            pool.start(googleThread)
+            self.threadList.append(googleThread)
         except Exception as googleError:
             print(str(googleError))
+
+    def generate_googleTrans_voice_model(self):
+        try:
+            self.ui.listWidget_voicegoogleTrans.currentRowChanged.connect(self.updateRow)
+            self.ui.listWidget_voicegoogleTrans.itemClicked.connect(self.print_data)
+            self.ui.search_language_googleTrans.textChanged.connect(self.searchItem_GoogleTrans)
+            self.ui.listWidget_voicegoogleTrans.setUniformItemSizes(True)
+            googleTransThread = VoiceLoader(parent=self, tts="GoogleTranslator TTS")
+            googleTransThread.signals.started.connect(lambda: self.load_progress_googleTrans(True))
+            googleTransThread.signals.itemGenerated.connect(self.load_GoogleTrans_items)
+            googleTransThread.signals.completed.connect(lambda: self.load_progress_googleTrans(False))
+            self.threadList.append(googleTransThread)
+        except Exception as googleTransError:
+            print(str(googleTransError))
 
     def set_google_voice(self, text):
         if text == '':
@@ -885,17 +926,14 @@ class Widget(QWidget):
     def set_Translate_dropdown(self, source):
         try:
             lang = [key for key, value in source.items() if value == self.startLang]
-            if not len(lang) == 0:
+            if len(lang) > 0:
                 lang = lang[0]
-            copy_lang = lang
-            self.ui.comboBox_writeLang.setCurrentText(lang)
+                self.ui.comboBox_writeLang.setCurrentText(lang)
 
             lang = [key for key, value in source.items() if value == self.endLang]
-            if not len(lang) == 0:
+            if len(lang) > 0:
                 lang = lang[0]
-            else:
-                lang = copy_lang
-            self.ui.comboBox_targetLang.setCurrentText(lang)
+                self.ui.comboBox_targetLang.setCurrentText(lang)
         except Exception as error:
             logging.error(f"Error setting current text; {error}", exc_info=False)
 
@@ -908,14 +946,13 @@ class Widget(QWidget):
             self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
             self.onnx_location = self.onnx_cache_path
             self.ui.onnx_listWidget.itemClicked.connect(self.print_data)
-            self.ui.search_language.textChanged.connect(self.searchItem)
+            self.ui.search_language.textChanged.connect(self.searchItem_Onnx)
             self.ui.onnx_listWidget.setUniformItemSizes(True)
-            pool = QThreadPool.globalInstance()
             onnxThread = VoiceLoader(parent=self, tts="Sherpa-ONNX")
             onnxThread.signals.started.connect(lambda: self.load_progress_onnx(True))
             onnxThread.signals.itemGenerated.connect(self.load_Onnx_Items)
             onnxThread.signals.completed.connect(lambda: self.load_progress_onnx(False))
-            pool.start(onnxThread)
+            self.threadList.append(onnxThread)
         except Exception as e:
             print(e)
 
@@ -946,6 +983,25 @@ class Widget(QWidget):
         if not state:
             self.set_google_voice(self.voiceidGoogle)
 
+    def load_progress_googleTrans(self, state):
+        policy = self.ui.listWidget_voicegoogleTrans.sizePolicy()
+        policy.setRetainSizeWhenHidden(True)
+        self.ui.listWidget_voicegoogleTrans.setSizePolicy(policy)
+        self.ui.listWidget_voicegoogleTrans.setHidden(state)
+        self.ui.googleTransTTS_progressBar.setVisible(state)
+        if not state:
+            self.set_googleTrans_voice(self.voiceidGoogleTrans)
+
+    def set_googleTrans_voice(self, text):
+        if text == '':
+            text = "en-co.uk"
+        for index in range(self.ui.listWidget_voicegoogleTrans.count()):
+            item = self.ui.listWidget_voicegoogleTrans.item(index)
+            if text == item.toolTip():
+                self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
+                self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                break
+
     def printItem(self, item):
         self.ui.onnx_listWidget.setCurrentItem(item)
 
@@ -960,7 +1016,25 @@ class Widget(QWidget):
         else:
             pass
 
-    def searchItem(self, text):
+    def searchItem_Azure(self, text):
+        match_items = self.ui.listWidget_voiceazure.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.listWidget_voiceazure.count()):
+            it = self.ui.listWidget_voiceazure.item(i)
+            it.setHidden(it not in match_items)
+
+    def searchItem_Google(self, text):
+        match_items = self.ui.listWidget_voicegoogle.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.listWidget_voicegoogle.count()):
+            it = self.ui.listWidget_voicegoogle.item(i)
+            it.setHidden(it not in match_items)
+
+    def searchItem_GoogleTrans(self, text):
+        match_items = self.ui.listWidget_voicegoogleTrans.findItems(text, Qt.MatchContains)
+        for i in range(self.ui.listWidget_voicegoogleTrans.count()):
+            it = self.ui.listWidget_voicegoogleTrans.item(i)
+            it.setHidden(it not in match_items)
+
+    def searchItem_Onnx(self, text):
         match_items = self.ui.onnx_listWidget.findItems(text, Qt.MatchContains)
         for i in range(self.ui.onnx_listWidget.count()):
             it = self.ui.onnx_listWidget.item(i)
@@ -1051,11 +1125,32 @@ class Widget(QWidget):
         item = QListWidgetItem()
         item.setForeground(QColor(0, 0, 0, 0))
         item.setText(data['name'])
-        # item.setToolTip(data['language_codes'][0])
         item.setToolTip(data['id'])
         item.setSizeHint(item_widget.sizeHint())
         self.ui.listWidget_voicegoogle.insertItem(index, item)
         self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+
+    def load_GoogleTrans_items(self, index, data, count):
+        self.ui.googleTransTTS_progressBar.setValue((index + 1) * 100 / count)
+        item_widget = QWidget()
+        item_UI = Ui_item()
+        item_UI.setupUi(item_widget)
+        item_UI.name.setText(data['name'])
+        font = QFont()
+        font.setBold(False)
+        font.setPointSize(8)
+        item_UI.gender.setFont(font)
+        item_UI.gender.setText(data['gender'])
+        item_UI.play.clicked.connect(self.preview_pressed)
+        item_widget.setObjectName(data['name'])
+
+        item = QListWidgetItem()
+        item.setForeground(QColor(0, 0, 0, 0))
+        item.setText(data['name'])
+        item.setToolTip(data['id'])
+        item.setSizeHint(item_widget.sizeHint())
+        self.ui.listWidget_voicegoogleTrans.insertItem(index, item)
+        self.ui.listWidget_voicegoogleTrans.setItemWidget(item, item_widget)
 
 
 class Signals(QObject):
@@ -1147,9 +1242,15 @@ class VoiceLoader(QRunnable):
                     voices = client.get_voices()
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
+            elif self.tts == 'GoogleTranslator TTS':
+                client = GoogleTransClient()
+                try:
+                    voices = client.get_voices()
+                except Exception as getVoicesError:
+                    logging.error(str(getVoicesError))
             self.signals.voicesFetched.emit(voices)
             count = len(voices)
-            print(f"Voice fetch time: {time.perf_counter() - start}")
+            print(f"Voice fetch time for {self.tts}: {time.perf_counter() - start}")
             for index, x in enumerate(voices):
                 time.sleep(0.001)
                 self.signals.itemGenerated.emit(index, x, count)
