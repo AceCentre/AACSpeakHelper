@@ -205,6 +205,9 @@ class MainWindow(QWidget):
             # Initialize TTS
             tts_utils.init(utils)
             # Process the clipboard text
+            if not tts_utils.ready:
+                print('Application is not ready. Please wait until current session is finished.')
+                return
             if config.getboolean('translate', 'noTranslate'):
                 text_to_process = clipboard_text
             else:
