@@ -6,7 +6,7 @@ import time
 import pyttsx3
 from gtts import gTTS
 from tts_wrapper import AbstractTTS, MicrosoftClient, MicrosoftTTS, GoogleClient, GoogleTTS, SAPIClient, SAPITTS, \
-    SherpaOnnxClient, SherpaOnnxTTS
+    SherpaOnnxClient, SherpaOnnxTTS, GoogleTransTTS, GoogleTransClient
 import warnings
 from threading import Thread
 
@@ -19,11 +19,10 @@ ms_region = os.getenv('MICROSOFT_REGION')
 google_cred_path = os.getenv('GOOGLE_CREDS_JSON')
 ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
 
-# import dl_translate as dlt
-# warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 utils = None
 voices = None
+ready = True
 # Global dictionary to store TTS clients
 tts_voiceid = {}
 
@@ -130,8 +129,16 @@ def init_onnx_tts():
     return tts
 
 
+def init_googleTrans_tts():
+    voiceid = utils.config.get('googleTransSTTS', 'voiceid')
+    client = GoogleTransClient(voiceid)
+    return GoogleTransTTS(client)
+
+
 def speak(text='', list_voices=False):
     global voices
+    global ready
+    ready = False
     ttsengine = utils.config.get('TTS', 'engine')
     voice_id = utils.config.get(ttsengine, 'voiceid')
     if not voice_id:
@@ -166,6 +173,8 @@ def speak(text='', list_voices=False):
                 tts_client = init_sapi_tts()
             case 'SherpaOnnxTTS':
                 tts_client = init_onnx_tts()
+            case 'googleTransSTTS':
+                tts_client = init_googleTrans_tts()
             case _:
                 tts_client = pyttsx3.init(ttsengine)
 
@@ -195,6 +204,8 @@ def speak(text='', list_voices=False):
             sapiSpeak(text, ttsengine, tts_client)
         case 'SherpaOnnxTTS':
             onnxSpeak(text, ttsengine, tts_client)
+        case 'googleTransSTTS':
+            googleTransSpeak(text, ttsengine, tts_client)
         case _:
             tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
             tts_client.setProperty('rate', utils.config.get('TTS', 'rate'))
@@ -230,6 +241,10 @@ def googleSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
 
 
+def googleTransSpeak(text: str, engine, tts_client):
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
 def sapiSpeak(text: str, engine, tts_client):
     ttsWrapperSpeak(text, tts_client, engine)
 
@@ -244,10 +259,11 @@ def ttsWrapperSpeak(text: str, tts, engine):
     match tts:
         case SherpaOnnxTTS():
             pass
+        case GoogleTransTTS():
+            fmt = 'mp3'
         case AbstractTTS():
             tts.ssml.clear_ssml()
             text = tts.ssml.add(text)
-        #     audio_bytes = tts.synth_to_bytes(tts.ssml.add(text), 'wav')
         case GSPEAK():
             fmt = 'mp3'
     try:
@@ -266,27 +282,5 @@ def playSpeech(text, engine, file_format, tts):
         tts.speak_streamed(text)
     stop = time.perf_counter() - start
     print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
-    # logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
-
-
-def saveSpeech(text, engine, format, tts):
-    save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
-    if save_audio_file:
-        # utils.save_audio(audio_bytes, text=text, engine=engine, format=format, tts=tts)
-        utils.save_audio(text=text, engine=engine, format=format, tts=tts)
-
-
-def load_deep_learning_translation():
-    start = time.time()
-    global dl
-    # dl = dlt.TranslationModel("dlt/cached_model_nllb200", model_family="nllb200")
-    print(dl)
-    print(time.time() - start)
-
-
-def deep_learning_translation():
-    pass
-
-# dl = None
-# dlTranslate = Thread(target=load_deep_learning_translation)
-# dlTranslate.start()
+    global ready
+    ready = True
