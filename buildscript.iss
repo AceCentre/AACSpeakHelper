@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AACSpeakHelper"
-#define MyAppVersion "2.3.0"
+#define MyAppVersion "2.4.0"
 #define MyAppPublisher "Ace Centre"
 #define MyAppURL "https://acecentre.org.uk"
 #define MyAppExeName "client.exe"
@@ -65,10 +65,10 @@ Name: "{userstartup}\AACSpeakHelperServer.exe"; Filename: "{app}\AACSpeakHelperS
 [Run]
 Filename: "{app}\CreateGridset.exe"
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
-Filename: "{cmd}"; Parameters: "setx MICROSOFT_TOKEN value"; Flags: runhidden
-Filename: "{cmd}"; Parameters: "setx MICROSOFT_REGION value"; Flags: runhidden
-Filename: "{cmd}"; Parameters: "setx GOOGLE_CREDS_JSON value"; Flags: runhidden
-Filename: "{cmd}"; Parameters: "setx MICROSOFT_TOKEN_TRANS value"; Flags: runhidden
+Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_TOKEN value"; Flags: runhidden nowait skipifsilent
+Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_REGION value"; Flags: runhidden nowait skipifsilent
+Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx GOOGLE_CREDS_PATH value"; Flags: runhidden nowait skipifsilent
+Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_TOKEN_TRANS value"; Flags: runhidden nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
-Filename: "{app}\Configure AACSpeakHelper.exe"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\AACSpeakHelperServer.exe"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Configure AACSpeakHelper.exe"; Flags: nowait postinstall skipifsilent
