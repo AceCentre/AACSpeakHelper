@@ -47639,6 +47639,156 @@ ndarin/Taiwan)\x22:\
  \x22zh-TW\x22, \x22Chine\
 se (Mandarin)\x22: \
 \x22zh\x22}\
+\x00\x00\x091\
+{\
+\x0a  \x22type\x22: \x22serv\
+ice_account\x22,\x0a  \
+\x22project_id\x22: \x22t\
+tsandtranslate\x22,\
+\x0a  \x22private_key_\
+id\x22: \x22d515331983\
+956f07f4a94c4ae7\
+be0c744f348e56\x22,\
+\x0a  \x22private_key\x22\
+: \x22-----BEGIN PR\
+IVATE KEY-----\x5cn\
+MIIEvAIBADANBgkq\
+hkiG9w0BAQEFAASC\
+BKYwggSiAgEAAoIB\
+AQCfhmzIPY8Ole3e\
+\x5cn7wfPx0Qu8EX0ut\
+/FiYfoBSeshtdctO\
+BsaBnlW6y/H+Yosh\
+6tk1N6rthEnT5OlI\
+dN\x5cnDLb7OfePg+aY\
+X8qs6pYPeF6/CY8n\
+f4wD6iaotQSUFW4v\
+zRXRVwmzWYmNXt2x\
+l9ch\x5cnR5dMfoXoLp\
+BHzhnIh+nraByihE\
+oT5f043ac80ZYQ3u\
+UmCU5RZWex35GSfJ\
+1OM9SY\x5cncxQQP4No\
+UmrSGWTDpZ13CmR/\
+3lyKfdOSug49k/T9\
+4OjgIp3X3nPdiPmq\
+jUoQ6xKY\x5cnLmLKI8\
+rrqr1kXwr/Kgn1bs\
+9mTeS+i6ag4XIPvW\
+avX3pYrqP84o+bIF\
+pNLQ23HnOG\x5cnyQO/\
+MohpAgMBAAECggEA\
+AOoDaCYr0mVdy0ny\
+8U1ReNQ35Gd95jBW\
+mufiUrDkSEks\x5cnOD\
+bO/4NWAwjcN+YQZV\
+smI+/J+GJZyRe9Cu\
+jHHiYBLbLPlhaGGe\
+r6Cz07zBayZINX\x5cn\
+YoOGRJp38UofpeQO\
+wKgMkPkS/+rtSd9G\
+acUyyuA2j85qKtKA\
+T5Jmzt+7epttNL4O\
+\x5cn8v4ARQ611g1bKN\
+l68a4xXVLpGAa1oJ\
+KDRBAKfnvi5/PTrH\
+aK47Tsj1yr7sBEmL\
+wP\x5cnSnqOxJPTaZF1\
+DBHFHBxolbHeHqCh\
+zE2lp73PH/2eMkZu\
+7E83tfp/XeqxN5nz\
+zrOZ\x5cndpPNYsqgLG\
+IHcEOESJ5e8NCjY0\
+n5/GcpmW9+l17NwQ\
+KBgQDTB3tU7RyJWe\
+j8rkpW\x5cn4lI8v2HR\
+JcnK3i4QsTnuQmD7\
+wwQGjW653/P8iSUy\
+e3rvsPljDU1oiiVl\
+zEePkVdY\x5cnvymzFu\
+wl9Ybwd0cD4guA4F\
+GkeCdS7rR98CYCzF\
+Rwhmi5uh0DjR5qe2\
+Ou1BeJrKMO\x5cnK0Kc\
+cEVCNPWRRoh/FRFB\
+TFTvKQKBgQDBhS3+\
+iccEL2bsRpHNxShT\
+d6+n3tDEqy02\x5cn23\
+QwJ4j/OGtOOnbnRo\
+0ea12ftQGQzoD8PW\
+IG1Wx25Vbre2YAz4\
+a/gy/bH62yZ6jq\x5cn\
+D9SF90n4ZZ7yF0Vd\
+PFGz/zl3W2QqQlRz\
+S7S9RN6rjVFSQ/Lm\
+FHAbQowbo0mBWbvC\
+\x5cnGnSRNEA3QQKBgC\
+zYTy46ATFzCN8Bjs\
+yt5boBFaFjfWF+G5\
+3ye5QVSRTXWXim/5\
+vC\x5cnatAEuQHkWbis\
+DCMvhX6stMvQQHjS\
+8xPp88uaGG7soVNi\
+lZXOqJEnmlHwMrMe\
+BP8q\x5cnVHmNwHf1KD\
+YnxdimWYtZU1Kowa\
+PBKxlsuggSl7U9Gd\
+5YddNDv9n3hakZAo\
+GAcaqm\x5cnL2IB0YV+\
+ML3qmjB51TzxoeqQ\
+OVRKBHS2NCqknzQm\
+YxaYDJQ2A24Q2ePZ\
+fZKt1HrB\x5cnfz4QrW\
+1btokOit9aSFbn3w\
+8mWSnl30VZES8E9a\
+/KwmvExFTPsKfyux\
+alKOU48VfA\x5cnW4N+\
+PsmMwINEwruydXCL\
+Fxi77gwk6ofbfAZy\
+yYECgYB3bVb41NAr\
+5rSZccnjK3WH\x5cnnz\
+MT1/4Fi8z8221Yj+\
+lKhN0OtKJRUU3Sji\
+7SXXbeKt1LtOdchn\
+7ADjEo4uoroBhJ\x5cn\
+hR587sEXR81jWFSm\
+4j3JhS7CgvsrGPVP\
+GLFpotudGUHd5G0L\
+8XZeH7TOANgtD3is\
+\x5cn9FcB0ORLhnStxU\
+1V2nuyJg==\x5cn----\
+-END PRIVATE KEY\
+-----\x5cn\x22,\x0a  \x22cli\
+ent_email\x22: \x22tts\
+demo@ttsandtrans\
+late.iam.gservic\
+eaccount.com\x22,\x0a \
+ \x22client_id\x22: \x221\
+0683169989726964\
+9231\x22,\x0a  \x22auth_u\
+ri\x22: \x22https://ac\
+counts.google.co\
+m/o/oauth2/auth\x22\
+,\x0a  \x22token_uri\x22:\
+ \x22https://oauth2\
+.googleapis.com/\
+token\x22,\x0a  \x22auth_\
+provider_x509_ce\
+rt_url\x22: \x22https:\
+//www.googleapis\
+.com/oauth2/v1/c\
+erts\x22,\x0a  \x22client\
+_x509_cert_url\x22:\
+ \x22https://www.go\
+ogleapis.com/rob\
+ot/v1/metadata/x\
+509/ttsdemo%40tt\
+sandtranslate.ia\
+m.gserviceaccoun\
+t.com\x22,\x0a  \x22unive\
+rse_domain\x22: \x22go\
+ogleapis.com\x22\x0a}\x0a\
+\
 \x00\x00\x0aI\
 \x00\
 \x00)\xbcx\xda\x8dZ[s\xdb\xba\x11\xfe+\x1c?\
@@ -48809,6 +48959,11 @@ qt_resource_name = b"\
 \x00g\
 \x00s\x00p\x00e\x00a\x00k\x00_\x00v\x00o\x00i\x00c\x00e\x00s\x00.\x00j\x00s\x00o\
 \x00n\
+\x00\x11\
+\x0f\xb7\xe0\xbe\
+\x00g\
+\x00o\x00o\x00g\x00l\x00e\x00_\x00c\x00r\x00e\x00d\x00s\x00.\x00j\x00s\x00o\x00n\
+\
 \x00\x16\
 \x00>\x7f\xbe\
 \x00a\
@@ -48824,7 +48979,7 @@ qt_resource_name = b"\
 qt_resource_struct = b"\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\
 \x00\x00\x00\x00\x00\x00\x00\x00\
-\x00\x00\x00\x00\x00\x02\x00\x00\x00\x04\x00\x00\x00\x0c\
+\x00\x00\x00\x00\x00\x02\x00\x00\x00\x05\x00\x00\x00\x0c\
 \x00\x00\x00\x00\x00\x00\x00\x00\
 \x00\x00\x00\x12\x00\x02\x00\x00\x00\x01\x00\x00\x00\x03\
 \x00\x00\x00\x00\x00\x00\x00\x00\
@@ -48846,14 +49001,16 @@ qt_resource_struct = b"\
 \x00\x00\x01\x8ae\x02\xec_\
 \x00\x00\x00p\x00\x01\x00\x00\x00\x01\x00\x08J\x22\
 \x00\x00\x01\x8at\xea4\x93\
-\x00\x00\x01~\x00\x01\x00\x00\x00\x01\x00\x0b\x9f\x96\
+\x00\x00\x01\xa6\x00\x01\x00\x00\x00\x01\x00\x0b\xa8\xcb\
 \x00\x00\x01\x8a\xb8\x15Y\xcc\
 \x00\x00\x01*\x00\x01\x00\x00\x00\x01\x00\x0b\x90J\
 \x00\x00\x01\x8b\x0b\x1f\xbf\x12\
 \x00\x00\x01T\x00\x00\x00\x00\x00\x01\x00\x0b\x9bl\
 \x00\x00\x01\x8a\xb8ow\x9a\
-\x00\x00\x01\xb0\x00\x01\x00\x00\x00\x01\x00\x0b\xa9\xe3\
+\x00\x00\x01\xd8\x00\x01\x00\x00\x00\x01\x00\x0b\xb3\x18\
 \x00\x00\x01\x8ao\xa3{\xa6\
+\x00\x00\x01~\x00\x00\x00\x00\x00\x01\x00\x0b\x9f\x96\
+\x00\x00\x01\x8a0\xa4~w\
 "
 
 def qInitResources():

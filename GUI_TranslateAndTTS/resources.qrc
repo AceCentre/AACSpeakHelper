@@ -10,6 +10,7 @@
     <file>images/play-round-icon.png</file>
   </qresource>
   <qresource prefix="binary">
+    <file>google_creds.json</file>
     <file>gspeak_voices.json</file>
     <file>azure_translation.json</file>
     <file>google_voices.json</file>
