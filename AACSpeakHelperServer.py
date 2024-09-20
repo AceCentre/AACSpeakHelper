@@ -77,7 +77,8 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def exit(self):
         self.parent.pipe_thread.quit()
-        QApplication.quit()
+        os._exit(0)
+        # QApplication.quit()
 
     def update_last_run_info(self, last_run_time, duration):
         self.lastRunAction.setText(f"Last run at {last_run_time} - took {duration} secs")
@@ -173,9 +174,6 @@ class MainWindow(QWidget):
     @Slot(str)
     def handle_message(self, message):
         try:
-            self.tray_icon.setToolTip('Handling new message ...')
-            self.tray_icon.setIcon(self.icon_loading)
-            logging.info(f"Handling new message: {message[:50]}...")
             data = json.loads(message)
 
             # Extract data from the received message
@@ -208,6 +206,9 @@ class MainWindow(QWidget):
             if not tts_utils.ready:
                 print('Application is not ready. Please wait until current session is finished.')
                 return
+            self.tray_icon.setToolTip('Handling new message ...')
+            self.tray_icon.setIcon(self.icon_loading)
+            logging.info(f"Handling new message: {message[:50]}...")
             if config.getboolean('translate', 'noTranslate'):
                 text_to_process = clipboard_text
             else:
@@ -340,7 +341,26 @@ def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
 
 
+def clearCache():
+    temp_folder = os.getenv('TEMP')
+    size_limit = 5 * 1024  # 5KB in bytes
+    # Scan the directory
+    for root, dirs, files in os.walk(temp_folder):
+        for file in files:
+            if file.startswith("tmp"):
+                file_path = os.path.join(root, file)
+                if os.path.getsize(file_path) < size_limit:
+                    config = utils.config
+                    current_time = time.time()
+                    day = 7
+                    time_threshold = current_time - day * 24 * 60 * 60
+                    file_modification_time = os.path.getmtime(file_path)
+                    if file_modification_time < time_threshold:
+                        os.remove(file_path)
+
+
 if __name__ == '__main__':
+    clearCache()
     app = QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec())
