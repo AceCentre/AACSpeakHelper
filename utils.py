@@ -304,7 +304,7 @@ def create_Database():
         logging.error("Failed to create database: ".format(error), exc_info=True)
 
 
-def init(input_config):
+def init(input_config, args):
     """Initialize configuration file path making it in memory instead of one time instance.
 
         Args:
