@@ -16,7 +16,7 @@ load_dotenv(dotenv_path='./.env')
 
 ms_token = os.getenv('MICROSOFT_TOKEN')
 ms_region = os.getenv('MICROSOFT_REGION')
-google_cred_path = os.getenv('GOOGLE_CREDS_JSON')
+google_cred_path = os.getenv('GOOGLE_CREDS_PATH')
 ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -68,7 +68,7 @@ def init(module):
     """Initialize utils module making it in memory instead of one time instance.
 
         Args:
-            module (str): Instance of utils module.
+            module: Instance of utils module.
         Returns: None
     """
     global utils
@@ -147,7 +147,8 @@ def init_googleTrans_tts():
 
         Returns: GoogleTransTTS
     """
-    voiceid = utils.config.get('googleTransSTTS', 'voiceid')
+    print('New Instance')
+    voiceid = utils.config.get('googleTransTTS', 'voiceid')
     client = GoogleTransClient(voiceid)
     return GoogleTransTTS(client)
 
@@ -197,7 +198,7 @@ def speak(text='', list_voices=False):
                 tts_client = init_sapi_tts()
             case 'SherpaOnnxTTS':
                 tts_client = init_onnx_tts()
-            case 'googleTransSTTS':
+            case 'googleTransTTS':
                 tts_client = init_googleTrans_tts()
             case _:
                 tts_client = pyttsx3.init(ttsengine)
@@ -226,7 +227,7 @@ def speak(text='', list_voices=False):
             sapiSpeak(text, ttsengine, tts_client)
         case 'SherpaOnnxTTS':
             onnxSpeak(text, ttsengine, tts_client)
-        case 'googleTransSTTS':
+        case 'googleTransTTS':
             googleTransSpeak(text, ttsengine, tts_client)
         case _:
             tts_client.setProperty('voice', utils.config.get('TTS', 'voiceid'))
