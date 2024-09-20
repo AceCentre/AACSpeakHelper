@@ -211,7 +211,7 @@ class Widget(QWidget):
 
             self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
             self.voiceid_onnx = self.config.get('SherpaOnnxTTS', 'voiceid')
-            self.voiceidGoogleTrans = self.config.get('googleTransSTTS', 'voiceid')
+            self.voiceidGoogleTrans = self.config.get('googleTransTTS', 'voiceid')
             match self.ttsEngine:
                 case "azureTTS":
                     self.comboBox = 'Azure TTS'
@@ -221,7 +221,7 @@ class Widget(QWidget):
                     self.comboBox = 'Google TTS'
                     self.ui.stackedWidget.setCurrentIndex(1)
                     self.ui.ttsEngineBox.setCurrentText('Google TTS')
-                case "googleTransSTTS":
+                case "googleTransTTS":
                     self.comboBox = 'GoogleTranslator TTS'
                     self.ui.stackedWidget.setCurrentIndex(2)
                     self.ui.ttsEngineBox.setCurrentText('GoogleTranslator TTS')
@@ -362,7 +362,7 @@ class Widget(QWidget):
                 if self.screenSize.height() > 800:
                     self.resize(588, 667)
             case "GoogleTranslator TTS":
-                self.ttsEngine = "googleTransSTTS"
+                self.ttsEngine = "googleTransTTS"
                 self.ui.stackedWidget.setCurrentIndex(2)
                 if self.screenSize.height() > 800:
                     self.resize(588, 667)
@@ -457,7 +457,7 @@ class Widget(QWidget):
                 self.config.set('TTS', 'save_audio_file', str(self.ui.onnx_checkBox.isChecked()))
             else:
                 self.config.set('TTS', 'save_audio_file', str(False))
-        elif self.ttsEngine == 'googleTransSTTS':
+        elif self.ttsEngine == 'googleTransTTS':
             if permanent:
                 self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_googleTrans.isChecked()))
             else:
@@ -498,15 +498,15 @@ class Widget(QWidget):
         else:
             self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().toolTip())
         if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
-            self.config.set('googleTransSTTS', 'voiceid', "en-co.uk")
+            self.config.set('googleTransTTS', 'voiceid', "en-co.uk")
         else:
-            self.config.set('googleTransSTTS', 'voiceid', self.ui.listWidget_voicegoogleTrans.currentItem().toolTip())
+            self.config.set('googleTransTTS', 'voiceid', self.ui.listWidget_voicegoogleTrans.currentItem().toolTip())
 
         self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
         self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
 
         self.config.add_section('SherpaOnnxTTS') if not self.config.has_section('SherpaOnnxTTS') else print('')
-        self.config.add_section('googleTransSTTS') if not self.config.has_section('googleTransSTTS') else print('')
+        self.config.add_section('googleTransTTS') if not self.config.has_section('googleTransTTS') else print('')
         if self.ui.onnx_listWidget.currentItem() is None:
             self.config.set('SherpaOnnxTTS', 'voiceid', 'eng')
         else:
@@ -734,7 +734,7 @@ class Widget(QWidget):
             parentWidget = self.ui.listWidget_voicegoogleTrans
             for index in range(self.ui.listWidget_voicegoogleTrans.count()):
                 item = self.ui.listWidget_voicegoogleTrans.item(index)
-                if text == item.toolTip():
+                if text == item.text():
                     self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
                     self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
                     break
