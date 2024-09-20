@@ -9,16 +9,17 @@ import sys
 import time
 import uuid
 import warnings
+import io
+
 warnings.filterwarnings('ignore')
 import PySide6.QtCore
 import pyperclip
 import pyttsx3
-from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool, QCoreApplication
+from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent
 from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
 from tts_wrapper import MicrosoftClient, GoogleClient, SherpaOnnxClient, GoogleTransClient
-
 
 from item import Ui_item
 from language_dictionary import *
@@ -33,13 +34,15 @@ if os.path.isfile('../.env'):
 
 ms_token = os.getenv('MICROSOFT_TOKEN')
 ms_region = os.getenv('MICROSOFT_REGION')
-google_cred_path = os.getenv('GOOGLE_CREDS_JSON')
+google_cred_path = os.getenv('GOOGLE_CREDS_PATH')
 ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
 
 
 class Widget(QWidget):
     def __init__(self, size, parent=None):
         super().__init__(parent)
+        self.default_google_credential = None
+        self.google_credential = None
         self.threadList = []
         self.translate_instance = None
         self.available_language = None
@@ -62,7 +65,10 @@ class Widget(QWidget):
         self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
         self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
         # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
+        self.installEventFilter(self)
         self.ui.copyApp.clicked.connect(self.copyAppPath)
+        self.ui.validate_azure.clicked.connect(self.azure_validation)
+        self.ui.validate_google.clicked.connect(self.google_validation)
         self.providers = []
         for translator in providers:
             if "Translator" in translator:
@@ -337,6 +343,11 @@ class Widget(QWidget):
         self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
         self.onTTSEngineToggled(self.comboBox)
         self.lock = False
+
+    def eventFilter(self, obj, event):
+        self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != '')
+        self.ui.validate_azure.setVisible(self.ui.lineEdit_key.text() != '' and self.ui.lineEdit_region.text() != '')
+        return super().eventFilter(obj, event)
 
     def onTTSEngineToggled(self, text):
         match text:
@@ -799,17 +810,21 @@ class Widget(QWidget):
             elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
                 if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
                     self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
-                    self.ui.listWidget_voicegoogleTrans.setCurrentItem(self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row))
+                    self.ui.listWidget_voicegoogleTrans.setCurrentItem(
+                        self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row))
         except Exception as error:
             pass
 
     def generate_azure_voice_models(self):
         try:
+            self.azure_location = self.ui.lineEdit_region.text()
+            self.azure_key = self.ui.lineEdit_key.text()
             self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
             self.ui.search_language_azure.textChanged.connect(self.searchItem_Azure)
             self.ui.listWidget_voiceazure.setUniformItemSizes(True)
             azureThread = VoiceLoader(parent=self, tts="Azure TTS")
+            azureThread.signals.errorDetected.connect(self.handleError)
             azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
             azureThread.signals.itemGenerated.connect(self.load_Azure_items)
             azureThread.signals.completed.connect(lambda: self.load_progress_azure(False))
@@ -844,13 +859,44 @@ class Widget(QWidget):
         except Exception as threadError:
             print(threadError)
 
+    def handleError(self, string, tts):
+        if tts == 'Azure TTS':
+            self.ui.lineEdit_key.clear()
+            self.ui.lineEdit_region.clear()
+            self.ui.lineEdit_key.setPlaceholderText('Invalid Token')
+            self.ui.lineEdit_region.setPlaceholderText('Invalid Region')
+        elif tts == 'Google TTS':
+            self.ui.credsFilePathEdit.clear()
+            self.ui.credsFilePathEdit.setPlaceholderText('Invalid JSON Credentials')
+
+    def get_google_credentials(self, filename, default=False):
+        if os.path.isfile(filename) and not default:
+            logging.info("Using User Defined Google Credentials")
+            return filename
+        file = QFile(f":/binary/{filename}")
+        logging.info("Using Default Google Credentials")
+        if file.open(QIODevice.ReadOnly | QFile.Text):
+            text = QTextStream(file).readAll()
+            credentials = io.StringIO(text)
+            credentials.read()
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(credentials.getvalue().encode())
+                credentials_file = temp_file.name
+                temp_file.close()
+            return credentials_file
+        return None
+
     def generate_google_voice_models(self):
         try:
+            self.google_credential = self.get_google_credentials(self.ui.credsFilePathEdit.text())
+            # self.google_credential = self.get_google_credentials(google_cred_path)
+            self.default_google_credential = self.get_google_credentials(google_cred_path, True)
             self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
             self.ui.search_language_google.textChanged.connect(self.searchItem_Google)
             self.ui.listWidget_voicegoogle.setUniformItemSizes(True)
             googleThread = VoiceLoader(parent=self, tts="Google TTS")
+            googleThread.signals.errorDetected.connect(self.handleError)
             googleThread.signals.started.connect(lambda: self.load_progress_google(True))
             googleThread.signals.itemGenerated.connect(self.load_Google_items)
             googleThread.signals.completed.connect(lambda: self.load_progress_google(False))
@@ -940,6 +986,14 @@ class Widget(QWidget):
     def copyAppPath(self):
         pyperclip.copy(self.ui.appPath.text())
 
+    def azure_validation(self):
+        self.generate_azure_voice_models()
+        self.poolStarter()
+
+    def google_validation(self):
+        self.generate_google_voice_models()
+        self.poolStarter()
+
     def generate_onnx_voice_model(self):
         try:
             self.iconDownload = QIcon(":/images/images/download.ico")
@@ -971,6 +1025,8 @@ class Widget(QWidget):
         self.ui.listWidget_voiceazure.setSizePolicy(policy)
         self.ui.listWidget_voiceazure.setHidden(state)
         self.ui.azure_progressBar.setVisible(state)
+        self.ui.validate_azure.setDisabled(state)
+        self.ui.checkBox_azure.setDisabled(state)
         if not state:
             self.set_azure_voice(self.voiceidAzure)
 
@@ -980,6 +1036,8 @@ class Widget(QWidget):
         self.ui.listWidget_voicegoogle.setSizePolicy(policy)
         self.ui.listWidget_voicegoogle.setHidden(state)
         self.ui.gTTS_progressBar.setVisible(state)
+        self.ui.validate_google.setDisabled(state)
+        self.ui.checkBox_google.setDisabled(state)
         if not state:
             self.set_google_voice(self.voiceidGoogle)
 
@@ -1158,6 +1216,7 @@ class Signals(QObject):
     completed = Signal()
     itemGenerated = Signal(int, dict, int)
     voicesFetched = Signal(list)
+    errorDetected = Signal(str, str)
 
 
 class Player(QRunnable):
@@ -1224,18 +1283,30 @@ class VoiceLoader(QRunnable):
             self.signals.started.emit()
             start = time.perf_counter()
             voices = []
+            generate = True
             if self.tts == 'Azure TTS':
-                client = MicrosoftClient((ms_token, ms_region))
+                generate = self.parent.ui.checkBox_azure.isChecked()
+                if self.parent.azure_location != '' and self.parent.azure_key != '':
+                    client = MicrosoftClient((self.parent.azure_key, self.parent.azure_location))
+                else:
+                    client = MicrosoftClient((ms_token, ms_region))
                 try:
                     voices = client.get_available_voices()
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
+                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
+                    client = MicrosoftClient((ms_token, ms_region))
+                    voices = client.get_available_voices()
             elif self.tts == 'Google TTS':
-                client = GoogleClient(credentials=google_cred_path)
+                generate = self.parent.ui.checkBox_google.isChecked()
+                client = GoogleClient(credentials=self.parent.google_credential)
                 try:
                     voices = client.get_voices()
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
+                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
+                    client = GoogleClient(credentials=self.parent.default_google_credential)
+                    voices = client.get_voices()
             elif self.tts == 'Sherpa-ONNX':
                 client = SherpaOnnxClient()
                 try:
@@ -1251,15 +1322,39 @@ class VoiceLoader(QRunnable):
             self.signals.voicesFetched.emit(voices)
             count = len(voices)
             print(f"Voice fetch time for {self.tts}: {time.perf_counter() - start}")
-            for index, x in enumerate(voices):
-                time.sleep(0.001)
-                self.signals.itemGenerated.emit(index, x, count)
+            if generate:
+                for index, x in enumerate(voices):
+                    time.sleep(0.001)
+                    self.signals.itemGenerated.emit(index, x, count)
             self.signals.completed.emit()
         except Exception as e:
             print(e)
 
 
+def setup_logging():
+    if getattr(sys, 'frozen', False):
+        # If the application is run as a bundle, use the AppData directory
+        log_dir = os.path.join(os.path.expanduser("~"), 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
+    else:
+        # If run from a Python environment, use the current directory
+        log_dir = os.path.dirname(os.path.abspath(__file__))
+
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_file = os.path.join(log_dir, 'configure.log')
+
+    logging.basicConfig(
+        filename=log_file,
+        filemode='a',
+        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+        level=logging.DEBUG
+    )
+
+    return log_file
+
+
 if __name__ == "__main__":
+    logfile = setup_logging()
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
