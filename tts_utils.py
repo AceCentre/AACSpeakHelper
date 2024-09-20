@@ -147,7 +147,6 @@ def init_googleTrans_tts():
 
         Returns: GoogleTransTTS
     """
-    print('New Instance')
     voiceid = utils.config.get('googleTransTTS', 'voiceid')
     client = GoogleTransClient(voiceid)
     return GoogleTransTTS(client)
