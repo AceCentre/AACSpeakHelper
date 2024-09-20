@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>627</width>
-    <height>418</height>
+    <width>631</width>
+    <height>427</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -279,41 +279,7 @@
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_13">
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="lineEdit_region">
-                   <property name="styleSheet">
-                    <string notr="true">border-style: outset;
-border-width: 1px;
-border-radius: 10px;
-min-width: 10em;
-padding: 6px;</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="lineEdit_key">
-                   <property name="styleSheet">
-                    <string notr="true">border-style: outset;
-border-width: 1px;
-border-radius: 10px;
-min-width: 10em;
-padding: 6px;</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_9">
-                   <property name="font">
-                    <font>
-                     <pointsize>10</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Key:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
+                 <item row="3" column="0">
                   <widget class="QLabel" name="label_10">
                    <property name="font">
                     <font>
@@ -325,23 +291,30 @@ padding: 6px;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="2">
-                  <widget class="QPushButton" name="pushButton">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>30</height>
-                    </size>
-                   </property>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="lineEdit_key">
                    <property name="styleSheet">
-                    <string notr="true"/>
-                   </property>
-                   <property name="text">
-                    <string>Load Credentials</string>
+                    <string notr="true">border-style: outset;
+border-width: 1px;
+border-radius: 10px;
+min-width: 10em;
+padding: 6px;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="2">
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_9">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Key:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="2">
                   <widget class="QCheckBox" name="checkBox_saveAudio">
                    <property name="font">
                     <font>
@@ -350,6 +323,51 @@ padding: 6px;</string>
                    </property>
                    <property name="text">
                     <string>Save Audio File</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QPushButton" name="validate_azure">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
+                   <property name="text">
+                    <string>Validate Credentials</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QLineEdit" name="lineEdit_region">
+                   <property name="styleSheet">
+                    <string notr="true">border-style: outset;
+border-width: 1px;
+border-radius: 10px;
+min-width: 10em;
+padding: 6px;</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <widget class="QCheckBox" name="checkBox_azure">
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Refresh Voice Models Upon validation</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
@@ -394,6 +412,30 @@ padding: 6px;</string>
            <item row="0" column="0">
             <widget class="QWidget" name="gridWidget_2" native="true">
              <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="2">
+               <widget class="QPushButton" name="browseButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Browse</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="credsFilePathEdit">
+                <property name="styleSheet">
+                 <string notr="true">border-style: outset;
+border-width: 1px;
+border-radius: 10px;
+min-width: 10em;
+padding: 6px;</string>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_6">
                 <property name="font">
@@ -406,7 +448,23 @@ padding: 6px;</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="3">
+              <item row="0" column="3">
+               <widget class="QPushButton" name="validate_google">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Validate Credentials</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="4">
                <widget class="QGroupBox" name="groupBox_3">
                 <property name="font">
                  <font>
@@ -479,19 +537,23 @@ padding: 6px;</string>
                 </layout>
                </widget>
               </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="credsFilePathEdit">
-                <property name="styleSheet">
-                 <string notr="true">border-style: outset;
-border-width: 1px;
-border-radius: 10px;
-min-width: 10em;
-padding: 6px;</string>
+              <item row="3" column="0" colspan="4">
+               <widget class="QLineEdit" name="search_language_google">
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>Search Language</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="1" colspan="2">
+              <item row="1" column="1">
                <widget class="QCheckBox" name="checkBox_saveAudio_gTTS">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Save Audio File</string>
                 </property>
@@ -500,26 +562,18 @@ padding: 6px;</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
-               <widget class="QPushButton" name="browseButton">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="checkBox_google">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
                 </property>
                 <property name="text">
-                 <string>Browse</string>
+                 <string>Refresh Voice Models Upon validation</string>
                 </property>
-               </widget>
-              </item>
-              <item row="3" column="0" colspan="3">
-               <widget class="QLineEdit" name="search_language_google">
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-                <property name="placeholderText">
-                 <string>Search Language</string>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -857,12 +911,11 @@ padding: 6px;</string>
                <number>0</number>
               </property>
               <item>
-               <widget class="QLineEdit" name="onnx_cache"/>
-              </item>
-              <item>
-               <widget class="QPushButton" name="download_cache">
-                <property name="text">
-                 <string>Download</string>
+               <widget class="QLineEdit" name="onnx_cache">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                 </font>
                 </property>
                </widget>
               </item>
@@ -878,6 +931,11 @@ padding: 6px;</string>
            </item>
            <item>
             <widget class="QCheckBox" name="onnx_checkBox">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Save Audio</string>
              </property>
@@ -885,6 +943,11 @@ padding: 6px;</string>
            </item>
            <item>
             <widget class="QLineEdit" name="search_language">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
              </property>
@@ -1509,13 +1572,6 @@ padding: 6px;</string>
            <widget class="QPushButton" name="open_cache">
             <property name="text">
              <string>Open Cache</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="updateButton">
-            <property name="text">
-             <string>Update Voice Models</string>
             </property>
            </widget>
           </item>

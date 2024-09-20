@@ -28,7 +28,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(627, 418)
+        Widget.resize(631, 427)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -141,15 +141,13 @@ class Ui_Widget(object):
         self.frame_4.setFrameShadow(QFrame.Raised)
         self.gridLayout_13 = QGridLayout(self.frame_4)
         self.gridLayout_13.setObjectName(u"gridLayout_13")
-        self.lineEdit_region = QLineEdit(self.frame_4)
-        self.lineEdit_region.setObjectName(u"lineEdit_region")
-        self.lineEdit_region.setStyleSheet(u"border-style: outset;\n"
-"border-width: 1px;\n"
-"border-radius: 10px;\n"
-"min-width: 10em;\n"
-"padding: 6px;")
+        self.label_10 = QLabel(self.frame_4)
+        self.label_10.setObjectName(u"label_10")
+        font1 = QFont()
+        font1.setPointSize(10)
+        self.label_10.setFont(font1)
 
-        self.gridLayout_13.addWidget(self.lineEdit_region, 0, 1, 1, 1)
+        self.gridLayout_13.addWidget(self.label_10, 3, 0, 1, 1)
 
         self.lineEdit_key = QLineEdit(self.frame_4)
         self.lineEdit_key.setObjectName(u"lineEdit_key")
@@ -159,35 +157,44 @@ class Ui_Widget(object):
 "min-width: 10em;\n"
 "padding: 6px;")
 
-        self.gridLayout_13.addWidget(self.lineEdit_key, 2, 1, 1, 1)
+        self.gridLayout_13.addWidget(self.lineEdit_key, 1, 1, 1, 1)
 
         self.label_9 = QLabel(self.frame_4)
         self.label_9.setObjectName(u"label_9")
-        font1 = QFont()
-        font1.setPointSize(10)
         self.label_9.setFont(font1)
 
-        self.gridLayout_13.addWidget(self.label_9, 0, 0, 1, 1)
-
-        self.label_10 = QLabel(self.frame_4)
-        self.label_10.setObjectName(u"label_10")
-        self.label_10.setFont(font1)
-
-        self.gridLayout_13.addWidget(self.label_10, 2, 0, 1, 1)
-
-        self.pushButton = QPushButton(self.frame_4)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setMinimumSize(QSize(0, 30))
-        self.pushButton.setStyleSheet(u"")
-
-        self.gridLayout_13.addWidget(self.pushButton, 0, 2, 1, 1)
+        self.gridLayout_13.addWidget(self.label_9, 1, 0, 1, 1)
 
         self.checkBox_saveAudio = QCheckBox(self.frame_4)
         self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
         self.checkBox_saveAudio.setFont(font1)
         self.checkBox_saveAudio.setChecked(True)
 
-        self.gridLayout_13.addWidget(self.checkBox_saveAudio, 2, 2, 1, 1)
+        self.gridLayout_13.addWidget(self.checkBox_saveAudio, 3, 2, 1, 1)
+
+        self.validate_azure = QPushButton(self.frame_4)
+        self.validate_azure.setObjectName(u"validate_azure")
+        self.validate_azure.setMinimumSize(QSize(0, 30))
+        self.validate_azure.setStyleSheet(u"")
+
+        self.gridLayout_13.addWidget(self.validate_azure, 1, 2, 1, 1)
+
+        self.lineEdit_region = QLineEdit(self.frame_4)
+        self.lineEdit_region.setObjectName(u"lineEdit_region")
+        self.lineEdit_region.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_13.addWidget(self.lineEdit_region, 3, 1, 1, 1)
+
+        self.checkBox_azure = QCheckBox(self.frame_4)
+        self.checkBox_azure.setObjectName(u"checkBox_azure")
+        self.checkBox_azure.setFont(font1)
+        self.checkBox_azure.setChecked(True)
+
+        self.gridLayout_13.addWidget(self.checkBox_azure, 4, 1, 1, 1)
 
 
         self.gridLayout_4.addWidget(self.frame_4, 0, 0, 1, 2)
@@ -212,11 +219,38 @@ class Ui_Widget(object):
         self.gridWidget_2.setObjectName(u"gridWidget_2")
         self.gridLayout_6 = QGridLayout(self.gridWidget_2)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
+        self.browseButton = QPushButton(self.gridWidget_2)
+        self.browseButton.setObjectName(u"browseButton")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.browseButton.sizePolicy().hasHeightForWidth())
+        self.browseButton.setSizePolicy(sizePolicy2)
+
+        self.gridLayout_6.addWidget(self.browseButton, 0, 2, 1, 1)
+
+        self.credsFilePathEdit = QLineEdit(self.gridWidget_2)
+        self.credsFilePathEdit.setObjectName(u"credsFilePathEdit")
+        self.credsFilePathEdit.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_6.addWidget(self.credsFilePathEdit, 0, 1, 1, 1)
+
         self.label_6 = QLabel(self.gridWidget_2)
         self.label_6.setObjectName(u"label_6")
         self.label_6.setFont(font1)
 
         self.gridLayout_6.addWidget(self.label_6, 0, 0, 1, 1)
+
+        self.validate_google = QPushButton(self.gridWidget_2)
+        self.validate_google.setObjectName(u"validate_google")
+        sizePolicy2.setHeightForWidth(self.validate_google.sizePolicy().hasHeightForWidth())
+        self.validate_google.setSizePolicy(sizePolicy2)
+
+        self.gridLayout_6.addWidget(self.validate_google, 0, 3, 1, 1)
 
         self.groupBox_3 = QGroupBox(self.gridWidget_2)
         self.groupBox_3.setObjectName(u"groupBox_3")
@@ -245,39 +279,27 @@ class Ui_Widget(object):
         self.verticalLayout_8.addWidget(self.listWidget_voicegoogle)
 
 
-        self.gridLayout_6.addWidget(self.groupBox_3, 4, 0, 1, 3)
-
-        self.credsFilePathEdit = QLineEdit(self.gridWidget_2)
-        self.credsFilePathEdit.setObjectName(u"credsFilePathEdit")
-        self.credsFilePathEdit.setStyleSheet(u"border-style: outset;\n"
-"border-width: 1px;\n"
-"border-radius: 10px;\n"
-"min-width: 10em;\n"
-"padding: 6px;")
-
-        self.gridLayout_6.addWidget(self.credsFilePathEdit, 0, 1, 1, 1)
-
-        self.checkBox_saveAudio_gTTS = QCheckBox(self.gridWidget_2)
-        self.checkBox_saveAudio_gTTS.setObjectName(u"checkBox_saveAudio_gTTS")
-        self.checkBox_saveAudio_gTTS.setChecked(True)
-
-        self.gridLayout_6.addWidget(self.checkBox_saveAudio_gTTS, 2, 1, 1, 2)
-
-        self.browseButton = QPushButton(self.gridWidget_2)
-        self.browseButton.setObjectName(u"browseButton")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.browseButton.sizePolicy().hasHeightForWidth())
-        self.browseButton.setSizePolicy(sizePolicy2)
-
-        self.gridLayout_6.addWidget(self.browseButton, 0, 2, 1, 1)
+        self.gridLayout_6.addWidget(self.groupBox_3, 4, 0, 1, 4)
 
         self.search_language_google = QLineEdit(self.gridWidget_2)
         self.search_language_google.setObjectName(u"search_language_google")
         self.search_language_google.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_6.addWidget(self.search_language_google, 3, 0, 1, 3)
+        self.gridLayout_6.addWidget(self.search_language_google, 3, 0, 1, 4)
+
+        self.checkBox_saveAudio_gTTS = QCheckBox(self.gridWidget_2)
+        self.checkBox_saveAudio_gTTS.setObjectName(u"checkBox_saveAudio_gTTS")
+        self.checkBox_saveAudio_gTTS.setFont(font1)
+        self.checkBox_saveAudio_gTTS.setChecked(True)
+
+        self.gridLayout_6.addWidget(self.checkBox_saveAudio_gTTS, 1, 1, 1, 1)
+
+        self.checkBox_google = QCheckBox(self.gridWidget_2)
+        self.checkBox_google.setObjectName(u"checkBox_google")
+        self.checkBox_google.setFont(font1)
+        self.checkBox_google.setChecked(True)
+
+        self.gridLayout_6.addWidget(self.checkBox_google, 2, 1, 1, 1)
 
 
         self.gridLayout_11.addWidget(self.gridWidget_2, 0, 0, 1, 1)
@@ -477,13 +499,9 @@ class Ui_Widget(object):
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.onnx_cache = QLineEdit(self.frame_3)
         self.onnx_cache.setObjectName(u"onnx_cache")
+        self.onnx_cache.setFont(font1)
 
         self.horizontalLayout_3.addWidget(self.onnx_cache)
-
-        self.download_cache = QPushButton(self.frame_3)
-        self.download_cache.setObjectName(u"download_cache")
-
-        self.horizontalLayout_3.addWidget(self.download_cache)
 
         self.cache_pushButton = QPushButton(self.frame_3)
         self.cache_pushButton.setObjectName(u"cache_pushButton")
@@ -495,11 +513,13 @@ class Ui_Widget(object):
 
         self.onnx_checkBox = QCheckBox(self.onnx_page)
         self.onnx_checkBox.setObjectName(u"onnx_checkBox")
+        self.onnx_checkBox.setFont(font1)
 
         self.verticalLayout_17.addWidget(self.onnx_checkBox)
 
         self.search_language = QLineEdit(self.onnx_page)
         self.search_language.setObjectName(u"search_language")
+        self.search_language.setFont(font1)
         self.search_language.setAlignment(Qt.AlignCenter)
         self.search_language.setClearButtonEnabled(False)
 
@@ -827,11 +847,6 @@ class Ui_Widget(object):
 
         self.horizontalLayout.addWidget(self.open_cache)
 
-        self.updateButton = QPushButton(self.frame)
-        self.updateButton.setObjectName(u"updateButton")
-
-        self.horizontalLayout.addWidget(self.updateButton)
-
         self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_4)
@@ -932,16 +947,25 @@ class Ui_Widget(object):
         self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
         self.groupBox_2.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
-        self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
-        self.pushButton.setText(QCoreApplication.translate("Widget", u"Load Credentials", None))
+        self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+#if QT_CONFIG(tooltip)
+        self.validate_azure.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><p><span style=\" font-size:10pt;\">Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.validate_azure.setText(QCoreApplication.translate("Widget", u"Validate Credentials", None))
+        self.checkBox_azure.setText(QCoreApplication.translate("Widget", u"Refresh Voice Models Upon validation", None))
         self.search_language_azure.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
-        self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
-        self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.browseButton.setText(QCoreApplication.translate("Widget", u"Browse", None))
+        self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
+#if QT_CONFIG(tooltip)
+        self.validate_google.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><p><span style=\" font-size:10pt;\">Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.validate_google.setText(QCoreApplication.translate("Widget", u"Validate Credentials", None))
+        self.groupBox_3.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
         self.search_language_google.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
+        self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+        self.checkBox_google.setText(QCoreApplication.translate("Widget", u"Refresh Voice Models Upon validation", None))
         self.checkBox_saveAudio_googleTrans.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language_googleTrans.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Widget", u"Voice Model", None))
@@ -961,7 +985,6 @@ class Ui_Widget(object):
         self.label_5.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
-        self.download_cache.setText(QCoreApplication.translate("Widget", u"Download", None))
         self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
         self.onnx_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
@@ -1011,7 +1034,6 @@ class Ui_Widget(object):
         self.spinBox_threshold.setSuffix(QCoreApplication.translate("Widget", u" day(s)", None))
         self.clear_cache.setText(QCoreApplication.translate("Widget", u"Clear Cache", None))
         self.open_cache.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
-        self.updateButton.setText(QCoreApplication.translate("Widget", u"Update Voice Models", None))
         self.checkBox_stats.setText(QCoreApplication.translate("Widget", u"Allow The Application to Collecting Stats", None))
         self.label_11.setText(QCoreApplication.translate("Widget", u"Application Path: ", None))
         self.appPath.setText("")
