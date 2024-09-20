@@ -65,23 +65,21 @@ VALID_STYLES = [
 
 
 def init(module):
+    """Initialize utils module making it in memory instead of one time instance.
+
+        Args:
+            module (str): Instance of utils module.
+        Returns: None
+    """
     global utils
     utils = module
 
 
-class GSPEAK:
-
-    def __init__(self):
-        self.audio = io.BytesIO()
-
-    def synth_to_bytes(self, text: str):
-        with self.audio as file:
-            gTTS(text=text, lang=utils.config.get('translate', 'endLang')).write_to_fp(file)
-            file.seek(0)
-            return file.read()
-
-
 def init_azure_tts():
+    """Initialize unique instance of MicrosoftTTS based on the changes in voiceid.
+
+        Returns: MicrosoftTTS
+    """
     key = utils.config.get('azureTTS', 'key')
     if key == '':
         key = ms_token
@@ -96,15 +94,26 @@ def init_azure_tts():
 
 
 def init_google_tts():
-    creds_file = utils.config.get('googleTTS', 'creds_file')
-    if creds_file == '':
-        creds_file = google_cred_path
+    """Initialize unique instance of GoogleTTS based on the changes in voiceid.
+
+        Returns: GoogleTTS
+    """
+    creds_file_location = utils.config.get('googleTTS', 'creds_file')
+    if os.path.isfile(creds_file_location):
+        creds_file = creds_file_location
+    else:
+        creds_file = utils.get_google_credentials(google_cred_path)
     voiceid = utils.config.get('googleTTS', 'voiceid')
     client = GoogleClient(credentials=creds_file)
-    return GoogleTTS(client=client, voice=voiceid)
+    tts = GoogleTTS(client=client, voice=voiceid)
+    return tts
 
 
 def init_sapi_tts():
+    """Initialize unique instance of SAPITTS based on the changes in voiceid.
+
+        Returns: SAPITTS
+    """
     voiceid = utils.config.get('sapi5TTS', 'voiceid')
     client = SAPIClient()
     client._client.setProperty('voice', voiceid)
@@ -114,6 +123,10 @@ def init_sapi_tts():
 
 
 def init_onnx_tts():
+    """Initialize unique instance of GoogleTTS based on the changes in voiceid.
+
+        Returns: SherpaOnnxTTS
+    """
     voiceid = utils.config.get('SherpaOnnxTTS', 'voiceid')
     if getattr(sys, 'frozen', False):
         home_directory = os.path.expanduser("~")
@@ -130,12 +143,25 @@ def init_onnx_tts():
 
 
 def init_googleTrans_tts():
+    """Initialize unique instance of GoogleTransTTS based on the changes in voiceid.
+
+        Returns: GoogleTransTTS
+    """
     voiceid = utils.config.get('googleTransSTTS', 'voiceid')
     client = GoogleTransClient(voiceid)
     return GoogleTransTTS(client)
 
 
 def speak(text='', list_voices=False):
+    """Speak function convert text parameter to speech. This function decides which TTS Engine will be used
+        base on the config file received.
+        Then, it will call the specific function that will create the TTS Engine Instance.
+
+        Args:
+            text (str): String to be spoken by specific TTS Engine.
+            list_voices (bool): Use to return all available voices only instead of speech function .
+        Returns: None
+    """
     global voices
     global ready
     ready = False
@@ -143,6 +169,7 @@ def speak(text='', list_voices=False):
     voice_id = utils.config.get(ttsengine, 'voiceid')
     if not voice_id:
         voice_id = utils.config.get('TTS', 'voiceid')
+    # Check if text is existing in the database
     file = utils.check_history(text)
     if file is not None and os.path.isfile(file):
         if list_voices:
@@ -162,9 +189,6 @@ def speak(text='', list_voices=False):
     else:
         # Initialize the TTS client based on the engine
         match ttsengine:
-            case 'gspeak':
-                # TODO: check tts-wrapper
-                tts_client = GSPEAK()
             case 'azureTTS':
                 tts_client = init_azure_tts()
             case 'googleTTS':
@@ -191,8 +215,6 @@ def speak(text='', list_voices=False):
         voices = None
     # Use the TTS client
     match ttsengine:
-        case 'gspeak':
-            gSpeak(text, ttsengine, tts_client)
         case 'azureTTS':
             if utils.args['style']:
                 azureSpeak(text, ttsengine, tts_client, utils.args['style'], utils.args['styledegree'])
@@ -215,10 +237,32 @@ def speak(text='', list_voices=False):
 
 
 def onnxSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+        will be pass to ttsWrapperSpeak.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            tts_client: Instance of TTS Engine.
+        Returns: None
+    """
+
     ttsWrapperSpeak(text, tts_client, engine)
 
 
 def azureSpeak(text: str, engine, tts_client, style: str = None, styledegree: float = None):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+        will be pass to ttsWrapperSpeak.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            tts_client: Instance of TTS Engine.
+            style (str): Set the SSML style format and wrap the text string.
+            styledegree (float): Set the SSML style degree format and wrap the text string.
+        Returns: None
+    """
+
     if style:
         # Check if the provided style is in the valid styles array
         if style in VALID_STYLES:
@@ -238,23 +282,54 @@ def azureSpeak(text: str, engine, tts_client, style: str = None, styledegree: fl
 
 
 def googleSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+        will be pass to ttsWrapperSpeak.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            tts_client: Instance of TTS Engine.
+        Returns: None
+    """
     ttsWrapperSpeak(text, tts_client, engine)
 
 
 def googleTransSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+        will be pass to ttsWrapperSpeak.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            tts_client: Instance of TTS Engine.
+        Returns: None
+    """
     ttsWrapperSpeak(text, tts_client, engine)
 
 
 def sapiSpeak(text: str, engine, tts_client):
-    ttsWrapperSpeak(text, tts_client, engine)
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+        will be pass to ttsWrapperSpeak.
 
-
-def gSpeak(text: str, engine, tts_client):
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            tts_client: Instance of TTS Engine.
+        Returns: None
+    """
     ttsWrapperSpeak(text, tts_client, engine)
 
 
 def ttsWrapperSpeak(text: str, tts, engine):
-    # Render the audio to bytes
+    """This function identifies the TTS Instance and set format of the text and audio format.
+        Then, create a Thread that synthesize text to audio.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            tts: Instance of TTS Engine.
+            engine (str): Name of the TTS Engine.
+        Returns: None
+    """
     fmt = 'wav'
     match tts:
         case SherpaOnnxTTS():
@@ -264,8 +339,6 @@ def ttsWrapperSpeak(text: str, tts, engine):
         case AbstractTTS():
             tts.ssml.clear_ssml()
             text = tts.ssml.add(text)
-        case GSPEAK():
-            fmt = 'mp3'
     try:
         playText = Thread(target=playSpeech, args=(text, engine, fmt, tts))
         playText.start()
@@ -274,6 +347,16 @@ def ttsWrapperSpeak(text: str, tts, engine):
 
 
 def playSpeech(text, engine, file_format, tts):
+    """This function is run by a Thread which synthesize text to audio.
+        While audio is streaming, the audio is also saving in parallel.
+
+        Args:
+            text (str): String to be spoken by the TTS Engine.
+            engine (str): Name of the TTS Engine.
+            file_format (str): Audio Format.
+            tts: Instance of TTS Engine.
+        Returns: None
+    """
     start = time.perf_counter()
     save_audio_file = utils.config.getboolean('TTS', 'save_audio_file')
     if save_audio_file:
