@@ -1,0 +1,672 @@
+[
+  {
+    "Language Code": "af",
+    "Mapped Code": "af",
+    "Translated Text": "Hallo.Dit is hoe hierdie stem klink"
+  },
+  {
+    "Language Code": "am",
+    "Mapped Code": "am",
+    "Translated Text": "ሀሎ።ይህ ድምፅ እንደዚህ ይመስላል"
+  },
+  {
+    "Language Code": "amh",
+    "Mapped Code": "am",
+    "Translated Text": "ሀሎ።ይህ ድምፅ እንደዚህ ይመስላል"
+  },
+  {
+    "Language Code": "ar",
+    "Mapped Code": "ar",
+    "Translated Text": "مرحبًا.هذا ما يبدو عليه هذا الصوت"
+  },
+  {
+    "Language Code": "ara",
+    "Mapped Code": "ar",
+    "Translated Text": "مرحبًا.هذا ما يبدو عليه هذا الصوت"
+  },
+  {
+    "Language Code": "az",
+    "Mapped Code": "az",
+    "Translated Text": "Salam.Bu səs kimi səslənir budur"
+  },
+  {
+    "Language Code": "ben",
+    "Mapped Code": "bn",
+    "Translated Text": "হ্যালো।এই ভয়েসটি এটাই শোনাচ্ছে"
+  },
+  {
+    "Language Code": "bg",
+    "Mapped Code": "bg",
+    "Translated Text": "Здравейте.Ето как звучи този глас"
+  },
+  {
+    "Language Code": "bn",
+    "Mapped Code": "bn",
+    "Translated Text": "হ্যালো।এই ভয়েসটি এটাই শোনাচ্ছে"
+  },
+  {
+    "Language Code": "bs",
+    "Mapped Code": "bs",
+    "Translated Text": "Pozdrav.To je ono što ovaj glas zvuči kao"
+  },
+  {
+    "Language Code": "bul",
+    "Mapped Code": "bg",
+    "Translated Text": "Здравейте.Ето как звучи този глас"
+  },
+  {
+    "Language Code": "ca",
+    "Mapped Code": "ca",
+    "Translated Text": "Hola.Això és el que sona aquesta veu"
+  },
+  {
+    "Language Code": "cat",
+    "Mapped Code": "ca",
+    "Translated Text": "Hola.Això és el que sona aquesta veu"
+  },
+  {
+    "Language Code": "cs",
+    "Mapped Code": "cs",
+    "Translated Text": "Ahoj.Takto zní tento hlas"
+  },
+  {
+    "Language Code": "cy",
+    "Mapped Code": "cy",
+    "Translated Text": "Helo.Dyma sut mae'r llais hwn yn swnio"
+  },
+  {
+    "Language Code": "cym",
+    "Mapped Code": "cy",
+    "Translated Text": "Helo.Dyma sut mae'r llais hwn yn swnio"
+  },
+  {
+    "Language Code": "da",
+    "Mapped Code": "da",
+    "Translated Text": "Hej.Sådan lyder denne stemme"
+  },
+  {
+    "Language Code": "de",
+    "Mapped Code": "de",
+    "Translated Text": "Hallo.So klingt diese Stimme"
+  },
+  {
+    "Language Code": "deu",
+    "Mapped Code": "de",
+    "Translated Text": "Hallo.So klingt diese Stimme"
+  },
+  {
+    "Language Code": "el",
+    "Mapped Code": "el",
+    "Translated Text": "Γειά σου.Αυτό ακούγεται αυτή η φωνή"
+  },
+  {
+    "Language Code": "ell",
+    "Mapped Code": "el",
+    "Translated Text": "Γειά σου.Αυτό ακούγεται αυτή η φωνή"
+  },
+  {
+    "Language Code": "en",
+    "Mapped Code": "en",
+    "Translated Text": "Hello. This is what this voice sounds like"
+  },
+  {
+    "Language Code": "eng",
+    "Mapped Code": "en",
+    "Translated Text": "Hello. This is what this voice sounds like"
+  },
+  {
+    "Language Code": "es",
+    "Mapped Code": "es",
+    "Translated Text": "Hola.Así es como suena esta voz"
+  },
+  {
+    "Language Code": "et",
+    "Mapped Code": "et",
+    "Translated Text": "Tere.See kõlab see hääl"
+  },
+  {
+    "Language Code": "eu",
+    "Mapped Code": "eu",
+    "Translated Text": "Kaixo.Hau da ahots hau bezala"
+  },
+  {
+    "Language Code": "eus",
+    "Mapped Code": "eu",
+    "Translated Text": "Kaixo.Hau da ahots hau bezala"
+  },
+  {
+    "Language Code": "fa",
+    "Mapped Code": "fa",
+    "Translated Text": "سلاماین همان چیزی است که این صدا به نظر می رسد"
+  },
+  {
+    "Language Code": "fas",
+    "Mapped Code": "fa",
+    "Translated Text": "سلاماین همان چیزی است که این صدا به نظر می رسد"
+  },
+  {
+    "Language Code": "fi",
+    "Mapped Code": "fi",
+    "Translated Text": "Hei.Tämä on tämä ääni"
+  },
+  {
+    "Language Code": "fin",
+    "Mapped Code": "fi",
+    "Translated Text": "Hei.Tämä on tämä ääni"
+  },
+  {
+    "Language Code": "fr",
+    "Mapped Code": "fr",
+    "Translated Text": "Bonjour.C'est à quoi ressemble cette voix"
+  },
+  {
+    "Language Code": "fra",
+    "Mapped Code": "fr",
+    "Translated Text": "Bonjour.C'est à quoi ressemble cette voix"
+  },
+  {
+    "Language Code": "ga",
+    "Mapped Code": "ga",
+    "Translated Text": "Dia duit.Is é seo an chuma atá ar an nguth seo"
+  },
+  {
+    "Language Code": "gl",
+    "Mapped Code": "gl",
+    "Translated Text": "Ola.Isto é o que soa esta voz"
+  },
+  {
+    "Language Code": "gu",
+    "Mapped Code": "gu",
+    "Translated Text": "હેલો.આ અવાજ જેવું લાગે છે"
+  },
+  {
+    "Language Code": "guj",
+    "Mapped Code": "gu",
+    "Translated Text": "હેલો.આ અવાજ જેવું લાગે છે"
+  },
+  {
+    "Language Code": "hat",
+    "Mapped Code": "ht",
+    "Translated Text": "Bonjou.Sa a se sa vwa sa a son tankou"
+  },
+  {
+    "Language Code": "hau",
+    "Mapped Code": "ha",
+    "Translated Text": "Sannu.Wannan shi ne abin da wannan sauti yake kamar"
+  },
+  {
+    "Language Code": "he",
+    "Mapped Code": "he",
+    "Translated Text": "שלום.כך נשמע הקול הזה"
+  },
+  {
+    "Language Code": "heb",
+    "Mapped Code": "he",
+    "Translated Text": "שלום.כך נשמע הקול הזה"
+  },
+  {
+    "Language Code": "hi",
+    "Mapped Code": "hi",
+    "Translated Text": "नमस्ते।यह आवाज की तरह लगती है"
+  },
+  {
+    "Language Code": "hin",
+    "Mapped Code": "hi",
+    "Translated Text": "नमस्ते।यह आवाज की तरह लगती है"
+  },
+  {
+    "Language Code": "hr",
+    "Mapped Code": "hr",
+    "Translated Text": "Zdravo.Ovako zvuči ovaj glas"
+  },
+  {
+    "Language Code": "hu",
+    "Mapped Code": "hu",
+    "Translated Text": "Helló.Így hangzik ez a hang"
+  },
+  {
+    "Language Code": "hun",
+    "Mapped Code": "hu",
+    "Translated Text": "Helló.Így hangzik ez a hang"
+  },
+  {
+    "Language Code": "hy",
+    "Mapped Code": "hy",
+    "Translated Text": "ԲարեւԱհա թե ինչ է հնչում այս ձայնը"
+  },
+  {
+    "Language Code": "id",
+    "Mapped Code": "id",
+    "Translated Text": "Halo.Seperti inilah suara ini"
+  },
+  {
+    "Language Code": "ind",
+    "Mapped Code": "id",
+    "Translated Text": "Halo.Seperti inilah suara ini"
+  },
+  {
+    "Language Code": "is",
+    "Mapped Code": "is",
+    "Translated Text": "Halló.Svona hljómar þessi rödd"
+  },
+  {
+    "Language Code": "isl",
+    "Mapped Code": "is",
+    "Translated Text": "Halló.Svona hljómar þessi rödd"
+  },
+  {
+    "Language Code": "it",
+    "Mapped Code": "it",
+    "Translated Text": "Ciao.Questo è quello che suona questa voce"
+  },
+  {
+    "Language Code": "ja",
+    "Mapped Code": "ja",
+    "Translated Text": "こんにちは。これがこの声がどのように聞こえるかです"
+  },
+  {
+    "Language Code": "ka",
+    "Mapped Code": "ka",
+    "Translated Text": "გამარჯობა.ასე ჟღერს ეს ხმა"
+  },
+  {
+    "Language Code": "kan",
+    "Mapped Code": "kn",
+    "Translated Text": "ಹಲೋ.ಈ ಧ್ವನಿಯು ಹೀಗಿದೆ"
+  },
+  {
+    "Language Code": "kaz",
+    "Mapped Code": "kk",
+    "Translated Text": "Сәлем.Бұл дауыс сияқты"
+  },
+  {
+    "Language Code": "khm",
+    "Mapped Code": "km",
+    "Translated Text": "សួស្តីនេះគឺជាអ្វីដែលសំលេងនេះស្តាប់ទៅ"
+  },
+  {
+    "Language Code": "kir",
+    "Mapped Code": "ky",
+    "Translated Text": "Салам.Бул үн угулат"
+  },
+  {
+    "Language Code": "kk",
+    "Mapped Code": "kk",
+    "Translated Text": "Сәлем.Бұл дауыс сияқты"
+  },
+  {
+    "Language Code": "km",
+    "Mapped Code": "km",
+    "Translated Text": "សួស្តីនេះគឺជាអ្វីដែលសំលេងនេះស្តាប់ទៅ"
+  },
+  {
+    "Language Code": "kn",
+    "Mapped Code": "kn",
+    "Translated Text": "ಹಲೋ.ಈ ಧ್ವನಿಯು ಹೀಗಿದೆ"
+  },
+  {
+    "Language Code": "ko",
+    "Mapped Code": "ko",
+    "Translated Text": "안녕하세요.이것이이 목소리의 모습입니다"
+  },
+  {
+    "Language Code": "kor",
+    "Mapped Code": "ko",
+    "Translated Text": "안녕하세요.이것이이 목소리의 모습입니다"
+  },
+  {
+    "Language Code": "lao",
+    "Mapped Code": "lo",
+    "Translated Text": "ສະບາຍດີ.ນີ້ແມ່ນສິ່ງທີ່ສຽງນີ້ມີສຽງຄ້າຍຄື"
+  },
+  {
+    "Language Code": "lat",
+    "Mapped Code": "la",
+    "Translated Text": "Salve.Hoc est quod hoc vocem sonat"
+  },
+  {
+    "Language Code": "lav",
+    "Mapped Code": "lv",
+    "Translated Text": "Sveiki.Tas ir tas, kā izklausās šī balss"
+  },
+  {
+    "Language Code": "lo",
+    "Mapped Code": "lo",
+    "Translated Text": "ສະບາຍດີ.ນີ້ແມ່ນສິ່ງທີ່ສຽງນີ້ມີສຽງຄ້າຍຄື"
+  },
+  {
+    "Language Code": "lt",
+    "Mapped Code": "lt",
+    "Translated Text": "Sveiki.Štai kaip šis balsas skamba"
+  },
+  {
+    "Language Code": "lv",
+    "Mapped Code": "lv",
+    "Translated Text": "Sveiki.Tas ir tas, kā izklausās šī balss"
+  },
+  {
+    "Language Code": "mal",
+    "Mapped Code": "ml",
+    "Translated Text": "ഹലോ.ഇതാണ് ഈ ശബ്ദം ഇഷ്ടപ്പെടുന്നത്"
+  },
+  {
+    "Language Code": "mar",
+    "Mapped Code": "mr",
+    "Translated Text": "हॅलो.हा आवाज असेच वाटतो"
+  },
+  {
+    "Language Code": "mk",
+    "Mapped Code": "mk",
+    "Translated Text": "ЗдравоОва е како звучи овој глас"
+  },
+  {
+    "Language Code": "ml",
+    "Mapped Code": "ml",
+    "Translated Text": "ഹലോ.ഇതാണ് ഈ ശബ്ദം ഇഷ്ടപ്പെടുന്നത്"
+  },
+  {
+    "Language Code": "mlg",
+    "Mapped Code": "mg",
+    "Translated Text": "Salama.Toy izany ny feon-peo"
+  },
+  {
+    "Language Code": "mn",
+    "Mapped Code": "mn",
+    "Translated Text": "Сайн уу. Сайн уу.Энэ дуу хоолой шиг сонсогдож байна"
+  },
+  {
+    "Language Code": "mon",
+    "Mapped Code": "mn",
+    "Translated Text": "Сайн уу. Сайн уу.Энэ дуу хоолой шиг сонсогдож байна"
+  },
+  {
+    "Language Code": "mr",
+    "Mapped Code": "mr",
+    "Translated Text": "हॅलो.हा आवाज असेच वाटतो"
+  },
+  {
+    "Language Code": "ms",
+    "Mapped Code": "ms",
+    "Translated Text": "Helo.Inilah suara suara ini"
+  },
+  {
+    "Language Code": "mt",
+    "Mapped Code": "mt",
+    "Translated Text": "Hello.Dan huwa dak li tinstema 'din il-vuċi"
+  },
+  {
+    "Language Code": "my",
+    "Mapped Code": "my",
+    "Translated Text": "မင်္ဂလာပါ။ဤအသံသည်ဤအသံသည်တူသောအသံဖြစ်သည်"
+  },
+  {
+    "Language Code": "mya",
+    "Mapped Code": "my",
+    "Translated Text": "မင်္ဂလာပါ။ဤအသံသည်ဤအသံသည်တူသောအသံဖြစ်သည်"
+  },
+  {
+    "Language Code": "ne",
+    "Mapped Code": "ne",
+    "Translated Text": "नमस्कार।यो यो आवाज जस्तो देखिन्छ"
+  },
+  {
+    "Language Code": "nl",
+    "Mapped Code": "nl",
+    "Translated Text": "Hallo.Dit is hoe deze stem klinkt"
+  },
+  {
+    "Language Code": "nld",
+    "Mapped Code": "nl",
+    "Translated Text": "Hallo.Dit is hoe deze stem klinkt"
+  },
+  {
+    "Language Code": "nya",
+    "Mapped Code": "ny",
+    "Translated Text": "Moni.Izi ndi zomwe mawuwa akumveka ngati"
+  },
+  {
+    "Language Code": "or",
+    "Mapped Code": "or",
+    "Translated Text": "ନମସ୍କାର।ଏହି ସ୍ୱର ଏହିପରି ଅଟେ |"
+  },
+  {
+    "Language Code": "pa",
+    "Mapped Code": "pa",
+    "Translated Text": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ.ਇਹੀ ਆਵਾਜ਼ ਵਰਗੀ ਹੈ"
+  },
+  {
+    "Language Code": "pan",
+    "Mapped Code": "pa",
+    "Translated Text": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ.ਇਹੀ ਆਵਾਜ਼ ਵਰਗੀ ਹੈ"
+  },
+  {
+    "Language Code": "pl",
+    "Mapped Code": "pl",
+    "Translated Text": "Cześć.Tak brzmi ten głos"
+  },
+  {
+    "Language Code": "pol",
+    "Mapped Code": "pl",
+    "Translated Text": "Cześć.Tak brzmi ten głos"
+  },
+  {
+    "Language Code": "por",
+    "Mapped Code": "pt",
+    "Translated Text": "Olá.É assim que essa voz parece"
+  },
+  {
+    "Language Code": "ps",
+    "Mapped Code": "ps",
+    "Translated Text": "سلام.دا هغه څه دي چې غږ یې خوښوي"
+  },
+  {
+    "Language Code": "pt",
+    "Mapped Code": "pt",
+    "Translated Text": "Olá.É assim que essa voz parece"
+  },
+  {
+    "Language Code": "ro",
+    "Mapped Code": "ro",
+    "Translated Text": "Buna ziua.Așa sună această voce"
+  },
+  {
+    "Language Code": "ron",
+    "Mapped Code": "ro",
+    "Translated Text": "Buna ziua.Așa sună această voce"
+  },
+  {
+    "Language Code": "ru",
+    "Mapped Code": "ru",
+    "Translated Text": "Привет.Это то, на что звучит этот голос"
+  },
+  {
+    "Language Code": "rus",
+    "Mapped Code": "ru",
+    "Translated Text": "Привет.Это то, на что звучит этот голос"
+  },
+  {
+    "Language Code": "si",
+    "Mapped Code": "si",
+    "Translated Text": "ආයුබෝවන්.මෙම හ voice කැමති වන්නේ මෙයයි"
+  },
+  {
+    "Language Code": "sk",
+    "Mapped Code": "sk",
+    "Translated Text": "Ahoj.Takto tento hlas znie"
+  },
+  {
+    "Language Code": "sl",
+    "Mapped Code": "sl",
+    "Translated Text": "Pozdravljeni.Tako zveni ta glas"
+  },
+  {
+    "Language Code": "smo",
+    "Mapped Code": "sm",
+    "Translated Text": "Talofa.O le mea lea e foliga mai ai lenei leo"
+  },
+  {
+    "Language Code": "sna",
+    "Mapped Code": "sn",
+    "Translated Text": "Mhoro.Izvi ndizvo zvinonzwika izwi iri"
+  },
+  {
+    "Language Code": "so",
+    "Mapped Code": "so",
+    "Translated Text": "Salaan.Tani waa waxa codkani u eg yahay"
+  },
+  {
+    "Language Code": "som",
+    "Mapped Code": "so",
+    "Translated Text": "Salaan.Tani waa waxa codkani u eg yahay"
+  },
+  {
+    "Language Code": "spa",
+    "Mapped Code": "es",
+    "Translated Text": "Hola.Así es como suena esta voz"
+  },
+  {
+    "Language Code": "sq",
+    "Mapped Code": "sq",
+    "Translated Text": "Përshëndetje.Kjo është ajo që tingëllon ky zë"
+  },
+  {
+    "Language Code": "sqi",
+    "Mapped Code": "sq",
+    "Translated Text": "Përshëndetje.Kjo është ajo që tingëllon ky zë"
+  },
+  {
+    "Language Code": "sr",
+    "Mapped Code": "sr",
+    "Translated Text": "Здраво.То је оно што овај глас звучи као"
+  },
+  {
+    "Language Code": "su",
+    "Mapped Code": "su",
+    "Translated Text": "Halo.Ieu naon sora ieu sapertos"
+  },
+  {
+    "Language Code": "sun",
+    "Mapped Code": "su",
+    "Translated Text": "Halo.Ieu naon sora ieu sapertos"
+  },
+  {
+    "Language Code": "sv",
+    "Mapped Code": "sv",
+    "Translated Text": "Hej.Så här låter den här rösten"
+  },
+  {
+    "Language Code": "sw",
+    "Mapped Code": "sw",
+    "Translated Text": "Hello.Hivi ndivyo sauti hii inasikika"
+  },
+  {
+    "Language Code": "swe",
+    "Mapped Code": "sv",
+    "Translated Text": "Hej.Så här låter den här rösten"
+  },
+  {
+    "Language Code": "ta",
+    "Mapped Code": "ta",
+    "Translated Text": "வணக்கம்.இந்த குரல் இதுதான்"
+  },
+  {
+    "Language Code": "tam",
+    "Mapped Code": "ta",
+    "Translated Text": "வணக்கம்.இந்த குரல் இதுதான்"
+  },
+  {
+    "Language Code": "te",
+    "Mapped Code": "te",
+    "Translated Text": "హలో.ఈ వాయిస్ ఇలా ఉంటుంది"
+  },
+  {
+    "Language Code": "tel",
+    "Mapped Code": "te",
+    "Translated Text": "హలో.ఈ వాయిస్ ఇలా ఉంటుంది"
+  },
+  {
+    "Language Code": "tgk",
+    "Mapped Code": "tg",
+    "Translated Text": "Салом.Ин аст он чизе ки ин овоз садо медиҳад"
+  },
+  {
+    "Language Code": "tgl",
+    "Mapped Code": "tl",
+    "Translated Text": "Kumusta.Ito ang tunog ng boses na ito"
+  },
+  {
+    "Language Code": "th",
+    "Mapped Code": "th",
+    "Translated Text": "สวัสดีนี่คือสิ่งที่เสียงนี้ฟังดูเหมือน"
+  },
+  {
+    "Language Code": "tha",
+    "Mapped Code": "th",
+    "Translated Text": "สวัสดีนี่คือสิ่งที่เสียงนี้ฟังดูเหมือน"
+  },
+  {
+    "Language Code": "tr",
+    "Mapped Code": "tr",
+    "Translated Text": "Merhaba.Bu ses böyle geliyor"
+  },
+  {
+    "Language Code": "tur",
+    "Mapped Code": "tr",
+    "Translated Text": "Merhaba.Bu ses böyle geliyor"
+  },
+  {
+    "Language Code": "uig",
+    "Mapped Code": "ug",
+    "Translated Text": "ياخشىمۇسىز.بۇ بۇ ئاۋازغا ئوخشايدۇ"
+  },
+  {
+    "Language Code": "uk",
+    "Mapped Code": "uk",
+    "Translated Text": "Привіт.Це звучить цей голос"
+  },
+  {
+    "Language Code": "ukr",
+    "Mapped Code": "uk",
+    "Translated Text": "Привіт.Це звучить цей голос"
+  },
+  {
+    "Language Code": "ur",
+    "Mapped Code": "ur",
+    "Translated Text": "ہیلویہ آواز یہی آواز آتی ہے"
+  },
+  {
+    "Language Code": "urd",
+    "Mapped Code": "ur",
+    "Translated Text": "ہیلویہ آواز یہی آواز آتی ہے"
+  },
+  {
+    "Language Code": "uz",
+    "Mapped Code": "uz",
+    "Translated Text": "Salom.Bu ovoz shunchalik tuyuladi"
+  },
+  {
+    "Language Code": "uzb",
+    "Mapped Code": "uz",
+    "Translated Text": "Salom.Bu ovoz shunchalik tuyuladi"
+  },
+  {
+    "Language Code": "vi",
+    "Mapped Code": "vi",
+    "Translated Text": "Xin chào.Đây là những gì giọng nói này nghe như"
+  },
+  {
+    "Language Code": "vie",
+    "Mapped Code": "vi",
+    "Translated Text": "Xin chào.Đây là những gì giọng nói này nghe như"
+  },
+  {
+    "Language Code": "yor",
+    "Mapped Code": "yo",
+    "Translated Text": "Pẹlẹ o.Eyi ni ohun ti ohun yii dabi"
+  },
+  {
+    "Language Code": "zu",
+    "Mapped Code": "zu",
+    "Translated Text": "Sawubona.Yilokhu izwi elizwakala lithanda"
+  }
+]
