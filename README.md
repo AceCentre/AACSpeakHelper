@@ -16,7 +16,7 @@ Imagine you are a Ukrainian speaker with limited English skills residing in a ca
 
 ## Compatibility
 
-AAC Speak Helper is a lightweight Windows executable. It can be called from any AAC app on Windows that can run external programs.
+AAC Speak Helper is a Windows executable. It can be called from any AAC app on Windows that can run external programs. To make it work you currently need to run the server and client separately - but also edit your pagesets and a speak button. 
 
 ## How it Works
 
@@ -132,7 +132,12 @@ See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/
     
 
 
-## Troubleshooting
+## License
 
-As this is a quick prototype, it may have some issues. For issues regarding connectivity or functionality, please note that Azure, Google Cloud and translation services require an online connection. If you have any questions, suggestions, or contributions, please create a pull request or [donate](https://acecentre.org.uk/get-involved/donate).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Acknowledgments
+
+- [Ace Centre](https://acecentre.org.uk/) for funding and supporting this project.
+- Will Wade (TTS-Wrapper is heavily dependent on this project. Will converted the MMS models to sherpa-onnx which is used in this project)
+- Gavin Henderson and all of the Ace Centre team for their support and feedback.
