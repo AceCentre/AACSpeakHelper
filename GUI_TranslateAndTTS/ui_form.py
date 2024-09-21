@@ -18,9 +18,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractButton, QAbstractSpinBox, QApplication, QCheckBox,
     QComboBox, QDialogButtonBox, QFormLayout, QFrame,
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QPushButton,
-    QSizePolicy, QSlider, QSpacerItem, QSpinBox,
-    QStackedWidget, QTabWidget, QTextBrowser, QVBoxLayout,
+    QLineEdit, QListWidget, QListWidgetItem, QProgressBar,
+    QPushButton, QSizePolicy, QSlider, QSpacerItem,
+    QSpinBox, QStackedWidget, QTabWidget, QVBoxLayout,
     QWidget)
 import resources_rc
 
@@ -28,7 +28,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(619, 400)
+        Widget.resize(631, 427)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -58,14 +58,16 @@ class Ui_Widget(object):
         self.gridLayout_12 = QGridLayout(self.TextToSpeechSetting)
         self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.ttsEngineBox = QComboBox(self.TextToSpeechSetting)
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
-        self.ttsEngineBox.addItem("")
+        icon1 = QIcon()
+        icon1.addFile(u":/images/images/downloaded.ico", QSize(), QIcon.Normal, QIcon.Off)
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
+        icon2 = QIcon()
+        icon2.addFile(u":/images/images/unavailable.ico", QSize(), QIcon.Normal, QIcon.Off)
+        self.ttsEngineBox.addItem(icon2, "")
+        self.ttsEngineBox.addItem(icon2, "")
         self.ttsEngineBox.setObjectName(u"ttsEngineBox")
         self.ttsEngineBox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
@@ -94,53 +96,32 @@ class Ui_Widget(object):
         self.gridLayout_4.setSpacing(3)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.label_9 = QLabel(self.formWidget_4)
-        self.label_9.setObjectName(u"label_9")
-        font = QFont()
-        font.setPointSize(10)
-        self.label_9.setFont(font)
-
-        self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
-
-        self.checkBox_saveAudio = QCheckBox(self.formWidget_4)
-        self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
-        self.checkBox_saveAudio.setFont(font)
-        self.checkBox_saveAudio.setChecked(True)
-
-        self.gridLayout_4.addWidget(self.checkBox_saveAudio, 2, 1, 1, 1)
-
-        self.lineEdit_region = QLineEdit(self.formWidget_4)
-        self.lineEdit_region.setObjectName(u"lineEdit_region")
-
-        self.gridLayout_4.addWidget(self.lineEdit_region, 1, 1, 1, 1)
-
-        self.label_10 = QLabel(self.formWidget_4)
-        self.label_10.setObjectName(u"label_10")
-        self.label_10.setFont(font)
-
-        self.gridLayout_4.addWidget(self.label_10, 1, 0, 1, 1)
-
-        self.lineEdit_key = QLineEdit(self.formWidget_4)
-        self.lineEdit_key.setObjectName(u"lineEdit_key")
-
-        self.gridLayout_4.addWidget(self.lineEdit_key, 0, 1, 1, 1)
-
         self.groupBox_2 = QGroupBox(self.formWidget_4)
         self.groupBox_2.setObjectName(u"groupBox_2")
-        font1 = QFont()
-        font1.setPointSize(10)
-        font1.setBold(True)
-        self.groupBox_2.setFont(font1)
-        self.groupBox_2.setStyleSheet(u"border: ")
+        font = QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        self.groupBox_2.setFont(font)
+        self.groupBox_2.setStyleSheet(u"")
         self.groupBox_2.setAlignment(Qt.AlignCenter)
         self.groupBox_2.setFlat(False)
         self.verticalLayout_7 = QVBoxLayout(self.groupBox_2)
         self.verticalLayout_7.setSpacing(0)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.verticalLayout_7.setContentsMargins(2, 2, 2, 2)
+        self.azure_progressBar = QProgressBar(self.groupBox_2)
+        self.azure_progressBar.setObjectName(u"azure_progressBar")
+        self.azure_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.azure_progressBar.setStyleSheet(u"")
+        self.azure_progressBar.setValue(0)
+        self.azure_progressBar.setAlignment(Qt.AlignCenter)
+        self.azure_progressBar.setTextVisible(True)
+
+        self.verticalLayout_7.addWidget(self.azure_progressBar)
+
         self.listWidget_voiceazure = QListWidget(self.groupBox_2)
         self.listWidget_voiceazure.setObjectName(u"listWidget_voiceazure")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
@@ -152,7 +133,78 @@ class Ui_Widget(object):
         self.verticalLayout_7.addWidget(self.listWidget_voiceazure)
 
 
-        self.gridLayout_4.addWidget(self.groupBox_2, 3, 0, 1, 2)
+        self.gridLayout_4.addWidget(self.groupBox_2, 5, 0, 1, 2)
+
+        self.frame_4 = QFrame(self.formWidget_4)
+        self.frame_4.setObjectName(u"frame_4")
+        self.frame_4.setFrameShape(QFrame.StyledPanel)
+        self.frame_4.setFrameShadow(QFrame.Raised)
+        self.gridLayout_13 = QGridLayout(self.frame_4)
+        self.gridLayout_13.setObjectName(u"gridLayout_13")
+        self.label_10 = QLabel(self.frame_4)
+        self.label_10.setObjectName(u"label_10")
+        font1 = QFont()
+        font1.setPointSize(10)
+        self.label_10.setFont(font1)
+
+        self.gridLayout_13.addWidget(self.label_10, 3, 0, 1, 1)
+
+        self.lineEdit_key = QLineEdit(self.frame_4)
+        self.lineEdit_key.setObjectName(u"lineEdit_key")
+        self.lineEdit_key.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_13.addWidget(self.lineEdit_key, 1, 1, 1, 1)
+
+        self.label_9 = QLabel(self.frame_4)
+        self.label_9.setObjectName(u"label_9")
+        self.label_9.setFont(font1)
+
+        self.gridLayout_13.addWidget(self.label_9, 1, 0, 1, 1)
+
+        self.checkBox_saveAudio = QCheckBox(self.frame_4)
+        self.checkBox_saveAudio.setObjectName(u"checkBox_saveAudio")
+        self.checkBox_saveAudio.setFont(font1)
+        self.checkBox_saveAudio.setChecked(True)
+
+        self.gridLayout_13.addWidget(self.checkBox_saveAudio, 3, 2, 1, 1)
+
+        self.validate_azure = QPushButton(self.frame_4)
+        self.validate_azure.setObjectName(u"validate_azure")
+        self.validate_azure.setMinimumSize(QSize(0, 30))
+        self.validate_azure.setStyleSheet(u"")
+
+        self.gridLayout_13.addWidget(self.validate_azure, 1, 2, 1, 1)
+
+        self.lineEdit_region = QLineEdit(self.frame_4)
+        self.lineEdit_region.setObjectName(u"lineEdit_region")
+        self.lineEdit_region.setStyleSheet(u"border-style: outset;\n"
+"border-width: 1px;\n"
+"border-radius: 10px;\n"
+"min-width: 10em;\n"
+"padding: 6px;")
+
+        self.gridLayout_13.addWidget(self.lineEdit_region, 3, 1, 1, 1)
+
+        self.checkBox_azure = QCheckBox(self.frame_4)
+        self.checkBox_azure.setObjectName(u"checkBox_azure")
+        self.checkBox_azure.setFont(font1)
+        self.checkBox_azure.setChecked(True)
+
+        self.gridLayout_13.addWidget(self.checkBox_azure, 4, 1, 1, 1)
+
+
+        self.gridLayout_4.addWidget(self.frame_4, 0, 0, 1, 2)
+
+        self.search_language_azure = QLineEdit(self.formWidget_4)
+        self.search_language_azure.setObjectName(u"search_language_azure")
+        self.search_language_azure.setAlignment(Qt.AlignCenter)
+        self.search_language_azure.setClearButtonEnabled(False)
+
+        self.gridLayout_4.addWidget(self.search_language_azure, 1, 0, 1, 1)
 
 
         self.gridLayout_10.addWidget(self.formWidget_4, 0, 0, 1, 1)
@@ -167,12 +219,6 @@ class Ui_Widget(object):
         self.gridWidget_2.setObjectName(u"gridWidget_2")
         self.gridLayout_6 = QGridLayout(self.gridWidget_2)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
-        self.label_6 = QLabel(self.gridWidget_2)
-        self.label_6.setObjectName(u"label_6")
-        self.label_6.setFont(font)
-
-        self.gridLayout_6.addWidget(self.label_6, 0, 0, 1, 1)
-
         self.browseButton = QPushButton(self.gridWidget_2)
         self.browseButton.setObjectName(u"browseButton")
         sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -193,18 +239,38 @@ class Ui_Widget(object):
 
         self.gridLayout_6.addWidget(self.credsFilePathEdit, 0, 1, 1, 1)
 
-        self.checkBox_saveAudio_gTTS = QCheckBox(self.gridWidget_2)
-        self.checkBox_saveAudio_gTTS.setObjectName(u"checkBox_saveAudio_gTTS")
-        self.checkBox_saveAudio_gTTS.setChecked(True)
+        self.label_6 = QLabel(self.gridWidget_2)
+        self.label_6.setObjectName(u"label_6")
+        self.label_6.setFont(font1)
 
-        self.gridLayout_6.addWidget(self.checkBox_saveAudio_gTTS, 2, 1, 1, 2)
+        self.gridLayout_6.addWidget(self.label_6, 0, 0, 1, 1)
+
+        self.validate_google = QPushButton(self.gridWidget_2)
+        self.validate_google.setObjectName(u"validate_google")
+        sizePolicy2.setHeightForWidth(self.validate_google.sizePolicy().hasHeightForWidth())
+        self.validate_google.setSizePolicy(sizePolicy2)
+
+        self.gridLayout_6.addWidget(self.validate_google, 0, 3, 1, 1)
 
         self.groupBox_3 = QGroupBox(self.gridWidget_2)
         self.groupBox_3.setObjectName(u"groupBox_3")
-        self.groupBox_3.setFont(font1)
+        self.groupBox_3.setFont(font)
         self.groupBox_3.setAlignment(Qt.AlignCenter)
         self.verticalLayout_8 = QVBoxLayout(self.groupBox_3)
+        self.verticalLayout_8.setSpacing(0)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
+        self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
+        self.gTTS_progressBar = QProgressBar(self.groupBox_3)
+        self.gTTS_progressBar.setObjectName(u"gTTS_progressBar")
+        self.gTTS_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.gTTS_progressBar.setFont(font)
+        self.gTTS_progressBar.setStyleSheet(u"")
+        self.gTTS_progressBar.setValue(0)
+        self.gTTS_progressBar.setAlignment(Qt.AlignCenter)
+        self.gTTS_progressBar.setTextVisible(True)
+
+        self.verticalLayout_8.addWidget(self.gTTS_progressBar)
+
         self.listWidget_voicegoogle = QListWidget(self.groupBox_3)
         self.listWidget_voicegoogle.setObjectName(u"listWidget_voicegoogle")
         self.listWidget_voicegoogle.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -213,7 +279,27 @@ class Ui_Widget(object):
         self.verticalLayout_8.addWidget(self.listWidget_voicegoogle)
 
 
-        self.gridLayout_6.addWidget(self.groupBox_3, 3, 0, 1, 3)
+        self.gridLayout_6.addWidget(self.groupBox_3, 4, 0, 1, 4)
+
+        self.search_language_google = QLineEdit(self.gridWidget_2)
+        self.search_language_google.setObjectName(u"search_language_google")
+        self.search_language_google.setAlignment(Qt.AlignCenter)
+
+        self.gridLayout_6.addWidget(self.search_language_google, 3, 0, 1, 4)
+
+        self.checkBox_saveAudio_gTTS = QCheckBox(self.gridWidget_2)
+        self.checkBox_saveAudio_gTTS.setObjectName(u"checkBox_saveAudio_gTTS")
+        self.checkBox_saveAudio_gTTS.setFont(font1)
+        self.checkBox_saveAudio_gTTS.setChecked(True)
+
+        self.gridLayout_6.addWidget(self.checkBox_saveAudio_gTTS, 1, 1, 1, 1)
+
+        self.checkBox_google = QCheckBox(self.gridWidget_2)
+        self.checkBox_google.setObjectName(u"checkBox_google")
+        self.checkBox_google.setFont(font1)
+        self.checkBox_google.setChecked(True)
+
+        self.gridLayout_6.addWidget(self.checkBox_google, 2, 1, 1, 1)
 
 
         self.gridLayout_11.addWidget(self.gridWidget_2, 0, 0, 1, 1)
@@ -223,25 +309,42 @@ class Ui_Widget(object):
         self.gspeak_page.setObjectName(u"gspeak_page")
         self.verticalLayout_11 = QVBoxLayout(self.gspeak_page)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
-        self.gridLayout_3 = QGridLayout()
-        self.gridLayout_3.setObjectName(u"gridLayout_3")
-        self.textBrowser = QTextBrowser(self.gspeak_page)
-        self.textBrowser.setObjectName(u"textBrowser")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.textBrowser.sizePolicy().hasHeightForWidth())
-        self.textBrowser.setSizePolicy(sizePolicy3)
-        self.textBrowser.setAutoFillBackground(True)
+        self.checkBox_saveAudio_googleTrans = QCheckBox(self.gspeak_page)
+        self.checkBox_saveAudio_googleTrans.setObjectName(u"checkBox_saveAudio_googleTrans")
+        self.checkBox_saveAudio_googleTrans.setChecked(True)
 
-        self.gridLayout_3.addWidget(self.textBrowser, 0, 0, 1, 1)
+        self.verticalLayout_11.addWidget(self.checkBox_saveAudio_googleTrans)
+
+        self.search_language_googleTrans = QLineEdit(self.gspeak_page)
+        self.search_language_googleTrans.setObjectName(u"search_language_googleTrans")
+        self.search_language_googleTrans.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_11.addWidget(self.search_language_googleTrans)
+
+        self.groupBox_4 = QGroupBox(self.gspeak_page)
+        self.groupBox_4.setObjectName(u"groupBox_4")
+        self.groupBox_4.setFont(font)
+        self.groupBox_4.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_19 = QVBoxLayout(self.groupBox_4)
+        self.verticalLayout_19.setSpacing(0)
+        self.verticalLayout_19.setObjectName(u"verticalLayout_19")
+        self.verticalLayout_19.setContentsMargins(2, 2, 2, 2)
+        self.googleTransTTS_progressBar = QProgressBar(self.groupBox_4)
+        self.googleTransTTS_progressBar.setObjectName(u"googleTransTTS_progressBar")
+        self.googleTransTTS_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.googleTransTTS_progressBar.setFont(font)
+        self.googleTransTTS_progressBar.setValue(24)
+        self.googleTransTTS_progressBar.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_19.addWidget(self.googleTransTTS_progressBar)
+
+        self.listWidget_voicegoogleTrans = QListWidget(self.groupBox_4)
+        self.listWidget_voicegoogleTrans.setObjectName(u"listWidget_voicegoogleTrans")
+
+        self.verticalLayout_19.addWidget(self.listWidget_voicegoogleTrans)
 
 
-        self.verticalLayout_11.addLayout(self.gridLayout_3)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 140, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.verticalLayout_11.addItem(self.verticalSpacer_2)
+        self.verticalLayout_11.addWidget(self.groupBox_4)
 
         self.stackedWidget.addWidget(self.gspeak_page)
         self.sapi_page = QWidget()
@@ -386,6 +489,7 @@ class Ui_Widget(object):
         self.onnx_page.setObjectName(u"onnx_page")
         self.verticalLayout_17 = QVBoxLayout(self.onnx_page)
         self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.verticalLayout_17.setContentsMargins(2, 2, 2, 2)
         self.frame_3 = QFrame(self.onnx_page)
         self.frame_3.setObjectName(u"frame_3")
         self.frame_3.setFrameShape(QFrame.StyledPanel)
@@ -395,13 +499,9 @@ class Ui_Widget(object):
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.onnx_cache = QLineEdit(self.frame_3)
         self.onnx_cache.setObjectName(u"onnx_cache")
+        self.onnx_cache.setFont(font1)
 
         self.horizontalLayout_3.addWidget(self.onnx_cache)
-
-        self.download_cache = QPushButton(self.frame_3)
-        self.download_cache.setObjectName(u"download_cache")
-
-        self.horizontalLayout_3.addWidget(self.download_cache)
 
         self.cache_pushButton = QPushButton(self.frame_3)
         self.cache_pushButton.setObjectName(u"cache_pushButton")
@@ -413,20 +513,45 @@ class Ui_Widget(object):
 
         self.onnx_checkBox = QCheckBox(self.onnx_page)
         self.onnx_checkBox.setObjectName(u"onnx_checkBox")
+        self.onnx_checkBox.setFont(font1)
 
         self.verticalLayout_17.addWidget(self.onnx_checkBox)
 
         self.search_language = QLineEdit(self.onnx_page)
         self.search_language.setObjectName(u"search_language")
+        self.search_language.setFont(font1)
         self.search_language.setAlignment(Qt.AlignCenter)
         self.search_language.setClearButtonEnabled(False)
 
         self.verticalLayout_17.addWidget(self.search_language)
 
-        self.onnx_listWidget = QListWidget(self.onnx_page)
-        self.onnx_listWidget.setObjectName(u"onnx_listWidget")
+        self.groupBox = QGroupBox(self.onnx_page)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setFont(font)
+        self.groupBox.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_18 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_18.setSpacing(0)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.verticalLayout_18.setContentsMargins(2, 2, 2, 2)
+        self.onnx_progressBar = QProgressBar(self.groupBox)
+        self.onnx_progressBar.setObjectName(u"onnx_progressBar")
+        self.onnx_progressBar.setMaximumSize(QSize(16777215, 15))
+        self.onnx_progressBar.setStyleSheet(u"")
+        self.onnx_progressBar.setValue(0)
+        self.onnx_progressBar.setAlignment(Qt.AlignCenter)
+        self.onnx_progressBar.setTextVisible(True)
+        self.onnx_progressBar.setInvertedAppearance(False)
 
-        self.verticalLayout_17.addWidget(self.onnx_listWidget)
+        self.verticalLayout_18.addWidget(self.onnx_progressBar)
+
+        self.onnx_listWidget = QListWidget(self.groupBox)
+        self.onnx_listWidget.setObjectName(u"onnx_listWidget")
+        self.onnx_listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.verticalLayout_18.addWidget(self.onnx_listWidget)
+
+
+        self.verticalLayout_17.addWidget(self.groupBox)
 
         self.stackedWidget.addWidget(self.onnx_page)
 
@@ -439,11 +564,11 @@ class Ui_Widget(object):
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
         self.checkBox_translate = QCheckBox(self.TranslationSettings)
         self.checkBox_translate.setObjectName(u"checkBox_translate")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.checkBox_translate.sizePolicy().hasHeightForWidth())
-        self.checkBox_translate.setSizePolicy(sizePolicy4)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.checkBox_translate.sizePolicy().hasHeightForWidth())
+        self.checkBox_translate.setSizePolicy(sizePolicy3)
         font2 = QFont()
         font2.setBold(True)
         self.checkBox_translate.setFont(font2)
@@ -453,8 +578,8 @@ class Ui_Widget(object):
 
         self.groupBox_translate = QGroupBox(self.TranslationSettings)
         self.groupBox_translate.setObjectName(u"groupBox_translate")
-        sizePolicy4.setHeightForWidth(self.groupBox_translate.sizePolicy().hasHeightForWidth())
-        self.groupBox_translate.setSizePolicy(sizePolicy4)
+        sizePolicy3.setHeightForWidth(self.groupBox_translate.sizePolicy().hasHeightForWidth())
+        self.groupBox_translate.setSizePolicy(sizePolicy3)
         self.groupBox_translate.setFont(font2)
         self.groupBox_translate.setAlignment(Qt.AlignCenter)
         self.groupBox_translate.setCheckable(False)
@@ -462,11 +587,11 @@ class Ui_Widget(object):
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.label_2 = QLabel(self.groupBox_translate)
         self.label_2.setObjectName(u"label_2")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy5)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
+        self.label_2.setSizePolicy(sizePolicy4)
         font3 = QFont()
         font3.setBold(False)
         self.label_2.setFont(font3)
@@ -650,16 +775,16 @@ class Ui_Widget(object):
 
         self.comboBox_targetLang = QComboBox(self.groupBox_translate)
         self.comboBox_targetLang.setObjectName(u"comboBox_targetLang")
-        sizePolicy4.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
-        self.comboBox_targetLang.setSizePolicy(sizePolicy4)
+        sizePolicy3.setHeightForWidth(self.comboBox_targetLang.sizePolicy().hasHeightForWidth())
+        self.comboBox_targetLang.setSizePolicy(sizePolicy3)
         self.comboBox_targetLang.setFont(font3)
 
         self.gridLayout_2.addWidget(self.comboBox_targetLang, 6, 1, 1, 1)
 
         self.checkBox_overwritepb = QCheckBox(self.groupBox_translate)
         self.checkBox_overwritepb.setObjectName(u"checkBox_overwritepb")
-        sizePolicy4.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
-        self.checkBox_overwritepb.setSizePolicy(sizePolicy4)
+        sizePolicy3.setHeightForWidth(self.checkBox_overwritepb.sizePolicy().hasHeightForWidth())
+        self.checkBox_overwritepb.setSizePolicy(sizePolicy3)
         self.checkBox_overwritepb.setFont(font3)
         self.checkBox_overwritepb.setChecked(True)
 
@@ -750,11 +875,11 @@ class Ui_Widget(object):
 
         self.frame_2 = QFrame(self.ApplicationSettings)
         self.frame_2.setObjectName(u"frame_2")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
-        self.frame_2.setSizePolicy(sizePolicy6)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
+        self.frame_2.setSizePolicy(sizePolicy5)
         self.frame_2.setFrameShape(QFrame.StyledPanel)
         self.frame_2.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_2 = QHBoxLayout(self.frame_2)
@@ -768,8 +893,11 @@ class Ui_Widget(object):
 
         self.appPath = QLineEdit(self.frame_2)
         self.appPath.setObjectName(u"appPath")
-        sizePolicy3.setHeightForWidth(self.appPath.sizePolicy().hasHeightForWidth())
-        self.appPath.setSizePolicy(sizePolicy3)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.appPath.sizePolicy().hasHeightForWidth())
+        self.appPath.setSizePolicy(sizePolicy6)
         self.appPath.setMinimumSize(QSize(300, 0))
         self.appPath.setMaximumSize(QSize(350, 16777215))
 
@@ -814,28 +942,33 @@ class Ui_Widget(object):
         self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Sherpa-ONNX", None))
         self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Azure TTS", None))
         self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"Google TTS", None))
-        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GSpeak", None))
+        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GoogleTranslator TTS", None))
         self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
-        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"NSS (Mac Only)", None))
-        self.ttsEngineBox.setItemText(6, QCoreApplication.translate("Widget", u"coqui_ai_tts (Unsupported)", None))
-        self.ttsEngineBox.setItemText(7, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
+        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
+        self.groupBox_2.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
+        self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
         self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
-        self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
-        self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
+#if QT_CONFIG(tooltip)
+        self.validate_azure.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><p><span style=\" font-size:10pt;\">Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.validate_azure.setText(QCoreApplication.translate("Widget", u"Validate Credentials", None))
+        self.checkBox_azure.setText(QCoreApplication.translate("Widget", u"Refresh Voice Models Upon validation", None))
+        self.search_language_azure.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
         self.browseButton.setText(QCoreApplication.translate("Widget", u"Browse", None))
-        self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+        self.label_6.setText(QCoreApplication.translate("Widget", u"Credentials File:", None))
+#if QT_CONFIG(tooltip)
+        self.validate_google.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><p><span style=\" font-size:10pt;\">Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.</span></p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.validate_google.setText(QCoreApplication.translate("Widget", u"Validate Credentials", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
-        self.textBrowser.setHtml(QCoreApplication.translate("Widget", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">Note: </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#"
-                        "001e00; background-color:#f5f6f7;\">1. Not all voices available. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Neue Montreal','Helvetica Neue','Helvetica','Arial','sans-serif','Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'; font-size:10pt; color:#001e00; background-color:#f5f6f7;\">2. Voice is chosen by default based on Target Lang</span></p></body></html>", None))
+        self.search_language_google.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
+        self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
+        self.checkBox_google.setText(QCoreApplication.translate("Widget", u"Refresh Voice Models Upon validation", None))
+        self.checkBox_saveAudio_googleTrans.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
+        self.search_language_googleTrans.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
+        self.groupBox_4.setTitle(QCoreApplication.translate("Widget", u"Voice Model", None))
         self.label_8.setText(QCoreApplication.translate("Widget", u"Rate:", None))
 #if QT_CONFIG(tooltip)
         self.label_12.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
@@ -852,10 +985,10 @@ class Ui_Widget(object):
         self.label_5.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("Widget", u"Voice ID:", None))
-        self.download_cache.setText(QCoreApplication.translate("Widget", u"Download", None))
         self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
         self.onnx_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
+        self.groupBox.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TextToSpeechSetting), QCoreApplication.translate("Widget", u"Tab 1", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
