@@ -23,10 +23,11 @@ jobs:
       run: |
         poetry install
     - name: Inject secrets into environment
+      shell: bash
       run: |
         echo "MICROSOFT_TOKEN=${{ secrets.MICROSOFT_TOKEN }}" >> $GITHUB_ENV
         echo "MICROSOFT_REGION=${{ secrets.MICROSOFT_REGION }}" >> $GITHUB_ENV
-        echo "GOOGLE_CREDS_JSON=${{ secrets.GOOGLE_CREDS_JSON }}" >> $GITHUB_ENV
+        printf "GOOGLE_CREDS_JSON=%s\n" "${{ secrets.GOOGLE_CREDS_JSON }}" >> $GITHUB_ENV
         echo "MICROSOFT_TOKEN_TRANS=${{ secrets.MICROSOFT_TOKEN_TRANS }}" >> $GITHUB_ENV      
     - name: Build Apps
       run: |
