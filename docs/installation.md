@@ -31,7 +31,6 @@ After installation, you need to configure the application. If you don't, it will
 * **Offline Support**: Only the SAPI engine operates entirely offline. We plan to support other future engines that do have offline support. Note that we do cache data, which can help.
 * **API Keys**: You'll need to obtain API keys for Azure and Google TTS. [Learn how to get them here](getting-keys-for-azure-or-google.md).
 * **gTTS**: This is a free but limited option. Your target language determines the voice and language in translation. This works because it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So, not all languages are supported.
-* **Kurdish TTS**: This engine has specific requirements. [See details.](broken-reference)
 
 **Data Collection**
 
