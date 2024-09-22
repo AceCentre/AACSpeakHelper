@@ -2,7 +2,7 @@
 
 #### Step 1: Download
 
-Download the installer from [our latest release.](https://github.com/AceCentre/AACSpeakHelper/releases/latest/download/AACSpeakHelper.exe)
+Download the installer from our [latest release.](https://github.com/AceCentre/AACSpeakHelper/releases/tag/vv2.2.1)
 
 #### Step 2: Install
 
@@ -16,8 +16,7 @@ Keep a note of the location of the Program Installation Directory. You need this
 
 After installation, you need to configure the application. If you don't, it will default to using a free speech service provided by voices at translate.google.com and translation by mymemory. You can edit the settings file by hand or use our GUI application `Configure TranslateAndTTS`, which you can find in your start menu and Desktop.
 
-\
-
+\\
 
 <figure><img src=".gitbook/assets/Screenshot 2023-10-20 at 17.26.52.png" alt=""><figcaption><p>Choose a TTS Provider and voice</p></figcaption></figure>
 
@@ -29,10 +28,10 @@ After installation, you need to configure the application. If you don't, it will
 
 **Text-to-Speech (TTS) Engine Selection**
 
-* **Offline Support**: Only the SAPI engine operates entirely offline. We plan to support other future engines that do have offline support. Note that we do cache data, which can help.&#x20;
+* **Offline Support**: Only the SAPI engine operates entirely offline. We plan to support other future engines that do have offline support. Note that we do cache data, which can help.
 * **API Keys**: You'll need to obtain API keys for Azure and Google TTS. [Learn how to get them here](getting-keys-for-azure-or-google.md).
 * **gTTS**: This is a free but limited option. Your target language determines the voice and language in translation. This works because it uses the voice found in the [Google Translate](https://translate.google.com) tool online. We don't use the translation service - just the voice. So, not all languages are supported.
-* **Kurdish TTS**: This engine has specific requirements. [See details.](specific-notes-on-kurdish-tts.md)
+* **Kurdish TTS**: This engine has specific requirements. [See details.](broken-reference)
 
 **Data Collection**
 
@@ -52,7 +51,7 @@ You can edit the settings file by hand if you wish. To do this, navigate to `%Ap
 
 #### Step 4. Add your support to your AAC software.
 
-See [the specific guides](aac-guides.md) for your AAC software  but in short;
+See [the specific guides](aac-guides.md) for your AAC software but in short;
 
 * Add a button to _copy_ the message bar (writing area)
 * Then, have an action on this button to call the executable found at `%UserProfile%\AppData\Local\Programs\Ace Centre\TranslateAndTTS\` (**Note: You will need to browse for the app. You can paste this link into the file explorer but you need to find the exact path on your own computer)**
