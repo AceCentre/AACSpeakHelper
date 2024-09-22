@@ -28,12 +28,15 @@ jobs:
         echo "MICROSOFT_TOKEN=${{ secrets.MICROSOFT_TOKEN }}" >> $GITHUB_ENV
         echo "MICROSOFT_REGION=${{ secrets.MICROSOFT_REGION }}" >> $GITHUB_ENV
         printf "GOOGLE_CREDS_JSON=%s\n" "${{ secrets.GOOGLE_CREDS_JSON }}" >> $GITHUB_ENV
-        echo "MICROSOFT_TOKEN_TRANS=${{ secrets.MICROSOFT_TOKEN_TRANS }}" >> $GITHUB_ENV      
+        echo "MICROSOFT_TOKEN_TRANS=${{ secrets.MICROSOFT_TOKEN_TRANS }}" >> $GITHUB_ENV   
+        echo "CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }}" >> $GITHUB_ENV   
+        poetry run python encrypt_config.py
     - name: Build Apps
       run: |
         poetry run python -c "import site; print(site.getsitepackages()[0])"
         .\build_executable.bat
       env:
+        CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }}
         MICROSOFT_TOKEN: ${{ secrets.MICROSOFT_TOKEN }}
         MICROSOFT_REGION: ${{ secrets.MICROSOFT_REGION }}
         GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}

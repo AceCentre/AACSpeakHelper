@@ -10,32 +10,177 @@ import time
 import uuid
 import warnings
 import io
+from cryptography.fernet import Fernet
 
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 import PySide6.QtCore
 import pyperclip
 import pyttsx3
-from PySide6.QtCore import Qt, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent
+from PySide6.QtCore import (
+    Qt,
+    QObject,
+    Signal,
+    QRunnable,
+    QThreadPool,
+    QFile,
+    QIODevice,
+    QTextStream,
+    QEvent,
+)
 from PySide6.QtGui import QFont, QIcon, QMovie, QColor
 from PySide6.QtWidgets import *
 from deep_translator import __all__ as providers
-from tts_wrapper import MicrosoftClient, GoogleClient, SherpaOnnxClient, GoogleTransClient
+from tts_wrapper import (
+    MicrosoftClient,
+    GoogleClient,
+    SherpaOnnxClient,
+    GoogleTransClient,
+)
 
 from item import Ui_item
 from language_dictionary import *
+
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
-from dotenv import load_dotenv
 
-if os.path.isfile('../.env'):
-    load_dotenv(dotenv_path='../.env')
 
-ms_token = os.getenv('MICROSOFT_TOKEN')
-ms_region = os.getenv('MICROSOFT_REGION')
-google_cred_path = os.getenv('GOOGLE_CREDS_PATH')
-ms_token_trans = os.getenv('MICROSOFT_TOKEN_TRANS')
+def get_google_creds_path():
+    """
+    Determines the path for google_creds.json based on whether the application is frozen.
+
+    Returns:
+        Path: The path to google_creds.json.
+    """
+    if getattr(sys, "frozen", False):
+        # Running as a bundled executable
+        if os.name == "nt":
+            # Windows
+            app_data = (
+                Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
+            )
+        else:
+            # macOS/Linux
+            app_data = Path.home() / ".config" / "AceCentre" / "AACSpeakHelper"
+    else:
+        # Running as a script (development)
+        app_data = Path(__file__).parent  # Root directory of the repo
+
+    return app_data / "google_creds.json"
+
+
+def load_config():
+    """
+    Load configuration from environment variables.
+    If not present, load from an encrypted file.
+    """
+    config = {}
+
+    # Attempt to load from environment variables
+    config["MICROSOFT_TOKEN"] = os.getenv("MICROSOFT_TOKEN")
+    config["MICROSOFT_REGION"] = os.getenv("MICROSOFT_REGION")
+    # Remove GOOGLE_CREDS_PATH from env vars
+    config["MICROSOFT_TOKEN_TRANS"] = os.getenv("MICROSOFT_TOKEN_TRANS")
+
+    # Check if all required environment variables are present
+    if all(config.values()):
+        logging.info("Loaded configuration from environment variables.")
+        return config
+
+    logging.info(
+        "Environment variables incomplete or not set. Attempting to load from encrypted file."
+    )
+
+    # Determine possible encrypted config paths
+    possible_paths = []
+    if getattr(sys, "frozen", False):
+        # Running as a bundled executable
+        executable_dir = os.path.dirname(sys.executable)
+        possible_paths.append(os.path.join(executable_dir, "config.enc"))
+        possible_paths.append(os.path.join(executable_dir, "_libs", "config.enc"))
+    else:
+        # Running as a script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        possible_paths.append(os.path.join(script_dir, "config.enc"))
+        possible_paths.append(os.path.join(script_dir, "_libs", "config.enc"))
+
+    encrypted_config_path = None
+    for path in possible_paths:
+        if os.path.isfile(path):
+            encrypted_config_path = path
+            break
+
+    if not encrypted_config_path:
+        raise FileNotFoundError(
+            f"Encrypted configuration file not found in any of the following paths: {possible_paths}"
+        )
+
+    encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
+    if not encryption_key:
+        raise EnvironmentError("CONFIG_ENCRYPTION_KEY environment variable is not set.")
+
+    try:
+        with open(encrypted_config_path, "rb") as f:
+            encrypted_data = f.read()
+
+        fernet = Fernet(encryption_key.encode())
+        decrypted_data = fernet.decrypt(encrypted_data)
+        decrypted_config = json.loads(decrypted_data.decode())
+
+        logging.info("Loaded configuration from encrypted file.")
+
+        # Write google_creds.json to the fixed path
+        google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON")
+        google_creds_path = get_google_creds_path()
+
+        if google_creds_json:
+            os.makedirs(os.path.dirname(google_creds_path), exist_ok=True)
+            with open(google_creds_path, "w") as f:
+                json.dump(json.loads(google_creds_json), f)
+            logging.info(f"Google credentials file created at {google_creds_path}")
+            config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
+        else:
+            raise ValueError("GOOGLE_CREDS_JSON not found in configuration.")
+
+        # Populate the remaining config from decrypted data
+        config["MICROSOFT_TOKEN"] = decrypted_config.get("MICROSOFT_TOKEN")
+        config["MICROSOFT_REGION"] = decrypted_config.get("MICROSOFT_REGION")
+        config["MICROSOFT_TOKEN_TRANS"] = decrypted_config.get("MICROSOFT_TOKEN_TRANS")
+
+        # Optional: Validate that all required fields are present
+        required_fields = [
+            "MICROSOFT_TOKEN",
+            "MICROSOFT_REGION",
+            "MICROSOFT_TOKEN_TRANS",
+            "GOOGLE_CREDS_PATH",
+        ]
+        missing_fields = [field for field in required_fields if not config.get(field)]
+        if missing_fields:
+            raise ValueError(
+                f"Missing configuration fields: {', '.join(missing_fields)}"
+            )
+
+        return config
+
+    except Exception as e:
+        logging.error(f"Failed to load configuration: {e}")
+        raise e
+
+
+# Load configuration
+try:
+    config = load_config()
+    logging.info("Configuration Loaded Successfully.")
+except Exception as error:
+    logging.debug(f"Error loading configuration: {error}")
+    # Optionally, handle the error (e.g., show a message to the user and exit)
+    sys.exit(1)
+
+ms_token = config.get("MICROSOFT_TOKEN")
+ms_region = config.get("MICROSOFT_REGION")
+google_creds_path = config.get("GOOGLE_CREDS_PATH")
+ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
 
 
 class Widget(QWidget):
@@ -61,9 +206,15 @@ class Widget(QWidget):
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         self.ui.onnx_progressBar.setVisible(False)
-        self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
-        self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
-        self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet("QScrollBar:vertical { width: 30px; }")
+        self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
+        self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
+        self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
         # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
         self.installEventFilter(self)
         self.ui.copyApp.clicked.connect(self.copyAppPath)
@@ -86,10 +237,11 @@ class Widget(QWidget):
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
 
-        voices_sapi = pyttsx3.init('sapi5').getProperty('voices')
+        voices_sapi = pyttsx3.init("sapi5").getProperty("voices")
         self.voices_sapi_dict = {}
         for voice in voices_sapi:
             import re
+
             # Define regular expressions to extract voice ID and name
             voice_id_pattern = r"id=(.*?)\n"
             name_pattern = r"name=(.*?)\n"
@@ -106,24 +258,52 @@ class Widget(QWidget):
 
         self.ui.listWidget_sapi.addItems(self.voices_sapi_dict.keys())
         self.ui.listWidget_sapi.setCurrentRow(0)
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             # Get the path to the user's app data folder
             home_directory = os.path.expanduser("~")
-            self.app_data_path = os.path.join(home_directory,
-                                              'AppData', 'Local', 'Programs', 'Ace Centre', 'AACSpeakHelper')
+            self.app_data_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Local",
+                "Programs",
+                "Ace Centre",
+                "AACSpeakHelper",
+            )
             self.ui.appPath.setText(self.app_data_path)
-            self.config_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                            'AACSpeakHelper', 'settings.cfg')
-            self.audio_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                           'AACSpeakHelper', 'Audio Files')
-            self.onnx_cache_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre',
-                                                'AACSpeakHelper', 'models')
+            self.config_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "settings.cfg",
+            )
+            self.audio_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "Audio Files",
+            )
+            self.onnx_cache_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "models",
+            )
         elif __file__:
-            self.app_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-            self.ui.appPath.setText(os.path.join(self.app_data_path, "AACSpeakHelperServer.py"))
-            self.config_path = os.path.join(self.app_data_path, 'settings.cfg')
-            self.audio_path = os.path.join(self.app_data_path, 'Audio Files')
-            self.onnx_cache_path = os.path.join(self.app_data_path, 'models')
+            self.app_data_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), os.pardir)
+            )
+            self.ui.appPath.setText(
+                os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
+            )
+            self.config_path = os.path.join(self.app_data_path, "settings.cfg")
+            self.audio_path = os.path.join(self.app_data_path, "Audio Files")
+            self.onnx_cache_path = os.path.join(self.app_data_path, "models")
         if not os.path.isdir(self.onnx_cache_path):
             os.makedirs(self.onnx_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
@@ -140,125 +320,168 @@ class Widget(QWidget):
             self.generate_googleTrans_voice_model()
             self.poolStarter()
             self.get_microsoft_language()
-            self.notranslate = self.ttsEngine = self.config.getboolean('translate', 'noTranslate')
-            self.startLang = self.config.get('translate', 'startLang')
-            self.endLang = self.config.get('translate', 'endLang')
-            self.overwritePb = self.config.getboolean('translate', 'replacepb')
-            self.bypassTTS = self.config.getboolean('TTS', 'bypass_tts')
-            self.provider = self.config.get('translate', 'provider')
-            self.ui.comboBox_provider.setCurrentIndex(self.ui.comboBox_provider.findText(self.provider))
+            self.notranslate = self.ttsEngine = self.config.getboolean(
+                "translate", "noTranslate"
+            )
+            self.startLang = self.config.get("translate", "startLang")
+            self.endLang = self.config.get("translate", "endLang")
+            self.overwritePb = self.config.getboolean("translate", "replacepb")
+            self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
+            self.provider = self.config.get("translate", "provider")
+            self.ui.comboBox_provider.setCurrentIndex(
+                self.ui.comboBox_provider.findText(self.provider)
+            )
             match self.provider:
-                case 'MyMemoryTranslator':
+                case "MyMemoryTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-                case 'LibreTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.mymemory)
+                    )
+                case "LibreTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-                case 'DeeplTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate)
+                    )
+                case "DeeplTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-                case 'MicrosoftTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.deepl)
+                    )
+                case "MicrosoftTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-                case 'YandexTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.microsoft)
+                    )
+                case "YandexTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
-                case 'GoogleTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.yandex)
+                    )
+                case "GoogleTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.google))
-                case 'LingueeTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.google)
+                    )
+                case "LingueeTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
-                case 'PonsTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.linguee)
+                    )
+                case "PonsTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.pons))
-                case 'QCRITranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.pons)
+                    )
+                case "QCRITranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
-                case 'PapagoTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.qcri)
+                    )
+                case "PapagoTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.papago))
-                case 'BaiduTranslator':
+                        self.ui.stackedWidget_provider.indexOf(self.ui.papago)
+                    )
+                case "BaiduTranslator":
                     self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
-            self.ui.mymemory_secret_key.setText(self.config.get('translate', 'MyMemoryTranslator_secret_key'))
-            self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
-            self.ui.LibreTranslate_secret_key.setText(self.config.get('translate', 'LibreTranslator_secret_key'))
-            self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
-            self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
-            self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
-            self.ui.microsoft_secret_key.setText(self.config.get('translate', 'MicrosoftTranslator_secret_key'))
-            self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
-            self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
-            self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
-            self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
-            self.ui.papago_client_id.setText(self.config.get('translate', 'papagotranslator_client_id'))
-            self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
-            self.ui.baidu_appid.setText(self.config.get('translate', 'baidutranslator_appid'))
+                        self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
+                    )
+            self.ui.mymemory_secret_key.setText(
+                self.config.get("translate", "MyMemoryTranslator_secret_key")
+            )
+            self.ui.email_mymemory.setText(self.config.get("translate", "email"))
+            self.ui.LibreTranslate_secret_key.setText(
+                self.config.get("translate", "LibreTranslator_secret_key")
+            )
+            self.ui.LibreTranslate_url.setText(self.config.get("translate", "url"))
+            self.ui.deepl_secret_key.setText(
+                self.config.get("translate", "DeeplTranslator_secret_key")
+            )
+            self.ui.checkBox_pro.setChecked(
+                self.config.getboolean("translate", "deepl_pro")
+            )
+            self.ui.microsoft_secret_key.setText(
+                self.config.get("translate", "MicrosoftTranslator_secret_key")
+            )
+            self.ui.microsoft_region.setText(self.config.get("translate", "region"))
+            self.ui.yandex_secret_key.setText(
+                self.config.get("translate", "YandexTranslator_secret_key")
+            )
+            self.ui.qcri_secret_key.setText(
+                self.config.get("translate", "QCRITranslator_secret_key")
+            )
+            self.ui.papago_secret_key.setText(
+                self.config.get("translate", "PapagoTranslator_secret_key")
+            )
+            self.ui.papago_client_id.setText(
+                self.config.get("translate", "papagotranslator_client_id")
+            )
+            self.ui.baidu_secret_key.setText(
+                self.config.get("translate", "BaiduTranslator_secret_key")
+            )
+            self.ui.baidu_appid.setText(
+                self.config.get("translate", "baidutranslator_appid")
+            )
             # TODO: Add ChatGPT translator
-            self.ttsEngine = self.config.get('TTS', 'engine')
-            self.voiceid = self.config.get('TTS', 'voiceid')
-            self.rate = self.config.getint('TTS', 'rate')
-            self.volume = self.config.getint('TTS', 'volume')
+            self.ttsEngine = self.config.get("TTS", "engine")
+            self.voiceid = self.config.get("TTS", "voiceid")
+            self.rate = self.config.getint("TTS", "rate")
+            self.volume = self.config.getint("TTS", "volume")
 
-            self.key = self.config.get('azureTTS', 'key')
-            self.region = self.config.get('azureTTS', 'location')
-            self.voiceidAzure = self.config.get('azureTTS', 'voiceid')
-            self.saveAudio = self.config.getboolean('TTS', 'save_audio_file')
+            self.key = self.config.get("azureTTS", "key")
+            self.region = self.config.get("azureTTS", "location")
+            self.voiceidAzure = self.config.get("azureTTS", "voiceid")
+            self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
 
-            self.credsFilePath = self.config.get('googleTTS', 'creds_file')
-            self.voiceidGoogle = self.config.get('googleTTS', 'voiceid')
+            self.credsFilePath = self.config.get("googleTTS", "creds_file")
+            self.voiceidGoogle = self.config.get("googleTTS", "voiceid")
 
-            self.voiceid_sapi = self.config.get('sapi5TTS', 'voiceid')
-            self.voiceid_onnx = self.config.get('SherpaOnnxTTS', 'voiceid')
-            self.voiceidGoogleTrans = self.config.get('googleTransTTS', 'voiceid')
+            self.voiceid_sapi = self.config.get("sapi5TTS", "voiceid")
+            self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voiceid")
+            self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voiceid")
             match self.ttsEngine:
                 case "azureTTS":
-                    self.comboBox = 'Azure TTS'
+                    self.comboBox = "Azure TTS"
                     self.ui.stackedWidget.setCurrentIndex(0)
-                    self.ui.ttsEngineBox.setCurrentText('Azure TTS')
+                    self.ui.ttsEngineBox.setCurrentText("Azure TTS")
                 case "googleTTS":
-                    self.comboBox = 'Google TTS'
+                    self.comboBox = "Google TTS"
                     self.ui.stackedWidget.setCurrentIndex(1)
-                    self.ui.ttsEngineBox.setCurrentText('Google TTS')
+                    self.ui.ttsEngineBox.setCurrentText("Google TTS")
                 case "googleTransTTS":
-                    self.comboBox = 'GoogleTranslator TTS'
+                    self.comboBox = "GoogleTranslator TTS"
                     self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText('GoogleTranslator TTS')
+                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
                 case "sapi5":
-                    self.comboBox = 'Sapi5 (Windows)'
+                    self.comboBox = "Sapi5 (Windows)"
                     self.ui.stackedWidget.setCurrentIndex(3)
-                    self.ui.ttsEngineBox.setCurrentText('Sapi5 (Windows)')
+                    self.ui.ttsEngineBox.setCurrentText("Sapi5 (Windows)")
                 case "SherpaOnnxTTS":
-                    self.comboBox = 'Sherpa-ONNX'
+                    self.comboBox = "Sherpa-ONNX"
                     self.ui.stackedWidget.setCurrentIndex(6)
-                    self.ui.ttsEngineBox.setCurrentText('Sherpa-ONNX')
+                    self.ui.ttsEngineBox.setCurrentText("Sherpa-ONNX")
                 case "espeak":
-                    self.comboBox = 'espeak (Unsupported)'
+                    self.comboBox = "espeak (Unsupported)"
                     self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText('espeak (Unsupported)')
+                    self.ui.ttsEngineBox.setCurrentText("espeak (Unsupported)")
                 case "nsss":
-                    self.comboBox = 'NSS (Mac Only)'
+                    self.comboBox = "NSS (Mac Only)"
                     self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText('NSS (Mac Only)')
+                    self.ui.ttsEngineBox.setCurrentText("NSS (Mac Only)")
                 case "coqui":
-                    self.comboBox = 'coqui_ai_tts (Unsupported)'
+                    self.comboBox = "coqui_ai_tts (Unsupported)"
                     self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText('coqui_ai_tts (Unsupported)')
+                    self.ui.ttsEngineBox.setCurrentText("coqui_ai_tts (Unsupported)")
                 case _:
-                    self.comboBox = 'GoogleTranslator TTS'
+                    self.comboBox = "GoogleTranslator TTS"
                     self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText('GoogleTranslator TTS')
+                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
             self.set_Translate_dropdown(self.translate_languages)
 
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
             self.set_onnx_voice(self.voiceid_onnx)
 
-            item = [key for key, value in self.voices_sapi_dict.items() if value == self.voiceid_sapi]
+            item = [
+                key
+                for key, value in self.voices_sapi_dict.items()
+                if value == self.voiceid_sapi
+            ]
 
             if len(item) > 0:
-                item = self.ui.listWidget_sapi.findItems(item[0], PySide6.QtCore.Qt.MatchExactly)
+                item = self.ui.listWidget_sapi.findItems(
+                    item[0], PySide6.QtCore.Qt.MatchExactly
+                )
                 self.ui.listWidget_sapi.setCurrentItem(item[0])
             elif self.ui.listWidget_sapi.count() > 0:
                 self.ui.listWidget_sapi.setCurrentRow(0)
@@ -284,8 +507,12 @@ class Widget(QWidget):
             self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
             self.ui.onnx_checkBox.setChecked(self.saveAudio)
 
-            self.ui.checkBox_stats.setChecked(self.config.getboolean('App', 'collectstats'))
-            self.ui.spinBox_threshold.setValue(int(self.config.get('appCache', 'threshold')))
+            self.ui.checkBox_stats.setChecked(
+                self.config.getboolean("App", "collectstats")
+            )
+            self.ui.spinBox_threshold.setValue(
+                int(self.config.get("appCache", "threshold"))
+            )
 
         else:
             self.generate_azure_voice_models()
@@ -298,7 +525,7 @@ class Widget(QWidget):
             # self.comboBox = 'Azure TTS'
             self.ui.onnx_cache.setText(self.onnx_cache_path)
             self.ttsEngine = "SherpaOnnxTTS"
-            self.comboBox = 'Sherpa-ONNX'
+            self.comboBox = "Sherpa-ONNX"
             self.ui.stackedWidget.setCurrentIndex(0)
 
             self.notranslate = False
@@ -335,8 +562,12 @@ class Widget(QWidget):
 
         self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
 
-        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(lambda: self.OnSavePressed(True))
-        self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(self.OnDiscardPressed)
+        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
+            lambda: self.OnSavePressed(True)
+        )
+        self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
+            self.OnDiscardPressed
+        )
 
         self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
 
@@ -345,8 +576,10 @@ class Widget(QWidget):
         self.lock = False
 
     def eventFilter(self, obj, event):
-        self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != '')
-        self.ui.validate_azure.setVisible(self.ui.lineEdit_key.text() != '' and self.ui.lineEdit_region.text() != '')
+        self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != "")
+        self.ui.validate_azure.setVisible(
+            self.ui.lineEdit_key.text() != "" and self.ui.lineEdit_region.text() != ""
+        )
         return super().eventFilter(obj, event)
 
     def onTTSEngineToggled(self, text):
@@ -390,143 +623,291 @@ class Widget(QWidget):
 
     def OnSavePressed(self, permanent=True):
         self.ui.statusBar.clear()
-        if self.ui.listWidget_voiceazure.currentItem() is None or self.ui.listWidget_voiceazure.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 0:
-            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+        if (
+            self.ui.listWidget_voiceazure.currentItem() is None
+            or self.ui.listWidget_voiceazure.currentItem().toolTip() == ""
+            and self.ui.stackedWidget.currentIndex() == 0
+        ):
+            self.ui.statusBar.setText(
+                "Failed to save settings. Please select voice model."
+            )
             return
-        if self.ui.listWidget_voicegoogle.currentItem() is None or self.ui.listWidget_voicegoogle.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 1:
-            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+        if (
+            self.ui.listWidget_voicegoogle.currentItem() is None
+            or self.ui.listWidget_voicegoogle.currentItem().toolTip() == ""
+            and self.ui.stackedWidget.currentIndex() == 1
+        ):
+            self.ui.statusBar.setText(
+                "Failed to save settings. Please select voice model."
+            )
             return
-        if self.ui.onnx_listWidget.currentItem() is None or self.ui.onnx_listWidget.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 6:
-            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+        if (
+            self.ui.onnx_listWidget.currentItem() is None
+            or self.ui.onnx_listWidget.currentItem().toolTip() == ""
+            and self.ui.stackedWidget.currentIndex() == 6
+        ):
+            self.ui.statusBar.setText(
+                "Failed to save settings. Please select voice model."
+            )
             return
-        if self.ui.listWidget_voicegoogleTrans.currentItem() is None or self.ui.listWidget_voicegoogleTrans.currentItem().toolTip() == '' and self.ui.stackedWidget.currentIndex() == 2:
-            self.ui.statusBar.setText("Failed to save settings. Please select voice model.")
+        if (
+            self.ui.listWidget_voicegoogleTrans.currentItem() is None
+            or self.ui.listWidget_voicegoogleTrans.currentItem().toolTip() == ""
+            and self.ui.stackedWidget.currentIndex() == 2
+        ):
+            self.ui.statusBar.setText(
+                "Failed to save settings. Please select voice model."
+            )
             return
         # TODO: Block saving if API-key is blank
         # Add sections and key-value pairs
-        self.startLang = self.translate_languages[self.ui.comboBox_writeLang.currentText()]
-        self.endLang = self.translate_languages[self.ui.comboBox_targetLang.currentText()]
+        self.startLang = self.translate_languages[
+            self.ui.comboBox_writeLang.currentText()
+        ]
+        self.endLang = self.translate_languages[
+            self.ui.comboBox_targetLang.currentText()
+        ]
         self.notranslate = not self.ui.checkBox_translate.isChecked()
 
         identifier = self.get_uuid()
         # TODO: check this function later
         # self.config.clear()
 
-        self.config.add_section('App') if not self.config.has_section('App') else print('')
-        self.config.set('App', 'uuid', str(identifier))
-        self.config.set('App', 'collectstats', str(self.ui.checkBox_stats.isChecked()))
+        (
+            self.config.add_section("App")
+            if not self.config.has_section("App")
+            else print("")
+        )
+        self.config.set("App", "uuid", str(identifier))
+        self.config.set("App", "collectstats", str(self.ui.checkBox_stats.isChecked()))
 
-        self.config.add_section('translate') if not self.config.has_section('translate') else print('')
-        self.config.set('translate', 'noTranslate', str(self.notranslate))
-        self.config.set('translate', 'startLang', self.startLang)
-        self.config.set('translate', 'endLang', self.endLang)
-        self.config.set('translate', 'replacepb', str(self.ui.checkBox_overwritepb.isChecked()))
-        self.config.set('translate', 'provider', str(self.ui.comboBox_provider.currentText()))
+        (
+            self.config.add_section("translate")
+            if not self.config.has_section("translate")
+            else print("")
+        )
+        self.config.set("translate", "noTranslate", str(self.notranslate))
+        self.config.set("translate", "startLang", self.startLang)
+        self.config.set("translate", "endLang", self.endLang)
+        self.config.set(
+            "translate", "replacepb", str(self.ui.checkBox_overwritepb.isChecked())
+        )
+        self.config.set(
+            "translate", "provider", str(self.ui.comboBox_provider.currentText())
+        )
 
-        self.config.set('translate', 'mymemorytranslator_secret_key', self.ui.mymemory_secret_key.text())
-        self.config.set('translate', 'email', self.ui.email_mymemory.text())
-        self.config.set('translate', 'libretranslator_secret_key', self.ui.LibreTranslate_secret_key.text())
-        self.config.set('translate', 'url', self.ui.LibreTranslate_url.text())
-        self.config.set('translate', 'deepltranslator_secret_key', self.ui.deepl_secret_key.text())
-        self.config.set('translate', 'deepL_pro', str(self.ui.checkBox_pro.isChecked()).lower())
-        self.config.set('translate', 'microsofttranslator_secret_key', self.ui.microsoft_secret_key.text())
-        self.config.set('translate', 'region', self.ui.microsoft_region.text())
-        self.config.set('translate', 'yandextranslator_secret_key', self.ui.yandex_secret_key.text())
-        self.config.set('translate', 'papagotranslator_client_id', self.ui.papago_client_id.text())
-        self.config.set('translate', 'papagotranslator_secret_key', self.ui.papago_secret_key.text())
-        self.config.set('translate', 'baidutranslator_appid', self.ui.baidu_appid.text())
-        self.config.set('translate', 'baidutranslator_secret_key', self.ui.baidu_secret_key.text())
-        self.config.set('translate', 'qcritranslator_secret_key', self.ui.qcri_secret_key.text())
+        self.config.set(
+            "translate",
+            "mymemorytranslator_secret_key",
+            self.ui.mymemory_secret_key.text(),
+        )
+        self.config.set("translate", "email", self.ui.email_mymemory.text())
+        self.config.set(
+            "translate",
+            "libretranslator_secret_key",
+            self.ui.LibreTranslate_secret_key.text(),
+        )
+        self.config.set("translate", "url", self.ui.LibreTranslate_url.text())
+        self.config.set(
+            "translate", "deepltranslator_secret_key", self.ui.deepl_secret_key.text()
+        )
+        self.config.set(
+            "translate", "deepL_pro", str(self.ui.checkBox_pro.isChecked()).lower()
+        )
+        self.config.set(
+            "translate",
+            "microsofttranslator_secret_key",
+            self.ui.microsoft_secret_key.text(),
+        )
+        self.config.set("translate", "region", self.ui.microsoft_region.text())
+        self.config.set(
+            "translate", "yandextranslator_secret_key", self.ui.yandex_secret_key.text()
+        )
+        self.config.set(
+            "translate", "papagotranslator_client_id", self.ui.papago_client_id.text()
+        )
+        self.config.set(
+            "translate", "papagotranslator_secret_key", self.ui.papago_secret_key.text()
+        )
+        self.config.set(
+            "translate", "baidutranslator_appid", self.ui.baidu_appid.text()
+        )
+        self.config.set(
+            "translate", "baidutranslator_secret_key", self.ui.baidu_secret_key.text()
+        )
+        self.config.set(
+            "translate", "qcritranslator_secret_key", self.ui.qcri_secret_key.text()
+        )
 
-        self.config.add_section('TTS') if not self.config.has_section('TTS') else print('')
-        self.config.set('TTS', 'engine', self.ttsEngine)
-        if self.ttsEngine == 'azureTTS':
+        (
+            self.config.add_section("TTS")
+            if not self.config.has_section("TTS")
+            else print("")
+        )
+        self.config.set("TTS", "engine", self.ttsEngine)
+        if self.ttsEngine == "azureTTS":
             if permanent:
-                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio.isChecked()))
+                self.config.set(
+                    "TTS",
+                    "save_audio_file",
+                    str(self.ui.checkBox_saveAudio.isChecked()),
+                )
             else:
-                self.config.set('TTS', 'save_audio_file', str(False))
-        elif self.ttsEngine == 'googleTTS':
+                self.config.set("TTS", "save_audio_file", str(False))
+        elif self.ttsEngine == "googleTTS":
             if permanent:
-                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_gTTS.isChecked()))
+                self.config.set(
+                    "TTS",
+                    "save_audio_file",
+                    str(self.ui.checkBox_saveAudio_gTTS.isChecked()),
+                )
             else:
-                self.config.set('TTS', 'save_audio_file', str(False))
-        elif self.ttsEngine == 'sapi5':
-            self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_sapi.isChecked()))
-        elif self.ttsEngine == 'SherpaOnnxTTS':
+                self.config.set("TTS", "save_audio_file", str(False))
+        elif self.ttsEngine == "sapi5":
+            self.config.set(
+                "TTS",
+                "save_audio_file",
+                str(self.ui.checkBox_saveAudio_sapi.isChecked()),
+            )
+        elif self.ttsEngine == "SherpaOnnxTTS":
             if permanent:
-                self.config.set('TTS', 'save_audio_file', str(self.ui.onnx_checkBox.isChecked()))
+                self.config.set(
+                    "TTS", "save_audio_file", str(self.ui.onnx_checkBox.isChecked())
+                )
             else:
-                self.config.set('TTS', 'save_audio_file', str(False))
-        elif self.ttsEngine == 'googleTransTTS':
+                self.config.set("TTS", "save_audio_file", str(False))
+        elif self.ttsEngine == "googleTransTTS":
             if permanent:
-                self.config.set('TTS', 'save_audio_file', str(self.ui.checkBox_saveAudio_googleTrans.isChecked()))
+                self.config.set(
+                    "TTS",
+                    "save_audio_file",
+                    str(self.ui.checkBox_saveAudio_googleTrans.isChecked()),
+                )
             else:
-                self.config.set('TTS', 'save_audio_file', str(False))
+                self.config.set("TTS", "save_audio_file", str(False))
         else:
-            self.config.set('TTS', 'save_audio_file', str(False))
+            self.config.set("TTS", "save_audio_file", str(False))
 
-        self.config.set('TTS', 'voiceid', self.ui.lineEdit_voiceID.text())
-        if self.ttsEngine == 'sapi5':
-            self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate_sapi.value()))
-            self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume_sapi.value()))
+        self.config.set("TTS", "voiceid", self.ui.lineEdit_voiceID.text())
+        if self.ttsEngine == "sapi5":
+            self.config.set(
+                "TTS", "rate", str(self.ui.horizontalSlider_rate_sapi.value())
+            )
+            self.config.set(
+                "TTS", "volume", str(self.ui.horizontalSlider_volume_sapi.value())
+            )
         else:
-            self.config.set('TTS', 'rate', str(self.ui.horizontalSlider_rate.value()))
-            self.config.set('TTS', 'volume', str(self.ui.horizontalSlider_volume.value()))
-        self.config.set('TTS', 'bypass_tts', str(self.ui.bypass_tts_checkBox.isChecked()))
+            self.config.set("TTS", "rate", str(self.ui.horizontalSlider_rate.value()))
+            self.config.set(
+                "TTS", "volume", str(self.ui.horizontalSlider_volume.value())
+            )
+        self.config.set(
+            "TTS", "bypass_tts", str(self.ui.bypass_tts_checkBox.isChecked())
+        )
 
-        self.config.add_section('azureTTS') if not self.config.has_section('azureTTS') else print('')
-        if self.ui.lineEdit_key.text() == '' and not permanent:
-            self.config.set('azureTTS', 'key', ms_token)
+        (
+            self.config.add_section("azureTTS")
+            if not self.config.has_section("azureTTS")
+            else print("")
+        )
+        if self.ui.lineEdit_key.text() == "" and not permanent:
+            self.config.set("azureTTS", "key", ms_token)
         else:
-            self.config.set('azureTTS', 'key', self.ui.lineEdit_key.text())
-        if self.ui.lineEdit_region.text() == '' and not permanent:
-            self.config.set('azureTTS', 'location', ms_region)
+            self.config.set("azureTTS", "key", self.ui.lineEdit_key.text())
+        if self.ui.lineEdit_region.text() == "" and not permanent:
+            self.config.set("azureTTS", "location", ms_region)
         else:
-            self.config.set('azureTTS', 'location', self.ui.lineEdit_region.text())
+            self.config.set("azureTTS", "location", self.ui.lineEdit_region.text())
         if self.ui.listWidget_voiceazure.currentItem() is None:
-            self.config.set('azureTTS', 'voiceid', "en-US-JennyNeural")
+            self.config.set("azureTTS", "voiceid", "en-US-JennyNeural")
         else:
-            self.config.set('azureTTS', 'voiceid', self.ui.listWidget_voiceazure.currentItem().toolTip())
+            self.config.set(
+                "azureTTS",
+                "voiceid",
+                self.ui.listWidget_voiceazure.currentItem().toolTip(),
+            )
 
-        self.config.add_section('googleTTS') if not self.config.has_section('googleTTS') else print('')
-        if self.credsFilePath == '' and not permanent:
-            self.config.set('googleTTS', 'creds_file', google_cred_path)
+        (
+            self.config.add_section("googleTTS")
+            if not self.config.has_section("googleTTS")
+            else print("")
+        )
+        if self.credsFilePath == "" and not permanent:
+            self.config.set("googleTTS", "creds_file", google_cred_path)
         else:
-            self.config.set('googleTTS', 'creds_file', self.credsFilePath)
+            self.config.set("googleTTS", "creds_file", self.credsFilePath)
         if self.ui.listWidget_voicegoogle.currentItem() is None:
-            self.config.set('googleTTS', 'voiceid', "en-US-Wavenet-C")
+            self.config.set("googleTTS", "voiceid", "en-US-Wavenet-C")
         else:
-            self.config.set('googleTTS', 'voiceid', self.ui.listWidget_voicegoogle.currentItem().toolTip())
+            self.config.set(
+                "googleTTS",
+                "voiceid",
+                self.ui.listWidget_voicegoogle.currentItem().toolTip(),
+            )
         if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
-            self.config.set('googleTransTTS', 'voiceid', "en-co.uk")
+            self.config.set("googleTransTTS", "voiceid", "en-co.uk")
         else:
-            self.config.set('googleTransTTS', 'voiceid', self.ui.listWidget_voicegoogleTrans.currentItem().toolTip())
+            self.config.set(
+                "googleTransTTS",
+                "voiceid",
+                self.ui.listWidget_voicegoogleTrans.currentItem().toolTip(),
+            )
 
-        self.config.add_section('sapi5TTS') if not self.config.has_section('sapi5TTS') else print('')
-        self.config.set('sapi5TTS', 'voiceid', self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()])
+        (
+            self.config.add_section("sapi5TTS")
+            if not self.config.has_section("sapi5TTS")
+            else print("")
+        )
+        self.config.set(
+            "sapi5TTS",
+            "voiceid",
+            self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()],
+        )
 
-        self.config.add_section('SherpaOnnxTTS') if not self.config.has_section('SherpaOnnxTTS') else print('')
-        self.config.add_section('googleTransTTS') if not self.config.has_section('googleTransTTS') else print('')
+        (
+            self.config.add_section("SherpaOnnxTTS")
+            if not self.config.has_section("SherpaOnnxTTS")
+            else print("")
+        )
+        (
+            self.config.add_section("googleTransTTS")
+            if not self.config.has_section("googleTransTTS")
+            else print("")
+        )
         if self.ui.onnx_listWidget.currentItem() is None:
-            self.config.set('SherpaOnnxTTS', 'voiceid', 'eng')
+            self.config.set("SherpaOnnxTTS", "voiceid", "eng")
         else:
-            self.config.set('SherpaOnnxTTS', 'voiceid', self.ui.onnx_listWidget.currentItem().toolTip())
+            self.config.set(
+                "SherpaOnnxTTS",
+                "voiceid",
+                self.ui.onnx_listWidget.currentItem().toolTip(),
+            )
 
-        self.config.add_section('appCache') if not self.config.has_section('appCache') else print('')
-        self.config.set('appCache', 'threshold', str(self.ui.spinBox_threshold.value()))
+        (
+            self.config.add_section("appCache")
+            if not self.config.has_section("appCache")
+            else print("")
+        )
+        self.config.set("appCache", "threshold", str(self.ui.spinBox_threshold.value()))
 
         # Write the configuration to a file
         if permanent:
-            with open(self.config_path, 'w') as configfile:
+            with open(self.config_path, "w") as configfile:
                 self.config.write(configfile)
-                logging.info("Configuration file is saved on {}".format(self.config_path))
+                logging.info(
+                    "Configuration file is saved on {}".format(self.config_path)
+                )
                 self.ui.statusBar.setText("Saving settings is successful.")
             # self.close()
         else:
             self.temp_config_file = tempfile.NamedTemporaryFile(delete=False)
-            with open(self.temp_config_file.name, 'w') as configfile:
+            with open(self.temp_config_file.name, "w") as configfile:
                 self.config.write(configfile)
-                logging.info("Configuration file is saved on {}".format(self.temp_config_file.name))
+                logging.info(
+                    "Configuration file is saved on {}".format(
+                        self.temp_config_file.name
+                    )
+                )
 
     def OnDiscardPressed(self):
         self.close()
@@ -534,8 +915,13 @@ class Widget(QWidget):
     def OnBrowseButtonPressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
-        self.credsFilePath, _ = QFileDialog.getOpenFileName(self, "Open JSON File containing OAuth 2.0 Credentials", "",
-                                                            "JSON Files (*.json)", options=options)
+        self.credsFilePath, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open JSON File containing OAuth 2.0 Credentials",
+            "",
+            "JSON Files (*.json)",
+            options=options,
+        )
         self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
     def OnCredsFilePathChanged(self):
@@ -544,114 +930,166 @@ class Widget(QWidget):
     def get_uuid(self):
         try:
             # Code that may raise an exception
-            if os.path.isfile(self.config_path) and self.config.has_section('App'):
-                id = self.config.get('App', 'uuid')
+            if os.path.isfile(self.config_path) and self.config.has_section("App"):
+                id = self.config.get("App", "uuid")
                 identifier = uuid.UUID(id)
             else:
                 identifier = uuid.uuid4()
         except Exception as e:
             # Code to handle other exceptions
             identifier = uuid.uuid4()
-            logging.error("UUID Error: {}. Generating UUID is successful.".format(e), exc_info=False)
+            logging.error(
+                "UUID Error: {}. Generating UUID is successful.".format(e),
+                exc_info=False,
+            )
         return identifier
 
     def setParameter(self, string):
         self.ui.comboBox_writeLang.clear()
         self.ui.comboBox_targetLang.clear()
         match string:
-            case 'GoogleTranslator':
+            case "GoogleTranslator":
                 try:
                     self.translate_languages = Google_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.google))
-            case 'MyMemoryTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.google)
+                )
+            case "MyMemoryTranslator":
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.mymemory_secret_key.setText(
-                            self.config.get('translate', 'MyMemoryTranslator_secret_key'))
-                        self.ui.email_mymemory.setText(self.config.get('translate', 'email'))
+                            self.config.get(
+                                "translate", "MyMemoryTranslator_secret_key"
+                            )
+                        )
+                        self.ui.email_mymemory.setText(
+                            self.config.get("translate", "email")
+                        )
                     self.translate_languages = MyMemory_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.mymemory))
-            case 'LibreTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.mymemory)
+                )
+            case "LibreTranslator":
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.LibreTranslate_secret_key.setText(
-                            self.config.get('translate', 'LibreTranslator_secret_key'))
-                        self.ui.LibreTranslate_url.setText(self.config.get('translate', 'url'))
+                            self.config.get("translate", "LibreTranslator_secret_key")
+                        )
+                        self.ui.LibreTranslate_url.setText(
+                            self.config.get("translate", "url")
+                        )
                     self.translate_languages = Libre_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
                 self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate))
-            case 'DeeplTranslator':
+                    self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate)
+                )
+            case "DeeplTranslator":
                 try:
                     if os.path.exists(self.config_path):
-                        self.ui.deepl_secret_key.setText(self.config.get('translate', 'DeeplTranslator_secret_key'))
-                        self.ui.checkBox_pro.setChecked(self.config.getboolean('translate', 'deepl_pro'))
+                        self.ui.deepl_secret_key.setText(
+                            self.config.get("translate", "DeeplTranslator_secret_key")
+                        )
+                        self.ui.checkBox_pro.setChecked(
+                            self.config.getboolean("translate", "deepl_pro")
+                        )
                     self.translate_languages = DeepL_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.deepl))
-            case 'MicrosoftTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.deepl)
+                )
+            case "MicrosoftTranslator":
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.microsoft_secret_key.setText(
-                            self.config.get('translate', 'MicrosoftTranslator_secret_key'))
-                        self.ui.microsoft_region.setText(self.config.get('translate', 'region'))
+                            self.config.get(
+                                "translate", "MicrosoftTranslator_secret_key"
+                            )
+                        )
+                        self.ui.microsoft_region.setText(
+                            self.config.get("translate", "region")
+                        )
                     self.translate_languages = Microsoft_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
                 self.ui.stackedWidget_provider.setCurrentIndex(
-                    self.ui.stackedWidget_provider.indexOf(self.ui.microsoft))
-            case 'PonsTranslator':
+                    self.ui.stackedWidget_provider.indexOf(self.ui.microsoft)
+                )
+            case "PonsTranslator":
                 try:
                     self.translate_languages = Pons_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.pons))
-            case 'LingueeTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.pons)
+                )
+            case "LingueeTranslator":
                 try:
                     self.translate_languages = Linguee_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.linguee))
-            case 'PapagoTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.linguee)
+                )
+            case "PapagoTranslator":
                 try:
                     if os.path.exists(self.config_path):
-                        self.ui.papago_secret_key.setText(self.config.get('translate', 'PapagoTranslator_secret_key'))
-                        self.ui.papago_client_id.setText(self.config.get('translate', 'Papagotranslator_client_id'))
+                        self.ui.papago_secret_key.setText(
+                            self.config.get("translate", "PapagoTranslator_secret_key")
+                        )
+                        self.ui.papago_client_id.setText(
+                            self.config.get("translate", "Papagotranslator_client_id")
+                        )
                     self.translate_languages = Papago_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.papago))
-            case 'QcriTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.papago)
+                )
+            case "QcriTranslator":
                 try:
                     if os.path.exists(self.config_path):
-                        self.ui.qcri_secret_key.setText(self.config.get('translate', 'QCRITranslator_secret_key'))
+                        self.ui.qcri_secret_key.setText(
+                            self.config.get("translate", "QCRITranslator_secret_key")
+                        )
                     self.translate_languages = Qcri_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.qcri))
-            case 'BaiduTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.qcri)
+                )
+            case "BaiduTranslator":
                 try:
                     if os.path.exists(self.config_path):
-                        self.ui.baidu_secret_key.setText(self.config.get('translate', 'BaiduTranslator_secret_key'))
-                        self.ui.baidu_appid.setText(self.config.get('translate', 'BaiduTranslator_appid'))
+                        self.ui.baidu_secret_key.setText(
+                            self.config.get("translate", "BaiduTranslator_secret_key")
+                        )
+                        self.ui.baidu_appid.setText(
+                            self.config.get("translate", "BaiduTranslator_appid")
+                        )
                     self.translate_languages = Baidu_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.baidu))
-            case 'YandexTranslator':
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
+                )
+            case "YandexTranslator":
                 try:
                     if os.path.exists(self.config_path):
-                        self.ui.yandex_secret_key.setText(self.config.get('translate', 'YandexTranslator_secret_key'))
+                        self.ui.yandex_secret_key.setText(
+                            self.config.get("translate", "YandexTranslator_secret_key")
+                        )
                     self.translate_languages = Yandex_Translator
                 except Exception as e:
                     logging.error("Configuration Error: {}".format(e), exc_info=True)
-                self.ui.stackedWidget_provider.setCurrentIndex(self.ui.stackedWidget_provider.indexOf(self.ui.yandex))
+                self.ui.stackedWidget_provider.setCurrentIndex(
+                    self.ui.stackedWidget_provider.indexOf(self.ui.yandex)
+                )
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
         self.set_Translate_dropdown(self.translate_languages)
@@ -661,20 +1099,26 @@ class Widget(QWidget):
         if self.lock:
             return
         match self.ui.ttsEngineBox.currentText():
-            case 'Azure TTS':
+            case "Azure TTS":
                 for text in list(azure_tts_list.keys()):
                     if self.ui.comboBox_targetLang.currentText() in text:
-                        self.ui.statusBar.setText("Azure TTS might be compatible to the Translation Engine")
+                        self.ui.statusBar.setText(
+                            "Azure TTS might be compatible to the Translation Engine"
+                        )
                         return
-            case 'Google TTS':
+            case "Google TTS":
                 for text in list(google_TTS_list.keys()):
                     if self.ui.comboBox_targetLang.currentText() in text:
-                        self.ui.statusBar.setText("Google TTS might be compatible to the Translation Engine")
+                        self.ui.statusBar.setText(
+                            "Google TTS might be compatible to the Translation Engine"
+                        )
                         return
-            case 'GSpeak':
+            case "GSpeak":
                 for text in list(gSpeak_TTS_list.keys()):
                     if self.ui.comboBox_targetLang.currentText() in text:
-                        self.ui.statusBar.setText("GSpeak might be compatible to the Translation Engine")
+                        self.ui.statusBar.setText(
+                            "GSpeak might be compatible to the Translation Engine"
+                        )
                         return
             case _:
                 pass
@@ -689,7 +1133,7 @@ class Widget(QWidget):
         # # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
-        if text == '':
+        if text == "":
             text = "en-US-JennyNeural"
         for index in range(self.ui.listWidget_voiceazure.count()):
             item = self.ui.listWidget_voiceazure.item(index)
@@ -726,17 +1170,19 @@ class Widget(QWidget):
                     self.onnx_row = self.ui.onnx_listWidget.row(item)
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     break
-            if self.sender().objectName() == 'Play':
-                self.ui.statusBar.setText(f'Playing: {text}')
+            if self.sender().objectName() == "Play":
+                self.ui.statusBar.setText(f"Playing: {text}")
             else:
-                self.ui.statusBar.setText(f'Downloading: {text}')
+                self.ui.statusBar.setText(f"Downloading: {text}")
         elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
             parentWidget = self.ui.listWidget_voicegoogleTrans
             for index in range(self.ui.listWidget_voicegoogleTrans.count()):
                 item = self.ui.listWidget_voicegoogleTrans.item(index)
                 if text == item.text():
                     self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
-                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(
+                        self.googleTrans_row
+                    )
                     break
         self.OnSavePressed(False)
         if self.temp_config_file is None:
@@ -776,7 +1222,7 @@ class Widget(QWidget):
         self.currentButton.setIcon(icon)
         self.temp_config_file.close()
         os.unlink(self.temp_config_file.name)
-        self.ui.statusBar.setText(f'')
+        self.ui.statusBar.setText(f"")
         self.temp_config_file = None
 
     def print_data(self, item):
@@ -798,20 +1244,29 @@ class Widget(QWidget):
             if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
                 if self.ui.listWidget_voiceazure.currentItem() is None:
                     self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
-                    self.ui.listWidget_voiceazure.setCurrentItem(self.ui.listWidget_voiceazure.item(self.azure_row))
+                    self.ui.listWidget_voiceazure.setCurrentItem(
+                        self.ui.listWidget_voiceazure.item(self.azure_row)
+                    )
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 if self.ui.listWidget_voicegoogle.currentItem() is None:
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
-                    self.ui.listWidget_voicegoogle.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.google_row))
+                    self.ui.listWidget_voicegoogle.setCurrentItem(
+                        self.ui.listWidget_voicegoogle.item(self.google_row)
+                    )
             elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
                 if self.ui.onnx_listWidget.currentItem() is None:
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
-                    self.ui.onnx_listWidget.setCurrentItem(self.ui.listWidget_voicegoogle.item(self.onnx_row))
+                    self.ui.onnx_listWidget.setCurrentItem(
+                        self.ui.listWidget_voicegoogle.item(self.onnx_row)
+                    )
             elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
                 if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
-                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(
+                        self.googleTrans_row
+                    )
                     self.ui.listWidget_voicegoogleTrans.setCurrentItem(
-                        self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row))
+                        self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row)
+                    )
         except Exception as error:
             pass
 
@@ -827,7 +1282,9 @@ class Widget(QWidget):
             azureThread.signals.errorDetected.connect(self.handleError)
             azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
             azureThread.signals.itemGenerated.connect(self.load_Azure_items)
-            azureThread.signals.completed.connect(lambda: self.load_progress_azure(False))
+            azureThread.signals.completed.connect(
+                lambda: self.load_progress_azure(False)
+            )
             self.threadList.append(azureThread)
         except Exception as azureError:
             print(str(azureError))
@@ -860,14 +1317,14 @@ class Widget(QWidget):
             print(threadError)
 
     def handleError(self, string, tts):
-        if tts == 'Azure TTS':
+        if tts == "Azure TTS":
             self.ui.lineEdit_key.clear()
             self.ui.lineEdit_region.clear()
-            self.ui.lineEdit_key.setPlaceholderText('Invalid Token')
-            self.ui.lineEdit_region.setPlaceholderText('Invalid Region')
-        elif tts == 'Google TTS':
+            self.ui.lineEdit_key.setPlaceholderText("Invalid Token")
+            self.ui.lineEdit_region.setPlaceholderText("Invalid Region")
+        elif tts == "Google TTS":
             self.ui.credsFilePathEdit.clear()
-            self.ui.credsFilePathEdit.setPlaceholderText('Invalid JSON Credentials')
+            self.ui.credsFilePathEdit.setPlaceholderText("Invalid JSON Credentials")
 
     def get_google_credentials(self, filename, default=False):
         if os.path.isfile(filename) and not default:
@@ -888,38 +1345,54 @@ class Widget(QWidget):
 
     def generate_google_voice_models(self):
         try:
-            self.google_credential = self.get_google_credentials(self.ui.credsFilePathEdit.text())
+            self.google_credential = self.get_google_credentials(
+                self.ui.credsFilePathEdit.text()
+            )
             # self.google_credential = self.get_google_credentials(google_cred_path)
-            self.default_google_credential = self.get_google_credentials(google_cred_path, True)
+            self.default_google_credential = self.get_google_credentials(
+                google_cred_path, True
+            )
             self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
             self.ui.search_language_google.textChanged.connect(self.searchItem_Google)
             self.ui.listWidget_voicegoogle.setUniformItemSizes(True)
             googleThread = VoiceLoader(parent=self, tts="Google TTS")
             googleThread.signals.errorDetected.connect(self.handleError)
-            googleThread.signals.started.connect(lambda: self.load_progress_google(True))
+            googleThread.signals.started.connect(
+                lambda: self.load_progress_google(True)
+            )
             googleThread.signals.itemGenerated.connect(self.load_Google_items)
-            googleThread.signals.completed.connect(lambda: self.load_progress_google(False))
+            googleThread.signals.completed.connect(
+                lambda: self.load_progress_google(False)
+            )
             self.threadList.append(googleThread)
         except Exception as googleError:
             print(str(googleError))
 
     def generate_googleTrans_voice_model(self):
         try:
-            self.ui.listWidget_voicegoogleTrans.currentRowChanged.connect(self.updateRow)
+            self.ui.listWidget_voicegoogleTrans.currentRowChanged.connect(
+                self.updateRow
+            )
             self.ui.listWidget_voicegoogleTrans.itemClicked.connect(self.print_data)
-            self.ui.search_language_googleTrans.textChanged.connect(self.searchItem_GoogleTrans)
+            self.ui.search_language_googleTrans.textChanged.connect(
+                self.searchItem_GoogleTrans
+            )
             self.ui.listWidget_voicegoogleTrans.setUniformItemSizes(True)
             googleTransThread = VoiceLoader(parent=self, tts="GoogleTranslator TTS")
-            googleTransThread.signals.started.connect(lambda: self.load_progress_googleTrans(True))
+            googleTransThread.signals.started.connect(
+                lambda: self.load_progress_googleTrans(True)
+            )
             googleTransThread.signals.itemGenerated.connect(self.load_GoogleTrans_items)
-            googleTransThread.signals.completed.connect(lambda: self.load_progress_googleTrans(False))
+            googleTransThread.signals.completed.connect(
+                lambda: self.load_progress_googleTrans(False)
+            )
             self.threadList.append(googleTransThread)
         except Exception as googleTransError:
             print(str(googleTransError))
 
     def set_google_voice(self, text):
-        if text == '':
+        if text == "":
             text = "en-US-Wavenet-C"
         for index in range(self.ui.listWidget_voicegoogle.count()):
             item = self.ui.listWidget_voicegoogle.item(index)
@@ -933,7 +1406,9 @@ class Widget(QWidget):
             self.ui.statusBar.setText(f"Opened {self.audio_path}")
             os.startfile(self.audio_path)
         else:
-            self.ui.statusBar.setText(f"No cached detected. Try using main application first.")
+            self.ui.statusBar.setText(
+                f"No cached detected. Try using main application first."
+            )
 
     def open_onnx_cache(self):
         if os.path.isdir(self.onnx_cache_path):
@@ -942,7 +1417,9 @@ class Widget(QWidget):
         else:
             os.makedirs(self.onnx_cache_path)
             os.startfile(self.onnx_cache_path)
-            self.ui.statusBar.setText(f"No cached detected. Creating model directory...")
+            self.ui.statusBar.setText(
+                f"No cached detected. Creating model directory..."
+            )
 
     def cache_clear(self):
         pool = QThreadPool.globalInstance()
@@ -966,7 +1443,7 @@ class Widget(QWidget):
             language_azure_list = {}
         self.language_azure_list = {}
         for value in language_azure_list:
-            self.language_azure_list[language_azure_list[value]['name']] = value
+            self.language_azure_list[language_azure_list[value]["name"]] = value
         return self.language_azure_list
 
     def set_Translate_dropdown(self, source):
@@ -1051,7 +1528,7 @@ class Widget(QWidget):
             self.set_googleTrans_voice(self.voiceidGoogleTrans)
 
     def set_googleTrans_voice(self, text):
-        if text == '':
+        if text == "":
             text = "en-co.uk"
         for index in range(self.ui.listWidget_voicegoogleTrans.count()):
             item = self.ui.listWidget_voicegoogleTrans.item(index)
@@ -1069,7 +1546,7 @@ class Widget(QWidget):
         items = self.ui.onnx_listWidget.findItems(name, Qt.MatchContains)
         for item in items:
             self.ui.onnx_listWidget.setCurrentItem(item)
-        if self.sender().objectName() == 'Play':
+        if self.sender().objectName() == "Play":
             pass
         else:
             pass
@@ -1087,7 +1564,9 @@ class Widget(QWidget):
             it.setHidden(it not in match_items)
 
     def searchItem_GoogleTrans(self, text):
-        match_items = self.ui.listWidget_voicegoogleTrans.findItems(text, Qt.MatchContains)
+        match_items = self.ui.listWidget_voicegoogleTrans.findItems(
+            text, Qt.MatchContains
+        )
         for i in range(self.ui.listWidget_voicegoogleTrans.count()):
             it = self.ui.listWidget_voicegoogleTrans.item(i)
             it.setHidden(it not in match_items)
@@ -1099,7 +1578,7 @@ class Widget(QWidget):
             it.setHidden(it not in match_items)
 
     def set_onnx_voice(self, text):
-        if text == '':
+        if text == "":
             text = "eng"
         for index in range(self.ui.onnx_listWidget.count()):
             item = self.ui.onnx_listWidget.item(index)
@@ -1114,29 +1593,29 @@ class Widget(QWidget):
             item_widget = QWidget()
             item_UI = Ui_item()
             item_UI.setupUi(item_widget)
-            item_UI.name.setText(data['name'])
+            item_UI.name.setText(data["name"])
             font = QFont()
             font.setBold(False)
             font.setPointSize(8)
             item_UI.gender.setFont(font)
-            item_UI.gender.setText(data['gender'])
+            item_UI.gender.setText(data["gender"])
             item_UI.play.clicked.connect(self.preview_pressed)
-            item_widget.setObjectName(data['name'])
+            item_widget.setObjectName(data["name"])
 
             item = QListWidgetItem()
             item.setForeground(QColor(0, 0, 0, 0))
-            item.setText(data['name'])
-            item.setToolTip(data['language_codes'][0])
+            item.setText(data["name"])
+            item.setToolTip(data["language_codes"][0])
             item.setSizeHint(item_widget.sizeHint())
             self.ui.onnx_listWidget.insertItem(index, item)
             self.ui.onnx_listWidget.setItemWidget(item, item_widget)
-            model_path = os.path.join(self.onnx_location, data['language_codes'][0])
+            model_path = os.path.join(self.onnx_location, data["language_codes"][0])
             if os.path.exists(model_path):
                 item_UI.play.setIcon(self.iconPlayed)
-                item_UI.play.setObjectName('Play')
+                item_UI.play.setObjectName("Play")
             else:
                 item_UI.play.setIcon(self.iconDownload)
-                item_UI.play.setObjectName('Download')
+                item_UI.play.setObjectName("Download")
         except Exception as onnxError:
             print(str(onnxError))
 
@@ -1146,20 +1625,20 @@ class Widget(QWidget):
             item_widget = QWidget()
             item_UI = Ui_item()
             item_UI.setupUi(item_widget)
-            item_UI.name.setText(data['name'])
+            item_UI.name.setText(data["name"])
             font = QFont()
             font.setBold(False)
             font.setPointSize(8)
             item_UI.gender.setFont(font)
-            item_UI.gender.setText(data['gender'])
+            item_UI.gender.setText(data["gender"])
             item_UI.play.clicked.connect(self.preview_pressed)
-            item_widget.setObjectName(data['name'])
+            item_widget.setObjectName(data["name"])
 
             item = QListWidgetItem()
             item.setForeground(QColor(0, 0, 0, 0))
-            item.setText(data['name'])
+            item.setText(data["name"])
             # item.setToolTip(data['language_codes'][0])
-            item.setToolTip(data['id'])
+            item.setToolTip(data["id"])
             item.setSizeHint(item_widget.sizeHint())
             self.ui.listWidget_voiceazure.insertItem(index, item)
             self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
@@ -1171,19 +1650,19 @@ class Widget(QWidget):
         item_widget = QWidget()
         item_UI = Ui_item()
         item_UI.setupUi(item_widget)
-        item_UI.name.setText(data['name'])
+        item_UI.name.setText(data["name"])
         font = QFont()
         font.setBold(False)
         font.setPointSize(8)
         item_UI.gender.setFont(font)
-        item_UI.gender.setText(data['gender'])
+        item_UI.gender.setText(data["gender"])
         item_UI.play.clicked.connect(self.preview_pressed)
-        item_widget.setObjectName(data['name'])
+        item_widget.setObjectName(data["name"])
 
         item = QListWidgetItem()
         item.setForeground(QColor(0, 0, 0, 0))
-        item.setText(data['name'])
-        item.setToolTip(data['id'])
+        item.setText(data["name"])
+        item.setToolTip(data["id"])
         item.setSizeHint(item_widget.sizeHint())
         self.ui.listWidget_voicegoogle.insertItem(index, item)
         self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
@@ -1193,19 +1672,19 @@ class Widget(QWidget):
         item_widget = QWidget()
         item_UI = Ui_item()
         item_UI.setupUi(item_widget)
-        item_UI.name.setText(data['name'])
+        item_UI.name.setText(data["name"])
         font = QFont()
         font.setBold(False)
         font.setPointSize(8)
         item_UI.gender.setFont(font)
-        item_UI.gender.setText(data['gender'])
+        item_UI.gender.setText(data["gender"])
         item_UI.play.clicked.connect(self.preview_pressed)
-        item_widget.setObjectName(data['name'])
+        item_widget.setObjectName(data["name"])
 
         item = QListWidgetItem()
         item.setForeground(QColor(0, 0, 0, 0))
-        item.setText(data['name'])
-        item.setToolTip(data['id'])
+        item.setText(data["name"])
+        item.setToolTip(data["id"])
         item.setSizeHint(item_widget.sizeHint())
         self.ui.listWidget_voicegoogleTrans.insertItem(index, item)
         self.ui.listWidget_voicegoogleTrans.setItemWidget(item, item_widget)
@@ -1227,7 +1706,7 @@ class Player(QRunnable):
         self.signals = Signals()
 
     def run(self):
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             application_path = os.path.dirname(sys.executable)
             exe_name = ""
             for root, dirs, files in os.walk(application_path):
@@ -1236,15 +1715,29 @@ class Player(QRunnable):
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
-            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'Audio Files')
-            process = subprocess.Popen([GUI_path, "--config", self.temp_config_file.name, "--preview"])
+            cache_location = os.path.join(
+                os.path.dirname(self.temp_config_file.name), "Audio Files"
+            )
+            process = subprocess.Popen(
+                [GUI_path, "--config", self.temp_config_file.name, "--preview"]
+            )
             process.wait()
         elif __file__:
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
-            GUI_script_path = os.path.join(application_path, 'client.py')
-            cache_location = os.path.join(os.path.dirname(self.temp_config_file.name), 'Audio Files')
-            process = subprocess.Popen(["python", GUI_script_path, "--config", self.temp_config_file.name, "--preview"])
+            GUI_script_path = os.path.join(application_path, "client.py")
+            cache_location = os.path.join(
+                os.path.dirname(self.temp_config_file.name), "Audio Files"
+            )
+            process = subprocess.Popen(
+                [
+                    "python",
+                    GUI_script_path,
+                    "--config",
+                    self.temp_config_file.name,
+                    "--preview",
+                ]
+            )
             process.wait()
         self.signals.completed.emit()
 
@@ -1263,7 +1756,7 @@ class Cleaner(QRunnable):
                 file_path = os.path.join(self.path, file)
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-                    print(f'{file_path} is deleted.')
+                    print(f"{file_path} is deleted.")
             print("All files deleted successfully.")
         except OSError:
             logging.error("Error occurred while deleting files.", exc_info=True)
@@ -1284,10 +1777,12 @@ class VoiceLoader(QRunnable):
             start = time.perf_counter()
             voices = []
             generate = True
-            if self.tts == 'Azure TTS':
+            if self.tts == "Azure TTS":
                 generate = self.parent.ui.checkBox_azure.isChecked()
-                if self.parent.azure_location != '' and self.parent.azure_key != '':
-                    client = MicrosoftClient((self.parent.azure_key, self.parent.azure_location))
+                if self.parent.azure_location != "" and self.parent.azure_key != "":
+                    client = MicrosoftClient(
+                        (self.parent.azure_key, self.parent.azure_location)
+                    )
                 else:
                     client = MicrosoftClient((ms_token, ms_region))
                 try:
@@ -1297,7 +1792,7 @@ class VoiceLoader(QRunnable):
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
                     client = MicrosoftClient((ms_token, ms_region))
                     voices = client.get_available_voices()
-            elif self.tts == 'Google TTS':
+            elif self.tts == "Google TTS":
                 generate = self.parent.ui.checkBox_google.isChecked()
                 client = GoogleClient(credentials=self.parent.google_credential)
                 try:
@@ -1305,15 +1800,17 @@ class VoiceLoader(QRunnable):
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = GoogleClient(credentials=self.parent.default_google_credential)
+                    client = GoogleClient(
+                        credentials=self.parent.default_google_credential
+                    )
                     voices = client.get_voices()
-            elif self.tts == 'Sherpa-ONNX':
+            elif self.tts == "Sherpa-ONNX":
                 client = SherpaOnnxClient()
                 try:
                     voices = client.get_voices()
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
-            elif self.tts == 'GoogleTranslator TTS':
+            elif self.tts == "GoogleTranslator TTS":
                 client = GoogleTransClient()
                 try:
                     voices = client.get_voices()
@@ -1332,22 +1829,28 @@ class VoiceLoader(QRunnable):
 
 
 def setup_logging():
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # If the application is run as a bundle, use the AppData directory
-        log_dir = os.path.join(os.path.expanduser("~"), 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
+        log_dir = os.path.join(
+            os.path.expanduser("~"),
+            "AppData",
+            "Roaming",
+            "Ace Centre",
+            "AACSpeakHelper",
+        )
     else:
         # If run from a Python environment, use the current directory
         log_dir = os.path.dirname(os.path.abspath(__file__))
 
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    log_file = os.path.join(log_dir, 'configure.log')
+    log_file = os.path.join(log_dir, "configure.log")
 
     logging.basicConfig(
         filename=log_file,
-        filemode='a',
+        filemode="a",
         format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
-        level=logging.DEBUG
+        level=logging.DEBUG,
     )
 
     return log_file
