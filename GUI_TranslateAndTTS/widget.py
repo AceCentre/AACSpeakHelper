@@ -98,12 +98,12 @@ def load_config():
         # Running as a bundled executable
         executable_dir = os.path.dirname(sys.executable)
         possible_paths.append(os.path.join(executable_dir, "config.enc"))
-        possible_paths.append(os.path.join(executable_dir, "_libs", "config.enc"))
+        possible_paths.append(os.path.join(executable_dir, "_internal", "config.enc"))
     else:
         # Running as a script
         script_dir = os.path.dirname(os.path.abspath(__file__))
         possible_paths.append(os.path.join(script_dir, "config.enc"))
-        possible_paths.append(os.path.join(script_dir, "_libs", "config.enc"))
+        possible_paths.append(os.path.join(script_dir, "_internal", "config.enc"))
 
     encrypted_config_path = None
     for path in possible_paths:
