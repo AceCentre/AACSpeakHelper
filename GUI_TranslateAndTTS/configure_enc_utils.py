@@ -7,6 +7,7 @@ import configparser
 from cryptography.fernet import Fernet
 import sys
 
+
 # Create a generated key like this
 # from cryptography.fernet import Fernet
 # print(Fernet.generate_key().decode())

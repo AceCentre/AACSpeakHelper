@@ -10,7 +10,7 @@ import time
 import uuid
 import warnings
 import io
-from ..configure_enc_utils import load_config
+from configure_enc_utils import load_config
 
 warnings.filterwarnings("ignore")
 import PySide6.QtCore
