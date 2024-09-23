@@ -7,11 +7,6 @@
 #define MyAppURL "https://acecentre.org.uk"
 #define MyAppExeName "client.exe"
 
-#define MICROSOFT_TOKEN "{#MICROSOFT_TOKEN}"
-#define MICROSOFT_REGION "{#MICROSOFT_REGION}"
-#define GOOGLE_CREDS_PATH "{#GOOGLE_CREDS_PATH}"
-#define MICROSOFT_TOKEN_TRANS "{#MICROSOFT_TOKEN_TRANS}"
-
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
@@ -55,7 +50,6 @@ Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "assets\translate.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\translate_loading.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
-Source: "dist\AACSpeakHelperServer\config.enc"; DestDir: "{app}\_libs"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

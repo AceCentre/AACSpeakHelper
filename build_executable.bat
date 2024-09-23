@@ -27,12 +27,6 @@ if exist config.enc (
     echo config.enc not found. Ensure encryption step ran correctly.
 )
 
-rem Pass secrets as preprocessor defines to Inno Setup
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ^
-  /D MICROSOFT_TOKEN="%MICROSOFT_TOKEN%" ^
-  /D MICROSOFT_REGION="%MICROSOFT_REGION%" ^
-  /D GOOGLE_CREDS_JSON="%GOOGLE_CREDS_JSON%" ^
-  /D MICROSOFT_TOKEN_TRANS="%MICROSOFT_TOKEN_TRANS%" ^
-  .\buildscript.iss
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" .\buildscript.iss
 
 endlocal
