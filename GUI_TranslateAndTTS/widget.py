@@ -11,6 +11,7 @@ import uuid
 import warnings
 import io
 from cryptography.fernet import Fernet
+from pathlib import Path
 
 warnings.filterwarnings("ignore")
 import PySide6.QtCore
@@ -152,6 +153,7 @@ def load_config():
                 encrypted_data = f.read()
             decrypted_data = fernet.decrypt(encrypted_data)
             decrypted_config = json.loads(decrypted_data.decode())
+            print(decrypted_config)
 
             logging.info("Successfully decrypted configuration from config.enc.")
 
@@ -1922,6 +1924,7 @@ if __name__ == "__main__":
     logfile = setup_logging()
     try:
         config = load_config()
+        print(config)
         logging.info("Configuration Loaded Successfully.")
     except Exception as error:
         print(error)
