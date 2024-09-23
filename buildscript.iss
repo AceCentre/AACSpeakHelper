@@ -70,10 +70,6 @@ Name: "{userstartup}\AACSpeakHelperServer.exe"; Filename: "{app}\AACSpeakHelperS
 [Run]
 Filename: "{app}\CreateGridset.exe"
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
-Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_TOKEN value"; Flags: runhidden nowait skipifsilent
-Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_REGION value"; Flags: runhidden nowait skipifsilent
-Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx GOOGLE_CREDS_PATH value"; Flags: runhidden nowait skipifsilent
-Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""setx MICROSOFT_TOKEN_TRANS value"; Flags: runhidden nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{app}\AACSpeakHelperServer.exe"; Flags: nowait postinstall skipifsilent
 Filename: "{app}\Configure AACSpeakHelper.exe"; Flags: nowait postinstall skipifsilent
