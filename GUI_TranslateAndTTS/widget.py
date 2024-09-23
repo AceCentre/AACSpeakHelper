@@ -12,6 +12,7 @@ import warnings
 import io
 from cryptography.fernet import Fernet
 from pathlib import Path
+import ast
 
 warnings.filterwarnings("ignore")
 import PySide6.QtCore
@@ -152,33 +153,62 @@ def load_config():
             with encrypted_config_path.open("rb") as f:
                 encrypted_data = f.read()
             decrypted_data = fernet.decrypt(encrypted_data)
-            decrypted_config = json.loads(decrypted_data.decode())
-            print(decrypted_config)
 
+            # Debugging: print the decrypted content before parsing
+            logging.debug(f"Decrypted configuration content: {decrypted_data.decode()}")
+
+            # Load the decrypted JSON
+            decrypted_config = json.loads(decrypted_data.decode())
             logging.info("Successfully decrypted configuration from config.enc.")
 
+            # Fix double escaping of GOOGLE_CREDS_JSON
+            google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON", "")
+
+            # Step-by-step unescape to clean the string
+            try:
+                # Remove excessive escaping from the JSON string progressively
+                while "\\\\" in google_creds_json:
+                    google_creds_json = google_creds_json.replace("\\\\", "\\")
+
+                # Parse the cleaned string as JSON
+                google_creds_data = json.loads(google_creds_json)
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to parse GOOGLE_CREDS_JSON: {e}")
+                raise
+
             # Write google_creds.json to the determined path
-            google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON")
             google_creds_path = get_google_creds_path()
+            os.makedirs(google_creds_path.parent, exist_ok=True)
+            with google_creds_path.open("w") as f:
+                json.dump(google_creds_data, f)
+            logging.info(f"Google credentials file created at {google_creds_path}")
+            config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
 
-            if google_creds_json:
-                os.makedirs(google_creds_path.parent, exist_ok=True)
-                with google_creds_path.open("w") as f:
-                    json.dump(json.loads(google_creds_json), f)
-                logging.info(f"Google credentials file created at {google_creds_path}")
-                config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
-            else:
-                logging.error("GOOGLE_CREDS_JSON not found in decrypted configuration.")
-                raise ValueError(
-                    "GOOGLE_CREDS_JSON not found in decrypted configuration."
-                )
-
-            # Populate the remaining configuration keys
-            config["MICROSOFT_TOKEN"] = decrypted_config.get("MICROSOFT_TOKEN")
-            config["MICROSOFT_REGION"] = decrypted_config.get("MICROSOFT_REGION")
+            # Populate other configuration keys
+            config["MICROSOFT_TOKEN"] = decrypted_config.get(
+                "MICROSOFT_TOKEN", ""
+            ).strip()
+            config["MICROSOFT_REGION"] = decrypted_config.get(
+                "MICROSOFT_REGION", ""
+            ).strip()
             config["MICROSOFT_TOKEN_TRANS"] = decrypted_config.get(
-                "MICROSOFT_TOKEN_TRANS"
+                "MICROSOFT_TOKEN_TRANS", ""
+            ).strip()
+
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON decoding error: {e}")
+            raise
+        except Exception as e:
+            logging.error(f"Failed to load configuration from encrypted file: {e}")
+            logging.info("Falling back to loading configuration from settings.cfg.")
+            encrypted_config_path = None  # Reset to allow loading from settings.cfg
+
+            logging.debug(f"MICROSOFT_TOKEN: '{config.get('MICROSOFT_TOKEN')}'")
+            logging.debug(f"MICROSOFT_REGION: '{config.get('MICROSOFT_REGION')}'")
+            logging.debug(
+                f"MICROSOFT_TOKEN_TRANS: '{config.get('MICROSOFT_TOKEN_TRANS')}'"
             )
+            logging.debug(f"GOOGLE_CREDS_PATH: '{config.get('GOOGLE_CREDS_PATH')}'")
 
             # Validate that all required fields are present
             required_fields = [
@@ -1924,7 +1954,6 @@ if __name__ == "__main__":
     logfile = setup_logging()
     try:
         config = load_config()
-        print(config)
         logging.info("Configuration Loaded Successfully.")
     except Exception as error:
         print(error)
