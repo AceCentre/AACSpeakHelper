@@ -55,132 +55,194 @@ def get_google_creds_path():
     """
     if getattr(sys, "frozen", False):
         # Running as a bundled executable
-        if os.name == "nt":
-            # Windows
-            app_data = (
-                Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
-            )
-        else:
-            # macOS/Linux
-            app_data = Path.home() / ".config" / "AceCentre" / "AACSpeakHelper"
+        app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
     else:
         # Running as a script (development)
-        app_data = Path(__file__).parent  # Root directory of the repo
+        # Assume that config.enc is at the repository root, and so is google_creds.json
+        app_data = Path.cwd()
 
     return app_data / "google_creds.json"
 
 
+def find_config_enc(start_path: Path, max_depth: int = 5) -> Path:
+    """
+    Searches for 'config.enc' starting from 'start_path' and traversing up to 'max_depth' levels.
+
+    Args:
+        start_path (Path): The directory to start searching from.
+        max_depth (int): The maximum number of parent directories to traverse.
+
+    Returns:
+        Path: The path to 'config.enc' if found.
+
+    Raises:
+        FileNotFoundError: If 'config.enc' is not found within the specified depth.
+    """
+    current_path = start_path
+    for depth in range(max_depth):
+        config_path = current_path / "config.enc"
+        internal_config_path = current_path / "_internal" / "config.enc"
+        logging.debug(f"Checking for config.enc at: {config_path}")
+        if config_path.is_file():
+            logging.debug(f"Found config.enc at: {config_path}")
+            return config_path
+        if internal_config_path.is_file():
+            logging.debug(f"Found _internal/config.enc at: {internal_config_path}")
+            return internal_config_path
+        current_path = current_path.parent  # Move one level up
+        logging.debug(f"Moving up to parent directory: {current_path}")
+
+    raise FileNotFoundError(
+        f"'config.enc' not found within {max_depth} levels up from {start_path}"
+    )
+
+
 def load_config():
     """
-    Load configuration from environment variables.
-    If not present, load from an encrypted file.
+    Load configuration from an encrypted file and optionally override with settings from settings.cfg.
+
+    Returns:
+        dict: A dictionary containing configuration keys and their corresponding values.
+
+    Raises:
+        EnvironmentError: If required environment variables are not set.
+        FileNotFoundError: If config.enc or google_creds.json are not found.
+        ValueError: If the configuration is incomplete or corrupted.
     """
     config = {}
 
-    # Attempt to load from environment variables
-    config["MICROSOFT_TOKEN"] = os.getenv("MICROSOFT_TOKEN")
-    config["MICROSOFT_REGION"] = os.getenv("MICROSOFT_REGION")
-    # Remove GOOGLE_CREDS_PATH from env vars
-    config["MICROSOFT_TOKEN_TRANS"] = os.getenv("MICROSOFT_TOKEN_TRANS")
-
-    # Check if all required environment variables are present
-    if all(config.values()):
-        logging.info("Loaded configuration from environment variables.")
-        return config
-
-    logging.info(
-        "Environment variables incomplete or not set. Attempting to load from encrypted file."
-    )
-
-    # Determine possible encrypted config paths
-    possible_paths = []
+    # Determine the starting directory based on whether the app is frozen
     if getattr(sys, "frozen", False):
         # Running as a bundled executable
-        executable_dir = os.path.dirname(sys.executable)
-        possible_paths.append(os.path.join(executable_dir, "config.enc"))
-        possible_paths.append(os.path.join(executable_dir, "_internal", "config.enc"))
+        executable_dir = Path(sys.executable).parent
+        start_dir = executable_dir
+        logging.debug(f"Executable directory: {executable_dir}")
     else:
-        # Running as a script
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        possible_paths.append(os.path.join(script_dir, "config.enc"))
-        possible_paths.append(os.path.join(script_dir, "_internal", "config.enc"))
-
-    encrypted_config_path = None
-    for path in possible_paths:
-        if os.path.isfile(path):
-            encrypted_config_path = path
-            break
-
-    if not encrypted_config_path:
-        raise FileNotFoundError(
-            f"Encrypted configuration file not found in any of the following paths: {possible_paths}"
+        # Running as a script (development)
+        start_dir = (
+            Path.cwd()
+        )  # Assuming the current working directory is the repo root
+        logging.debug(
+            f"Script is running in development mode. Current working directory: {start_dir}"
         )
 
-    encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
-    if not encryption_key:
-        raise EnvironmentError("CONFIG_ENCRYPTION_KEY environment variable is not set.")
-
+    # Attempt to find config.enc
     try:
-        with open(encrypted_config_path, "rb") as f:
-            encrypted_data = f.read()
+        encrypted_config_path = find_config_enc(start_dir)
+        logging.info(f"Found encrypted configuration file at: {encrypted_config_path}")
+    except FileNotFoundError as e:
+        logging.warning(e)
+        encrypted_config_path = None
 
-        fernet = Fernet(encryption_key.encode())
-        decrypted_data = fernet.decrypt(encrypted_data)
-        decrypted_config = json.loads(decrypted_data.decode())
-
-        logging.info("Loaded configuration from encrypted file.")
-
-        # Write google_creds.json to the fixed path
-        google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON")
-        google_creds_path = get_google_creds_path()
-
-        if google_creds_json:
-            os.makedirs(os.path.dirname(google_creds_path), exist_ok=True)
-            with open(google_creds_path, "w") as f:
-                json.dump(json.loads(google_creds_json), f)
-            logging.info(f"Google credentials file created at {google_creds_path}")
-            config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
-        else:
-            raise ValueError("GOOGLE_CREDS_JSON not found in configuration.")
-
-        # Populate the remaining config from decrypted data
-        config["MICROSOFT_TOKEN"] = decrypted_config.get("MICROSOFT_TOKEN")
-        config["MICROSOFT_REGION"] = decrypted_config.get("MICROSOFT_REGION")
-        config["MICROSOFT_TOKEN_TRANS"] = decrypted_config.get("MICROSOFT_TOKEN_TRANS")
-
-        # Optional: Validate that all required fields are present
-        required_fields = [
-            "MICROSOFT_TOKEN",
-            "MICROSOFT_REGION",
-            "MICROSOFT_TOKEN_TRANS",
-            "GOOGLE_CREDS_PATH",
-        ]
-        missing_fields = [field for field in required_fields if not config.get(field)]
-        if missing_fields:
-            raise ValueError(
-                f"Missing configuration fields: {', '.join(missing_fields)}"
+    if encrypted_config_path:
+        # Load the encryption key from the environment variable
+        encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
+        if not encryption_key:
+            logging.error("CONFIG_ENCRYPTION_KEY environment variable is not set.")
+            raise EnvironmentError(
+                "CONFIG_ENCRYPTION_KEY environment variable is not set."
             )
 
-        return config
+        try:
+            # Initialize Fernet with the encryption key
+            fernet = Fernet(encryption_key.encode())
 
-    except Exception as e:
-        logging.error(f"Failed to load configuration: {e}")
-        raise e
+            # Read and decrypt the configuration
+            with encrypted_config_path.open("rb") as f:
+                encrypted_data = f.read()
+            decrypted_data = fernet.decrypt(encrypted_data)
+            decrypted_config = json.loads(decrypted_data.decode())
 
+            logging.info("Successfully decrypted configuration from config.enc.")
 
-# Load configuration
-try:
-    config = load_config()
-    logging.info("Configuration Loaded Successfully.")
-except Exception as error:
-    logging.debug(f"Error loading configuration: {error}")
-    # Optionally, handle the error (e.g., show a message to the user and exit)
-    sys.exit(1)
+            # Write google_creds.json to the determined path
+            google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON")
+            google_creds_path = get_google_creds_path()
 
-ms_token = config.get("MICROSOFT_TOKEN")
-ms_region = config.get("MICROSOFT_REGION")
-google_creds_path = config.get("GOOGLE_CREDS_PATH")
-ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
+            if google_creds_json:
+                os.makedirs(google_creds_path.parent, exist_ok=True)
+                with google_creds_path.open("w") as f:
+                    json.dump(json.loads(google_creds_json), f)
+                logging.info(f"Google credentials file created at {google_creds_path}")
+                config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
+            else:
+                logging.error("GOOGLE_CREDS_JSON not found in decrypted configuration.")
+                raise ValueError(
+                    "GOOGLE_CREDS_JSON not found in decrypted configuration."
+                )
+
+            # Populate the remaining configuration keys
+            config["MICROSOFT_TOKEN"] = decrypted_config.get("MICROSOFT_TOKEN")
+            config["MICROSOFT_REGION"] = decrypted_config.get("MICROSOFT_REGION")
+            config["MICROSOFT_TOKEN_TRANS"] = decrypted_config.get(
+                "MICROSOFT_TOKEN_TRANS"
+            )
+
+            # Validate that all required fields are present
+            required_fields = [
+                "MICROSOFT_TOKEN",
+                "MICROSOFT_REGION",
+                "MICROSOFT_TOKEN_TRANS",
+                "GOOGLE_CREDS_PATH",
+            ]
+            missing_fields = [
+                field for field in required_fields if not config.get(field)
+            ]
+            if missing_fields:
+                logging.error(
+                    f"Missing configuration fields: {', '.join(missing_fields)}"
+                )
+                raise ValueError(
+                    f"Missing configuration fields: {', '.join(missing_fields)}"
+                )
+
+            logging.info("Configuration loaded successfully from encrypted file.")
+
+        except Exception as e:
+            logging.error(f"Failed to load configuration from encrypted file: {e}")
+            logging.info("Falling back to loading configuration from settings.cfg.")
+            encrypted_config_path = None  # Reset to allow loading from settings.cfg
+
+    # Load configuration from settings.cfg if it exists
+    settings_cfg_path = start_dir / "settings.cfg"
+    if settings_cfg_path.is_file():
+        logging.info(f"Loading configuration overrides from {settings_cfg_path}")
+        config_parser = configparser.ConfigParser()
+        config_parser.read(settings_cfg_path)
+
+        if "overrides" in config_parser.sections():
+            for key, value in config_parser["overrides"].items():
+                config[key.upper()] = value
+                logging.info(f"Overridden {key.upper()} with value from settings.cfg")
+        else:
+            logging.warning(f"No [overrides] section found in {settings_cfg_path}")
+    else:
+        logging.info("No settings.cfg file found. Skipping overrides.")
+
+    # Final validation to ensure all required fields are present
+    required_fields = [
+        "MICROSOFT_TOKEN",
+        "MICROSOFT_REGION",
+        "MICROSOFT_TOKEN_TRANS",
+        "GOOGLE_CREDS_PATH",
+    ]
+    missing_fields = [field for field in required_fields if not config.get(field)]
+    if missing_fields:
+        logging.error(
+            f"Missing configuration fields after loading: {', '.join(missing_fields)}"
+        )
+        raise ValueError(f"Missing configuration fields: {', '.join(missing_fields)}")
+
+    # Verify that google_creds.json exists
+    google_creds_path = Path(config["GOOGLE_CREDS_PATH"])
+    if not google_creds_path.is_file():
+        logging.error(f"Google credentials file not found at {google_creds_path}.")
+        raise FileNotFoundError(
+            f"Google credentials file not found at {google_creds_path}."
+        )
+
+    logging.info("Final configuration loaded successfully.")
+    return config
 
 
 class Widget(QWidget):
@@ -1858,6 +1920,17 @@ def setup_logging():
 
 if __name__ == "__main__":
     logfile = setup_logging()
+    try:
+        config = load_config()
+        logging.info("Configuration Loaded Successfully.")
+    except Exception as error:
+        print(error)
+        logging.debug(f"Error loading configuration: {error}")
+        sys.exit(1)
+    ms_token = config.get("MICROSOFT_TOKEN")
+    ms_region = config.get("MICROSOFT_REGION")
+    google_creds_path = config.get("GOOGLE_CREDS_PATH")
+    ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
