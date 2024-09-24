@@ -39,7 +39,7 @@ def create_google_creds_file(creds_path="google_creds.json"):
         print(f"Failed to decode GOOGLE_CREDS_JSON: {e}")
 
 
-def find_config_enc(start_path: Path, max_depth: int = 5) -> Path:
+def find_config_enc(start_path: Path, max_depth: int = 5, filestr="config.enc") -> Path:
     """
     Searches for 'config.enc' starting from 'start_path' and traversing up to 'max_depth' levels.
 
@@ -55,20 +55,20 @@ def find_config_enc(start_path: Path, max_depth: int = 5) -> Path:
     """
     current_path = start_path
     for depth in range(max_depth):
-        config_path = current_path / "config.enc"
-        internal_config_path = current_path / "_internal" / "config.enc"
-        logging.debug(f"Checking for config.enc at: {config_path}")
+        config_path = current_path / filestr
+        internal_config_path = current_path / "_internal" / filestr
+        logging.debug(f"Checking for {filestr} at: {config_path}")
         if config_path.is_file():
-            logging.debug(f"Found config.enc at: {config_path}")
+            logging.debug(f"Found {filestr} at: {config_path}")
             return config_path
         if internal_config_path.is_file():
-            logging.debug(f"Found _internal/config.enc at: {internal_config_path}")
+            logging.debug(f"Found _internal/{filestr} at: {internal_config_path}")
             return internal_config_path
         current_path = current_path.parent  # Move one level up
         logging.debug(f"Moving up to parent directory: {current_path}")
 
     raise FileNotFoundError(
-        f"'config.enc' not found within {max_depth} levels up from {start_path}"
+        f"'{filestr}' not found within {max_depth} levels up from {start_path}"
     )
 
 
@@ -96,39 +96,6 @@ def get_google_creds_path():
         app_data = Path.cwd()
 
     return app_data / "google_creds.json"
-
-
-def find_config_enc(start_path: Path, max_depth: int = 5) -> Path:
-    """
-    Searches for 'config.enc' starting from 'start_path' and traversing up to 'max_depth' levels.
-
-    Args:
-        start_path (Path): The directory to start searching from.
-        max_depth (int): The maximum number of parent directories to traverse.
-
-    Returns:
-        Path: The path to 'config.enc' if found.
-
-    Raises:
-        FileNotFoundError: If 'config.enc' is not found within the specified depth.
-    """
-    current_path = start_path
-    for depth in range(max_depth):
-        config_path = current_path / "config.enc"
-        internal_config_path = current_path / "_internal" / "config.enc"
-        logging.debug(f"Checking for config.enc at: {config_path}")
-        if config_path.is_file():
-            logging.debug(f"Found config.enc at: {config_path}")
-            return config_path
-        if internal_config_path.is_file():
-            logging.debug(f"Found _internal/config.enc at: {internal_config_path}")
-            return internal_config_path
-        current_path = current_path.parent  # Move one level up
-        logging.debug(f"Moving up to parent directory: {current_path}")
-
-    raise FileNotFoundError(
-        f"'config.enc' not found within {max_depth} levels up from {start_path}"
-    )
 
 
 def generate_key():
@@ -250,15 +217,24 @@ def load_config(custom_config_path=""):
             / "AACSpeakHelper"
             / "_internal"
         )
-        logging.debug(f"Running in frozen mode. App data directory: {app_data}")
+        encrypted_config_path = find_config_enc(app_data, 5, filestr="config.enc")
+        logging.debug(
+            f"Running in frozen mode. App data directory: {encrypted_config_path}"
+        )
     else:
         # Running as a script (development)
         app_data = Path.cwd()  # Use current working directory in development mode
-        logging.debug(f"Running in development mode. App data directory: {app_data}")
+        encrypted_config_path = find_config_enc(app_data, 5, filestr="config.enc")
+        logging.debug(
+            f"Running in development mode. Encrypted file at: {encrypted_config_path}"
+        )
+        settings_cfg_path = find_config_enc(app_data, 5, filestr="settings.cfg")
+        logging.debug(
+            f"Running in development mode. Settings cfg at: {settings_cfg_path}"
+        )
 
     # Attempt to find config.enc
     try:
-        encrypted_config_path = app_data / "config.enc"
         if not encrypted_config_path.is_file():
             raise FileNotFoundError(f"config.enc not found at {encrypted_config_path}")
         logging.info(f"Found encrypted configuration file at: {encrypted_config_path}")
@@ -276,6 +252,7 @@ def load_config(custom_config_path=""):
                 raise EnvironmentError(
                     "CONFIG_ENCRYPTION_KEY environment variable is not set."
                 )
+            print(encryption_key)
 
             # Initialize Fernet with the encryption key
             fernet = Fernet(encryption_key.encode())
@@ -330,20 +307,6 @@ def load_config(custom_config_path=""):
     # Load configuration from settings.cfg if it exists
     if custom_config_path != "":
         settings_cfg_path = Path(custom_config_path)
-    else:
-        if getattr(sys, "frozen", False):
-            # Running as a bundled executable
-            settings_cfg_path = (
-                Path.home()
-                / "AppData"
-                / "Roaming"
-                / "Ace Centre"
-                / "AACSpeakHelper"
-                / "settings.cfg"
-            )
-        else:
-            # Running as a script (development)
-            settings_cfg_path = Path.cwd() / "settings.cfg"
 
     if settings_cfg_path.is_file():
         logging.info(f"Loading configuration overrides from {settings_cfg_path}")
