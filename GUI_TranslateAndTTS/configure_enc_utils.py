@@ -197,13 +197,11 @@ def load_config(custom_config_path=""):
     """
     Load configuration from an encrypted file and optionally override with settings from settings.cfg.
 
+    Args:
+        custom_config_path (str): Custom path for settings.cfg if provided.
+
     Returns:
         dict: A dictionary containing configuration keys and their corresponding values.
-
-    Raises:
-        EnvironmentError: If required environment variables are not set.
-        FileNotFoundError: If config.enc or google_creds.json are not found.
-        ValueError: If the configuration is incomplete or corrupted.
     """
     config = {}
 
@@ -221,31 +219,12 @@ def load_config(custom_config_path=""):
         )
         app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
         encrypted_config_path = find_config_enc(app_path, 5, filestr="config.enc")
-        logging.debug(
-            f"Running in frozen mode. App data directory: {encrypted_config_path}"
-        )
         settings_cfg_path = find_config_enc(app_data, 5, filestr="settings.cfg")
-        logging.debug(f"Running in frozen mode. Settings cfg at: {settings_cfg_path}")
     else:
         # Running as a script (development)
-        app_data = Path.cwd()  # Use current working directory in development mode
+        app_data = Path.cwd()
         encrypted_config_path = find_config_enc(app_data, 5, filestr="config.enc")
-        logging.debug(
-            f"Running in development mode. Encrypted file at: {encrypted_config_path}"
-        )
         settings_cfg_path = find_config_enc(app_data, 5, filestr="settings.cfg")
-        logging.debug(
-            f"Running in development mode. Settings cfg at: {settings_cfg_path}"
-        )
-
-    # Attempt to find config.enc
-    try:
-        if not encrypted_config_path.is_file():
-            raise FileNotFoundError(f"config.enc not found at {encrypted_config_path}")
-        logging.info(f"Found encrypted configuration file at: {encrypted_config_path}")
-    except FileNotFoundError as e:
-        logging.warning(e)
-        encrypted_config_path = None
 
     # Load configuration from the encrypted file
     if encrypted_config_path:
@@ -253,7 +232,6 @@ def load_config(custom_config_path=""):
             # Load the encryption key from the environment variable
             encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
             if not encryption_key:
-                logging.error("CONFIG_ENCRYPTION_KEY environment variable is not set.")
                 raise EnvironmentError(
                     "CONFIG_ENCRYPTION_KEY environment variable is not set."
                 )
@@ -265,9 +243,6 @@ def load_config(custom_config_path=""):
             with encrypted_config_path.open("rb") as f:
                 encrypted_data = f.read()
             decrypted_data = fernet.decrypt(encrypted_data)
-
-            # Debugging: print the decrypted content before parsing
-            logging.debug(f"Decrypted configuration content: {decrypted_data.decode()}")
 
             # Load the decrypted JSON
             decrypted_config = json.loads(decrypted_data.decode())
@@ -296,22 +271,15 @@ def load_config(custom_config_path=""):
                         base64.b64decode(google_creds_json).decode("utf-8")
                     )
                 logging.info(f"Google credentials file created at {google_creds_path}")
-            else:
-                logging.info(
-                    f"Google credentials file already exists at {google_creds_path}"
-                )
 
             config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
 
         except Exception as e:
             logging.error(f"Failed to load configuration from encrypted file: {e}")
-            logging.info("Falling back to loading configuration from settings.cfg.")
-            encrypted_config_path = None  # Reset to allow loading from settings.cfg
+            raise
 
-        config["MICROSOFT_TOKEN"] = os.getenv("MICROSOFT_TOKEN")
-
-    # Load configuration from settings.cfg if it exists
-    if custom_config_path != "":
+    # Load configuration from settings.cfg if it exists or if a custom path is provided
+    if custom_config_path:
         settings_cfg_path = Path(custom_config_path)
 
     if settings_cfg_path.is_file():
@@ -319,14 +287,13 @@ def load_config(custom_config_path=""):
         config_parser = configparser.ConfigParser()
         config_parser.read(settings_cfg_path)
 
-        # Override values based on the sections in settings.cfg
         for section in config_parser.sections():
             for key, value in config_parser.items(section):
-                # Combine section and key names to ensure correct prioritization
                 composite_key = f"{section.upper()}_{key.upper()}"
-                if value.strip() != "":
+                # Only override if the setting isn't already loaded from config.enc
+                if value.strip() and composite_key not in config:
                     config[composite_key] = value.strip()
-                logging.info(f"Loaded {composite_key} from settings.cfg")
+                    logging.info(f"Loaded {composite_key} from settings.cfg")
 
         # Specific handling for Azure and Google settings if present
         config["MICROSOFT_TOKEN"] = config.get(
