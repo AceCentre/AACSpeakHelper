@@ -30,6 +30,33 @@ see [this mermaid graph](https://www.mermaidchart.com/raw/bc383b62-6f3e-47de-b16
 
 See build details [here](https://github.com/AceCentre/TranslateAndTTS/blob/main/.github/workflows/windows-build-release.yml). 
 
+### To build the encryption key
+
+1. Fill your .env (or github env vars) with the correct keys for google/azure 
+
+eg.
+```sh
+MICROSOFT_TOKEN="token-here"
+MICROSOFT_REGION="uksouth"
+GOOGLE_CREDS_JSON="jq -c '@json' ttsandtranslate-7dd2e2d80d42.json - contents here"
+MICROSOFT_TOKEN_TRANS="token-for-trans"
+CONFIG_ENCRYPTION_KEY="key"
+```
+
+To get config encryption key run the following command
+
+```python
+from cryptography.fernet import Fernet
+print(Fernet.generate_key().decode())
+```
+2. Once this is all filled up run the following command to encrypt the config file
+
+```sh
+poetry run python prepare_config_enc.py
+```
+
+It will now have a config.enc file created. Our code will use that. If keys are in settings.cfg that overrides these keys
+
 
 ## Prerequisites
 
