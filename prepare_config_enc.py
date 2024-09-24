@@ -1,6 +1,7 @@
 # prepare_config_enc.py
 import os
 from configure_enc_utils import prepare_config_enc
+import logging
 
 # Configure logging
 logging.basicConfig(
