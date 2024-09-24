@@ -210,7 +210,7 @@ def load_config(custom_config_path=""):
     # Determine the paths based on whether the app is frozen or running as a script
     if getattr(sys, "frozen", False):
         # Running as a bundled executable
-        app_data = (
+        app_path = (
             Path.home()
             / "AppData"
             / "Local"
@@ -219,7 +219,8 @@ def load_config(custom_config_path=""):
             / "AACSpeakHelper"
             / "_internal"
         )
-        encrypted_config_path = find_config_enc(app_data, 5, filestr="config.enc")
+        app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
+        encrypted_config_path = find_config_enc(app_path, 5, filestr="config.enc")
         logging.debug(
             f"Running in frozen mode. App data directory: {encrypted_config_path}"
         )
