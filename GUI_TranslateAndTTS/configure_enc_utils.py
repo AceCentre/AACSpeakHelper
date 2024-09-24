@@ -9,7 +9,9 @@ import sys
 import base64
 from os import path
 
-os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
+
+if "CONFIG_ENCRYPTION_KEY" not in os.environ:
+    os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
 
 
 # Create a generated key like this
@@ -33,10 +35,10 @@ def create_google_creds_file(creds_path="google_creds.json"):
         # Write the decoded JSON content to the specified file
         with open(filename, "w") as f:
             f.write(decoded_json)
-        print(f"Google credentials file created at {filename}")
+        logging.info(f"Google credentials file created at {filename}")
 
     except (ValueError, base64.binascii.Error) as e:
-        print(f"Failed to decode GOOGLE_CREDS_JSON: {e}")
+        logging.error(f"Failed to decode GOOGLE_CREDS_JSON: {e}")
 
 
 def find_config_enc(start_path: Path, max_depth: int = 5, filestr="config.enc") -> Path:
@@ -252,7 +254,6 @@ def load_config(custom_config_path=""):
                 raise EnvironmentError(
                     "CONFIG_ENCRYPTION_KEY environment variable is not set."
                 )
-            print(encryption_key)
 
             # Initialize Fernet with the encryption key
             fernet = Fernet(encryption_key.encode())
@@ -304,6 +305,8 @@ def load_config(custom_config_path=""):
             logging.info("Falling back to loading configuration from settings.cfg.")
             encrypted_config_path = None  # Reset to allow loading from settings.cfg
 
+        config["MICROSOFT_TOKEN"] = os.getenv("MICROSOFT_TOKEN")
+
     # Load configuration from settings.cfg if it exists
     if custom_config_path != "":
         settings_cfg_path = Path(custom_config_path)
@@ -318,7 +321,8 @@ def load_config(custom_config_path=""):
             for key, value in config_parser.items(section):
                 # Combine section and key names to ensure correct prioritization
                 composite_key = f"{section.upper()}_{key.upper()}"
-                config[composite_key] = value.strip()
+                if value.strip() != "":
+                    config[composite_key] = value.strip()
                 logging.info(f"Loaded {composite_key} from settings.cfg")
 
         # Specific handling for Azure and Google settings if present
