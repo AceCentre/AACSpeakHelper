@@ -254,15 +254,15 @@ def load_config():
         encrypted_config_path = None
 
     if encrypted_config_path:
-        # Load the encryption key from the environment variable
-        encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
-        if not encryption_key:
-            logging.error("CONFIG_ENCRYPTION_KEY environment variable is not set.")
-            raise EnvironmentError(
-                "CONFIG_ENCRYPTION_KEY environment variable is not set."
-            )
-
         try:
+            # Load the encryption key from the environment variable
+            encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
+            if not encryption_key:
+                logging.error("CONFIG_ENCRYPTION_KEY environment variable is not set.")
+                raise EnvironmentError(
+                    "CONFIG_ENCRYPTION_KEY environment variable is not set."
+                )
+
             # Initialize Fernet with the encryption key
             fernet = Fernet(encryption_key.encode())
 
@@ -278,16 +278,7 @@ def load_config():
             decrypted_config = json.loads(decrypted_data.decode())
             logging.info("Successfully decrypted configuration from config.enc.")
 
-            # Write google_creds.json to the determined path
-            google_creds_path = get_google_creds_path()
-            if not path.exists(google_creds_path):
-                os.makedirs(google_creds_path.parent, exist_ok=True)
-                create_google_creds_file(google_creds_path)
-                logging.info(f"Google credentials file created at {google_creds_path}")
-
-            config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
-
-            # Populate other configuration keys
+            # Use the decrypted configuration directly instead of expecting environment variables
             config["MICROSOFT_TOKEN"] = decrypted_config.get(
                 "MICROSOFT_TOKEN", ""
             ).strip()
@@ -298,8 +289,42 @@ def load_config():
                 "MICROSOFT_TOKEN_TRANS", ""
             ).strip()
 
+            # Determine the potential paths for google_creds.json
+            google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON", "")
+            google_creds_paths = [
+                start_dir / "_internal" / "google_creds.json",  # For frozen apps
+                start_dir / "google_creds.json",  # For development environment
+            ]
+
+            # Check if the google_creds.json file already exists in any of the expected locations
+            google_creds_path = None
+            for path in google_creds_paths:
+                if path.is_file():
+                    google_creds_path = path
+                    logging.info(
+                        f"Google credentials file already exists at {google_creds_path}"
+                    )
+                    break
+
+            # If no existing creds file was found, create it in the preferred location (_internal if frozen, otherwise root)
+            if not google_creds_path:
+                google_creds_path = (
+                    google_creds_paths[0]
+                    if getattr(sys, "frozen", False)
+                    else google_creds_paths[1]
+                )
+                os.makedirs(google_creds_path.parent, exist_ok=True)
+
+                # Write the Google credentials to the determined path
+                with google_creds_path.open("w") as creds_file:
+                    creds_file.write(
+                        base64.b64decode(google_creds_json).decode("utf-8")
+                    )
+                logging.info(f"Google credentials file created at {google_creds_path}")
+
+            config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
+
         except Exception as e:
-            print(e)
             logging.error(f"Failed to load configuration from encrypted file: {e}")
             logging.info("Falling back to loading configuration from settings.cfg.")
             encrypted_config_path = None  # Reset to allow loading from settings.cfg
