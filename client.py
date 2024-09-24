@@ -116,10 +116,17 @@ def main():
     )
     args = vars(parser.parse_args())
 
+    config_path = args["config"]
     try:
-        # Load primary configuration from config.enc
-        config = load_config()
-        logging.info("Primary configuration loaded successfully.")
+        # Check if a custom configuration file was provided
+        if config_path:
+            # If a custom config path is provided, load config with that path
+            config = load_config(custom_config_path=config_path)
+            logging.info(f"Primary configuration loaded from {config_path}.")
+        else:
+            # Load the default configuration
+            config = load_config()
+            logging.info("Primary configuration loaded successfully.")
     except Exception as error:
         logging.error(f"Error loading primary configuration: {error}")
         sys.exit(1)

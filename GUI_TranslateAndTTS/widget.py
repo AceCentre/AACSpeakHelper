@@ -1739,13 +1739,11 @@ if __name__ == "__main__":
         config = load_config()
         logging.info("Configuration Loaded Successfully.")
     except Exception as error:
-        print(error)
         logging.debug(f"Error loading configuration: {error}")
         sys.exit(1)
     ms_token = config.get("MICROSOFT_TOKEN")
     ms_region = config.get("MICROSOFT_REGION")
     google_creds_path = config.get("GOOGLE_CREDS_PATH")
-    print(google_creds_path)
     ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
     app = QApplication(sys.argv)
     screen = app.primaryScreen()

@@ -224,7 +224,7 @@ def prepare_config_enc(output_path="config.enc"):
     logging.info(f"Google credentials file created at {google_creds}")
 
 
-def load_config():
+def load_config(custom_config_path=""):
     """
     Load configuration from an encrypted file and optionally override with settings from settings.cfg.
 
@@ -328,14 +328,23 @@ def load_config():
             encrypted_config_path = None  # Reset to allow loading from settings.cfg
 
     # Load configuration from settings.cfg if it exists
-    settings_cfg_path = (
-        Path.home()
-        / "AppData"
-        / "Roaming"
-        / "Ace Centre"
-        / "AACSpeakHelper"
-        / "settings.cfg"
-    )
+    if custom_config_path != "":
+        settings_cfg_path = Path(custom_config_path)
+    else:
+        if getattr(sys, "frozen", False):
+            # Running as a bundled executable
+            settings_cfg_path = (
+                Path.home()
+                / "AppData"
+                / "Roaming"
+                / "Ace Centre"
+                / "AACSpeakHelper"
+                / "settings.cfg"
+            )
+        else:
+            # Running as a script (development)
+            settings_cfg_path = Path.cwd() / "settings.cfg"
+
     if settings_cfg_path.is_file():
         logging.info(f"Loading configuration overrides from {settings_cfg_path}")
         config_parser = configparser.ConfigParser()
