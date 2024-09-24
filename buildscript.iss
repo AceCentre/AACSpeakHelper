@@ -50,6 +50,7 @@ Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesu
 Source: "assets\translate.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\translate_loading.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
+Source: "google_creds.json"; DestDir: "{app}\_internal"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
