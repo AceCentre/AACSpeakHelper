@@ -714,7 +714,7 @@ class Widget(QWidget):
             else print("")
         )
         if self.credsFilePath == "" and not permanent:
-            self.config.set("googleTTS", "creds_file", google_cred_path)
+            self.config.set("googleTTS", "creds_file", google_creds_path)
         else:
             self.config.set("googleTTS", "creds_file", self.credsFilePath)
         if self.ui.listWidget_voicegoogle.currentItem() is None:
@@ -1208,20 +1208,16 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setPlaceholderText("Invalid JSON Credentials")
 
     def get_google_credentials(self, filename, default=False):
-        if os.path.isfile(filename) and not default:
+        print(f"Filename: {filename}")
+        if filename is not None and os.path.isfile(filename):
             logging.info("Using User Defined Google Credentials")
             return filename
-        file = QFile(f":/binary/{filename}")
-        logging.info("Using Default Google Credentials")
-        if file.open(QIODevice.ReadOnly | QFile.Text):
-            text = QTextStream(file).readAll()
-            credentials = io.StringIO(text)
-            credentials.read()
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                temp_file.write(credentials.getvalue().encode())
-                credentials_file = temp_file.name
-                temp_file.close()
-            return credentials_file
+        else:
+            if default:
+                logging.info("Using Default Google Credentials")
+                return google_creds_path
+            else:
+                logging.info("Invalid Google Credentials")
         return None
 
     def generate_google_voice_models(self):
@@ -1231,7 +1227,7 @@ class Widget(QWidget):
             )
             # self.google_credential = self.get_google_credentials(google_cred_path)
             self.default_google_credential = self.get_google_credentials(
-                google_cred_path, True
+                google_creds_path, True
             )
             self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
             self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
@@ -1749,6 +1745,7 @@ if __name__ == "__main__":
     ms_token = config.get("MICROSOFT_TOKEN")
     ms_region = config.get("MICROSOFT_REGION")
     google_creds_path = config.get("GOOGLE_CREDS_PATH")
+    print(google_creds_path)
     ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
     app = QApplication(sys.argv)
     screen = app.primaryScreen()

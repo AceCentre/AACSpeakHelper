@@ -6,12 +6,35 @@ from pathlib import Path
 import configparser
 from cryptography.fernet import Fernet
 import sys
+import base64
+from os import path
+
 
 # Create a generated key like this
 # from cryptography.fernet import Fernet
 # print(Fernet.generate_key().decode())
 # store that then in the environment variable CONFIG_ENCRYPTION_KEY
 # and then run this script
+
+
+def create_google_creds_file(creds_path="google_creds.json"):
+    # Retrieve the base64-encoded JSON string from the environment variable
+    encoded_json = os.getenv("GOOGLE_CREDS_JSON")
+    filename = creds_path
+    if not encoded_json:
+        raise ValueError("GOOGLE_CREDS_JSON environment variable is not set")
+
+    try:
+        # Decode the base64 string back into JSON
+        decoded_json = base64.b64decode(encoded_json).decode("utf-8")
+
+        # Write the decoded JSON content to the specified file
+        with open(filename, "w") as f:
+            f.write(decoded_json)
+        print(f"Google credentials file created at {filename}")
+
+    except (ValueError, base64.binascii.Error) as e:
+        print(f"Failed to decode GOOGLE_CREDS_JSON: {e}")
 
 
 def find_config_enc(start_path: Path, max_depth: int = 5) -> Path:
@@ -250,36 +273,13 @@ def load_config():
             decrypted_config = json.loads(decrypted_data.decode())
             logging.info("Successfully decrypted configuration from config.enc.")
 
-            # Handle GOOGLE_CREDS_JSON by progressively unescaping and parsing it
-            google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON", "")
-
-            try:
-                # Handle escaped JSON content and parse it correctly
-                if isinstance(google_creds_json, str):
-                    # Clean up excessive escaping
-                    while '\\"' in google_creds_json:
-                        google_creds_json = google_creds_json.replace('\\"', '"')
-
-                    # Use ast.literal_eval to safely handle the string content
-                    google_creds_json = ast.literal_eval(google_creds_json)
-
-                # If google_creds_json is still a string, convert it to dict
-                if isinstance(google_creds_json, str):
-                    google_creds_data = json.loads(google_creds_json)
-                else:
-                    # Assume it's already a dictionary
-                    google_creds_data = google_creds_json
-
-            except (json.JSONDecodeError, ValueError, SyntaxError) as e:
-                logging.error(f"Failed to parse GOOGLE_CREDS_JSON: {e}")
-                raise
-
             # Write google_creds.json to the determined path
             google_creds_path = get_google_creds_path()
-            os.makedirs(google_creds_path.parent, exist_ok=True)
-            with google_creds_path.open("w") as f:
-                json.dump(google_creds_data, f)
-            logging.info(f"Google credentials file created at {google_creds_path}")
+            if not path.exists(google_creds_path):
+                os.makedirs(google_creds_path.parent, exist_ok=True)
+                create_google_creds_file(google_creds_path)
+                logging.info(f"Google credentials file created at {google_creds_path}")
+
             config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
 
             # Populate other configuration keys
@@ -294,6 +294,7 @@ def load_config():
             ).strip()
 
         except Exception as e:
+            print(e)
             logging.error(f"Failed to load configuration from encrypted file: {e}")
             logging.info("Falling back to loading configuration from settings.cfg.")
             encrypted_config_path = None  # Reset to allow loading from settings.cfg
