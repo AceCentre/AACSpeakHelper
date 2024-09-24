@@ -223,6 +223,8 @@ def load_config(custom_config_path=""):
         logging.debug(
             f"Running in frozen mode. App data directory: {encrypted_config_path}"
         )
+        settings_cfg_path = find_config_enc(app_data, 5, filestr="settings.cfg")
+        logging.debug(f"Running in frozen mode. Settings cfg at: {settings_cfg_path}")
     else:
         # Running as a script (development)
         app_data = Path.cwd()  # Use current working directory in development mode
