@@ -9,7 +9,7 @@ import sys
 import base64
 from os import path
 
-os.setenv("CONFIG_ENCRYPTION_KEY", "YOUR_ENCRYPTION_KEY")
+os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
 
 # Create a generated key like this
 # from cryptography.fernet import Fernet
