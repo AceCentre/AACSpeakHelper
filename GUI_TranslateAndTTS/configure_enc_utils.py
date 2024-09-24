@@ -81,7 +81,15 @@ def get_google_creds_path():
     """
     if getattr(sys, "frozen", False):
         # Running as a bundled executable
-        app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
+        app_data = (
+            Path.home()
+            / "AppData"
+            / "Local"
+            / "Programs"
+            / "Ace Centre"
+            / "AACSpeakHelper"
+            / "_internal"
+        )
     else:
         # Running as a script (development)
         # Assume that config.enc is at the repository root, and so is google_creds.json
@@ -230,29 +238,35 @@ def load_config():
     """
     config = {}
 
-    # Determine the starting directory based on whether the app is frozen
+    # Determine the paths based on whether the app is frozen or running as a script
     if getattr(sys, "frozen", False):
         # Running as a bundled executable
-        executable_dir = Path(sys.executable).parent
-        start_dir = executable_dir
-        logging.debug(f"Executable directory: {executable_dir}")
+        app_data = (
+            Path.home()
+            / "AppData"
+            / "Local"
+            / "Programs"
+            / "Ace Centre"
+            / "AACSpeakHelper"
+            / "_internal"
+        )
+        logging.debug(f"Running in frozen mode. App data directory: {app_data}")
     else:
         # Running as a script (development)
-        start_dir = (
-            Path.cwd()
-        )  # Assuming the current working directory is the repo root
-        logging.debug(
-            f"Script is running in development mode. Current working directory: {start_dir}"
-        )
+        app_data = Path.cwd()  # Use current working directory in development mode
+        logging.debug(f"Running in development mode. App data directory: {app_data}")
 
     # Attempt to find config.enc
     try:
-        encrypted_config_path = find_config_enc(start_dir)
+        encrypted_config_path = app_data / "config.enc"
+        if not encrypted_config_path.is_file():
+            raise FileNotFoundError(f"config.enc not found at {encrypted_config_path}")
         logging.info(f"Found encrypted configuration file at: {encrypted_config_path}")
     except FileNotFoundError as e:
         logging.warning(e)
         encrypted_config_path = None
 
+    # Load configuration from the encrypted file
     if encrypted_config_path:
         try:
             # Load the encryption key from the environment variable
@@ -278,7 +292,7 @@ def load_config():
             decrypted_config = json.loads(decrypted_data.decode())
             logging.info("Successfully decrypted configuration from config.enc.")
 
-            # Use the decrypted configuration directly instead of expecting environment variables
+            # Extract configuration values
             config["MICROSOFT_TOKEN"] = decrypted_config.get(
                 "MICROSOFT_TOKEN", ""
             ).strip()
@@ -289,38 +303,22 @@ def load_config():
                 "MICROSOFT_TOKEN_TRANS", ""
             ).strip()
 
-            # Determine the potential paths for google_creds.json
+            # Handle Google credentials
             google_creds_json = decrypted_config.get("GOOGLE_CREDS_JSON", "")
-            google_creds_paths = [
-                start_dir / "_internal" / "google_creds.json",  # For frozen apps
-                start_dir / "google_creds.json",  # For development environment
-            ]
+            google_creds_path = app_data / "google_creds.json"
 
-            # Check if the google_creds.json file already exists in any of the expected locations
-            google_creds_path = None
-            for path in google_creds_paths:
-                if path.is_file():
-                    google_creds_path = path
-                    logging.info(
-                        f"Google credentials file already exists at {google_creds_path}"
-                    )
-                    break
-
-            # If no existing creds file was found, create it in the preferred location (_internal if frozen, otherwise root)
-            if not google_creds_path:
-                google_creds_path = (
-                    google_creds_paths[0]
-                    if getattr(sys, "frozen", False)
-                    else google_creds_paths[1]
-                )
+            # Check if google_creds.json already exists
+            if not google_creds_path.is_file():
                 os.makedirs(google_creds_path.parent, exist_ok=True)
-
-                # Write the Google credentials to the determined path
                 with google_creds_path.open("w") as creds_file:
                     creds_file.write(
                         base64.b64decode(google_creds_json).decode("utf-8")
                     )
                 logging.info(f"Google credentials file created at {google_creds_path}")
+            else:
+                logging.info(
+                    f"Google credentials file already exists at {google_creds_path}"
+                )
 
             config["GOOGLE_CREDS_PATH"] = str(google_creds_path)
 
@@ -330,18 +328,38 @@ def load_config():
             encrypted_config_path = None  # Reset to allow loading from settings.cfg
 
     # Load configuration from settings.cfg if it exists
-    settings_cfg_path = start_dir / "settings.cfg"
+    settings_cfg_path = (
+        Path.home()
+        / "AppData"
+        / "Roaming"
+        / "Ace Centre"
+        / "AACSpeakHelper"
+        / "settings.cfg"
+    )
     if settings_cfg_path.is_file():
         logging.info(f"Loading configuration overrides from {settings_cfg_path}")
         config_parser = configparser.ConfigParser()
         config_parser.read(settings_cfg_path)
 
-        if "overrides" in config_parser.sections():
-            for key, value in config_parser["overrides"].items():
-                config[key.upper()] = value.strip()
-                logging.info(f"Overridden {key.upper()} with value from settings.cfg")
-        else:
-            logging.warning(f"No [overrides] section found in {settings_cfg_path}")
+        # Override values based on the sections in settings.cfg
+        for section in config_parser.sections():
+            for key, value in config_parser.items(section):
+                # Combine section and key names to ensure correct prioritization
+                composite_key = f"{section.upper()}_{key.upper()}"
+                config[composite_key] = value.strip()
+                logging.info(f"Loaded {composite_key} from settings.cfg")
+
+        # Specific handling for Azure and Google settings if present
+        config["MICROSOFT_TOKEN"] = config.get(
+            "AZURETTS_KEY", config.get("MICROSOFT_TOKEN")
+        )
+        config["MICROSOFT_REGION"] = config.get(
+            "AZURETTS_LOCATION", config.get("MICROSOFT_REGION")
+        )
+        config["GOOGLE_CREDS_PATH"] = config.get(
+            "GOOGLETTS_CREDS_FILE", config.get("GOOGLE_CREDS_PATH")
+        )
+
     else:
         logging.info("No settings.cfg file found. Skipping overrides.")
 
