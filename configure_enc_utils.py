@@ -11,6 +11,7 @@ from os import path
 
 os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
 
+
 # Create a generated key like this
 # from cryptography.fernet import Fernet
 # print(Fernet.generate_key().decode())
@@ -210,6 +211,9 @@ def prepare_config_enc(output_path="config.enc"):
         config_file.write(encrypted_config)
 
     logging.info(f"Encrypted configuration saved to {output_path}.")
+    google_creds = get_google_creds_path()
+    create_google_creds_file(google_creds)
+    logging.info(f"Google credentials file created at {google_creds}")
 
 
 def load_config():
