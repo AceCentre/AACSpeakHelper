@@ -47,7 +47,7 @@ jobs:
             }
           }
         env:
-          CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }}
+          CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }} 
       - name: Inject secrets into environment and encrypt config
         shell: bash
         run: |
@@ -58,7 +58,7 @@ jobs:
           GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
           MICROSOFT_TOKEN_TRANS: ${{ secrets.MICROSOFT_TOKEN_TRANS }}
           CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }} 
-        - name: Build Apps
+      - name: Build Apps
         run: |
           poetry run python -c "import site; print(site.getsitepackages()[0])"
           .\build_executable.bat
