@@ -388,73 +388,52 @@ def normalize_text(text: str):
 
 
 def remove_stale_temp_files(directory_path, ignore_pattern=".db"):
-    """
-    Removes stale temporary files from the specified directory.
-
-    Args:
-        directory_path (str): The path to the directory to clean up.
-        ignore_pattern (str): Patterns to ignore while cleaning (e.g., ".db").
-
-    Returns:
-        None
-    """
+    config = utils.config
     start = time.perf_counter()
     current_time = time.time()
-    day = int(utils.config.get("appCache", "threshold", fallback=7))
-    time_threshold = current_time - day * 24 * 60 * 60  # Calculate time threshold
+    day = int(config.get("appCache", "threshold"))
+    time_threshold = current_time - day * 24 * 60 * 60
     file_list = []
-
-    logging.info(f"Starting cache cleanup in {directory_path}...")
 
     for root, dirs, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
-
-            # Skip ignored patterns
-            if ignore_pattern and (
-                file.endswith(ignore_pattern) or file.endswith(".db-journal")
+            if (
+                ignore_pattern
+                and file.endswith(ignore_pattern)
+                and file.endswith(".db-journal")
             ):
-                logging.debug(f"Ignoring file: {file_path}")
                 continue
-
             try:
                 file_modification_time = os.path.getmtime(file_path)
-
-                # Check if the file is older than the time threshold
                 if file_modification_time < time_threshold:
-                    # Attempt to remove the file
                     os.remove(file_path)
                     file_list.append(os.path.basename(file_path))
                     logging.info(f"Removed cache file: {file_path}")
-                else:
-                    logging.debug(f"File not old enough to remove: {file_path}")
-
             except Exception as e:
                 logging.error(f"Error processing file {file_path}: {e}", exc_info=True)
 
-    # Log performance
     stop = time.perf_counter() - start
-    utils.clear_history(file_list)  # Optionally, clear related history if needed
+    utils.clear_history(file_list)
     logging.info(f"Cache clearing took {stop:0.5f} seconds.")
 
 
 def clearCache():
     temp_folder = os.getenv("TEMP")
     size_limit = 5 * 1024  # 5KB in bytes
-    day = 7
-    current_time = time.time()
-    time_threshold = current_time - day * 24 * 60 * 60
-
     # Scan the directory
     for root, dirs, files in os.walk(temp_folder):
         for file in files:
             if file.startswith("tmp"):
                 file_path = os.path.join(root, file)
                 if os.path.getsize(file_path) < size_limit:
+                    config = utils.config
+                    current_time = time.time()
+                    day = 7
+                    time_threshold = current_time - day * 24 * 60 * 60
                     file_modification_time = os.path.getmtime(file_path)
                     if file_modification_time < time_threshold:
                         os.remove(file_path)
-                        logging.info(f"Removed: {file_path}")
 
 
 if __name__ == "__main__":
