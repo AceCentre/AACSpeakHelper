@@ -130,9 +130,9 @@ def main():
     except Exception as error:
         logging.error(f"Error loading primary configuration: {error}")
         sys.exit(1)
-
     # Verify that google_creds.json exists
-    google_creds_path = Path(config["GOOGLE_CREDS_PATH"])
+    # google_creds_path = Path(config["GOOGLE_CREDS_PATH"])
+    google_creds_path = Path(config['googleTTS']['creds_file'])
     if not google_creds_path.is_file():
         logging.error(f"Google credentials file not found at {google_creds_path}.")
         sys.exit(1)
