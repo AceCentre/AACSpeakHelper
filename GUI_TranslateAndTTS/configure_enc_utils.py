@@ -9,7 +9,6 @@ import sys
 import base64
 from os import path
 
-
 if "CONFIG_ENCRYPTION_KEY" not in os.environ:
     os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
 
@@ -286,27 +285,30 @@ def load_config(custom_config_path=""):
         logging.info(f"Loading configuration overrides from {settings_cfg_path}")
         config_parser = configparser.ConfigParser()
         config_parser.read(settings_cfg_path)
-
-        for section in config_parser.sections():
-            for key, value in config_parser.items(section):
-                composite_key = f"{section.upper()}_{key.upper()}"
-                # Only override if the setting isn't already loaded from config.enc
-                if value.strip() and composite_key not in config:
-                    config[composite_key] = value.strip()
-                    logging.info(f"Loaded {composite_key} from settings.cfg")
+        config_dict = {
+            section: dict(config_parser.items(section))
+            for section in config_parser.sections()
+        }
+        # for section in config_parser.sections():
+        #     for key, value in config_parser.items(section):
+        #         config[section] = {key: value}
+        #
+        #         composite_key = f"{section.upper()}_{key.upper()}"
+        #         # Only override if the setting isn't already loaded from config.enc
+        #         if value.strip() and composite_key not in config:
+        #             config[composite_key] = value.strip()
+        #             logging.info(f"Loaded {composite_key} from settings.cfg")
 
         # Specific handling for Azure and Google settings if present
-        config["MICROSOFT_TOKEN"] = config.get(
-            "AZURETTS_KEY", config.get("MICROSOFT_TOKEN")
-        )
-        config["MICROSOFT_REGION"] = config.get(
-            "AZURETTS_LOCATION", config.get("MICROSOFT_REGION")
-        )
-        config["GOOGLE_CREDS_PATH"] = config.get(
-            "GOOGLETTS_CREDS_FILE", config.get("GOOGLE_CREDS_PATH")
+        config_dict["azureTTS"]["key"] = config.get("MICROSOFT_TOKEN")
+        config_dict["azureTTS"]["location"] = config.get("MICROSOFT_REGION")
+        config_dict["googleTTS"]["creds_file"] = config.get("GOOGLE_CREDS_PATH")
+        config_dict["translate"]["microsofttranslator_secret_key"] = config.get(
+            "MICROSOFT_TOKEN_TRANS"
         )
 
     else:
+        config_dict = None
         logging.info("No settings.cfg file found. Skipping overrides.")
 
     # Final validation to ensure all required fields are present
@@ -332,4 +334,7 @@ def load_config(custom_config_path=""):
         )
 
     logging.info("Final configuration loaded successfully.")
-    return config
+    if config_dict:
+        return config_dict
+    else:
+        return config
