@@ -1208,7 +1208,6 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setPlaceholderText("Invalid JSON Credentials")
 
     def get_google_credentials(self, filename, default=False):
-        print(f"Filename: {filename}")
         if filename is not None and os.path.isfile(filename):
             logging.info("Using User Defined Google Credentials")
             return filename
@@ -1217,7 +1216,7 @@ class Widget(QWidget):
                 logging.info("Using Default Google Credentials")
                 return google_creds_path
             else:
-                logging.info("Invalid Google Credentials")
+                logging.info(f"Invalid Google Credentials {filename}")
         return None
 
     def generate_google_voice_models(self):
@@ -1677,9 +1676,7 @@ class VoiceLoader(QRunnable):
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = GoogleClient(
-                        credentials=self.parent.default_google_credential
-                    )
+                    client = GoogleClient(credentials=google_creds_path)
                     voices = client.get_voices()
             elif self.tts == "Sherpa-ONNX":
                 client = SherpaOnnxClient()
