@@ -16,34 +16,26 @@ from GUI_TranslateAndTTS import resources_rc
 import tempfile
 
 warnings.filterwarnings("ignore")
-args = {'config': '', 'listvoices': False, 'preview': False, 'style': '', 'styledegree': None}
+args = {
+    "config": "",
+    "listvoices": False,
+    "preview": False,
+    "style": "",
+    "styledegree": None,
+}
 config_path = None
 audio_files_path = None
 config = None
 
 
-def get_google_credentials(filename):
-    file = QFile(f":/binary/{filename}")
-    if file.open(QIODevice.ReadOnly | QFile.Text):
-        text = QTextStream(file).readAll()
-        credentials = io.StringIO(text)
-        credentials.read()
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(credentials.getvalue().encode())
-            credentials_file = temp_file.name
-            temp_file.close()
-        return credentials_file
-    return None
-
-
 def ynbox(message: str, header: str, timeout: int = 10000):
     """Display a QMessageBox with Yes or No Option.
 
-        Args:
-            message (str): Display the question answerable by Yes or No.
-            header (str): Text which will be display on the Header.
-            timeout (int): Time in milliseconds will take for the QMessageBox to close without user interaction.
-        Returns: bool
+    Args:
+        message (str): Display the question answerable by Yes or No.
+        header (str): Text which will be display on the Header.
+        timeout (int): Time in milliseconds will take for the QMessageBox to close without user interaction.
+    Returns: bool
     """
     try:
 
@@ -53,7 +45,10 @@ def ynbox(message: str, header: str, timeout: int = 10000):
         ynInstance.setStandardButtons(QMessageBox.StandardButton.Yes)
         ynInstance.addButton(QMessageBox.StandardButton.No)
         timer = QTimer(None)
-        timer.singleShot(timeout, lambda: ynInstance.button(QMessageBox.StandardButton.No).animateClick())
+        timer.singleShot(
+            timeout,
+            lambda: ynInstance.button(QMessageBox.StandardButton.No).animateClick(),
+        )
         return ynInstance.exec() == QMessageBox.StandardButton.Yes
     except Exception as error:
         logging.error("Message Error: {}".format(error), exc_info=True)
@@ -62,11 +57,11 @@ def ynbox(message: str, header: str, timeout: int = 10000):
 def msgbox(message: str, header: str, timeout: int = 10000):
     """Display a QMessageBox for Notification only.
 
-        Args:
-            message (str): Text which will be display as notification.
-            header (str): Text which will be display on the Header.
-            timeout (int): Time in milliseconds will take for the QMessageBox to close without user interaction.
-        Returns: bool
+    Args:
+        message (str): Text which will be display as notification.
+        header (str): Text which will be display on the Header.
+        timeout (int): Time in milliseconds will take for the QMessageBox to close without user interaction.
+    Returns: bool
     """
     try:
         msgInstance = QMessageBox(None)
@@ -74,7 +69,10 @@ def msgbox(message: str, header: str, timeout: int = 10000):
         msgInstance.setText(message)
         msgInstance.setStandardButtons(QMessageBox.StandardButton.Ok)
         timer = QTimer(None)
-        timer.singleShot(timeout, lambda: msgInstance.button(QMessageBox.StandardButton.Ok).animateClick())
+        timer.singleShot(
+            timeout,
+            lambda: msgInstance.button(QMessageBox.StandardButton.Ok).animateClick(),
+        )
         return msgInstance.exec() == QMessageBox.StandardButton.Ok
     except Exception as error:
         logging.error("Message Error: {}".format(error), exc_info=True)
@@ -83,10 +81,10 @@ def msgbox(message: str, header: str, timeout: int = 10000):
 def configure_app():
     """Determine if application is a script file or frozen exe.
 
-        Returns: None
+    Returns: None
     """
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         application_path = os.path.dirname(sys.executable)
         exe_name = ""
         for root, dirs, files in os.walk(application_path):
@@ -100,27 +98,33 @@ def configure_app():
         process.wait()
     elif __file__:
         application_path = os.path.dirname(__file__)
-        GUI_script_path = os.path.join(application_path, 'GUI_TranslateAndTTS', 'widget.py')
+        GUI_script_path = os.path.join(
+            application_path, "GUI_TranslateAndTTS", "widget.py"
+        )
         process = subprocess.run(["python", GUI_script_path])
 
 
 def get_paths(configuration_path=None):
     """Get all the paths the application will be used during runtime.
-        Args:
-            configuration_path: Configuration file path
-        Returns: Tuple
+    Args:
+        configuration_path: Configuration file path
+    Returns: Tuple
     """
     if configuration_path and os.path.exists(configuration_path):
-        audio_files_path = os.path.join(os.path.dirname(configuration_path), 'Audio Files')
+        audio_files_path = os.path.join(
+            os.path.dirname(configuration_path), "Audio Files"
+        )
     else:
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             home_directory = os.path.expanduser("~")
-            application_path = os.path.join(home_directory, 'AppData', 'Roaming', 'Ace Centre', 'AACSpeakHelper')
+            application_path = os.path.join(
+                home_directory, "AppData", "Roaming", "Ace Centre", "AACSpeakHelper"
+            )
         else:
             application_path = os.path.dirname(__file__)
 
-        audio_files_path = os.path.join(application_path, 'Audio Files')
-        configuration_path = os.path.join(application_path, 'settings.cfg')
+        audio_files_path = os.path.join(application_path, "Audio Files")
+        configuration_path = os.path.join(application_path, "settings.cfg")
 
     # Ensure the audio files directory exists
     os.makedirs(audio_files_path, exist_ok=True)
@@ -130,10 +134,10 @@ def get_paths(configuration_path=None):
 
 def play_audio(audio_bytes, file: bool = False):
     if file:
-        with wave.open(audio_bytes, 'rb') as wf:
+        with wave.open(audio_bytes, "rb") as wf:
             play_wave(wf)
     else:
-        with wave.open(io.BytesIO(audio_bytes), 'rb') as wf:
+        with wave.open(io.BytesIO(audio_bytes), "rb") as wf:
             play_wave(wf)
 
 
@@ -144,11 +148,13 @@ def play_wave(wf):
         data = wf.readframes(frame_count)
         return data, pyaudio.paContinue
 
-    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    output=True,
-                    stream_callback=callback)
+    stream = p.open(
+        format=p.get_format_from_width(wf.getsampwidth()),
+        channels=wf.getnchannels(),
+        rate=wf.getframerate(),
+        output=True,
+        stream_callback=callback,
+    )
 
     stream.start_stream()
 
@@ -162,22 +168,24 @@ def play_wave(wf):
     p.terminate()
 
 
-def save_audio(text: str, engine: str, file_format: str = 'wav', tts=None):
+def save_audio(text: str, engine: str, file_format: str = "wav", tts=None):
     """Save text as audio file with specific file format then save this text and audio file name in the database.
-        If text is synthesize again, it will be find first in the database if there is a match.
-        Args:
-            text (str): Text String
-            engine (str): Name of the TTS Engine
-            file_format (str): File Format of the Audio e.g. 'wav' or 'mp3'
-            tts: Instance of TTS Engine
-        Returns: None
+    If text is synthesize again, it will be find first in the database if there is a match.
+    Args:
+        text (str): Text String
+        engine (str): Name of the TTS Engine
+        file_format (str): File Format of the Audio e.g. 'wav' or 'mp3'
+        tts: Instance of TTS Engine
+    Returns: None
     """
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + file_format)
     tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
-    sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(text, filename, engine)
+    sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(
+        text, filename, engine
+    )
     try:
-        connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+        connection = sqlite3.connect(os.path.join(audio_files_path, "cache_history.db"))
         connection.execute(sql)
         connection.commit()
         connection.close()
@@ -186,19 +194,19 @@ def save_audio(text: str, engine: str, file_format: str = 'wav', tts=None):
 
 
 def get_uuid():
-    """ Generates random UUID or loads UUID from configuration file.
-        Remove uuid config every commit
-        Code will raise an exception at first run due to blank uuid
+    """Generates random UUID or loads UUID from configuration file.
+    Remove uuid config every commit
+    Code will raise an exception at first run due to blank uuid
 
-        Returns: str
+    Returns: str
     """
 
     try:
-        identifier = uuid.UUID(config.get('App', 'uuid'))
+        identifier = uuid.UUID(config.get("App", "uuid"))
     except Exception as error:
         identifier = uuid.uuid4()
-        config.set('App', 'uuid', str(identifier))
-        with open(config_path, 'w') as configfile:
+        config.set("App", "uuid", str(identifier))
+        with open(config_path, "w") as configfile:
             config.write(configfile)
         logging.error("Failed to get uuid: {}".format(error), exc_info=True)
     logging.info("uuid: {}".format(identifier), exc_info=True)
@@ -207,41 +215,48 @@ def get_uuid():
 
 def notify_posthog(id: str, event_name: str, properties: dict = {}):
     """Save text as audio file with specific file format then save this text and audio file name in the database.
-        If text is synthesize again, it will be find first in the database if there is a match.
-        Args:
-            id (str): UUID
-            event_name (str): Event Name
-            properties (dict): Properties in dictionary format.
-        Returns: None
+    If text is synthesize again, it will be find first in the database if there is a match.
+    Args:
+        id (str): UUID
+        event_name (str): Event Name
+        properties (dict): Properties in dictionary format.
+    Returns: None
     """
 
     try:
-        posthog_client = posthog.Posthog(project_api_key='phc_q37FBcmTQD1hHtNBgqvs9wid45gKjGKEJGduRkPog0t',
-                                         host='https://app.posthog.com')
+        posthog_client = posthog.Posthog(
+            project_api_key="phc_q37FBcmTQD1hHtNBgqvs9wid45gKjGKEJGduRkPog0t",
+            host="https://app.posthog.com",
+        )
         # Attempt to send the event to PostHog
         posthog_client.capture(distinct_id=id, event=event_name, properties=properties)
         print(f"[notify-posthog] Event '{event_name}' captured successfully!")
     except Exception as e:
         # Handle the case when there's an issue with sending the event
         print(f"[notify-posthog] Failed to capture event '{event_name}': {e}")
-        logging.error("[notify-posthog] Failed to capture event '{}': {}".format(event_name, e), exc_info=True)
+        logging.error(
+            "[notify-posthog] Failed to capture event '{}': {}".format(event_name, e),
+            exc_info=True,
+        )
         # You can add further logic here if needed, such as logging the error or continuing the script
         pass
 
 
 def check_history(text: str):
-    """ Check for a matching string in the database and return the file path.
-        If no database was found, the function will call the create_Database function and return None
-        Args:
-            text (str): Text to be match in the database
-        Returns: str
+    """Check for a matching string in the database and return the file path.
+    If no database was found, the function will call the create_Database function and return None
+    Args:
+        text (str): Text to be match in the database
+    Returns: str
     """
     try:
-        if args['style']:
+        if args["style"]:
             return None
-        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+        if os.path.isfile(os.path.join(audio_files_path, "cache_history.db")):
             sql = "SELECT filename FROM History WHERE text='{}'".format(text)
-            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            connection = sqlite3.connect(
+                os.path.join(audio_files_path, "cache_history.db")
+            )
             cursor = connection.execute(sql)
             results = cursor.fetchone()
             base_name = results[0] if results is not None else None
@@ -260,15 +275,20 @@ def check_history(text: str):
 
 
 def clear_history(files: list):
-    """ Check for a matching string in the database and return the file path.
-        If no database was found, the function will call the create_Database function and return None
-        Args:
-            files (list): List of file to be deleted.
-        Returns: None
+    """Check for a matching string in the database and return the file path.
+    If no database was found, the function will call the create_Database function and return None
+    Args:
+        files (list): List of file to be deleted.
+    Returns: None
     """
     try:
-        if os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')) and len(files) > 0:
-            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+        if (
+            os.path.isfile(os.path.join(audio_files_path, "cache_history.db"))
+            and len(files) > 0
+        ):
+            connection = sqlite3.connect(
+                os.path.join(audio_files_path, "cache_history.db")
+            )
             for file in files:
                 sql = "DELETE FROM History WHERE filename='{}'".format(file)
                 connection.execute(sql)
@@ -280,20 +300,24 @@ def clear_history(files: list):
 
 
 def create_Database():
-    """ If no database was found, this function will create database function.
+    """If no database was found, this function will create database function.
 
-        Returns: None
+    Returns: None
     """
     try:
-        if not os.path.isfile(os.path.join(audio_files_path, 'cache_history.db')):
+        if not os.path.isfile(os.path.join(audio_files_path, "cache_history.db")):
             sql1 = """CREATE TABLE IF NOT EXISTS "History" ("id"	INTEGER NOT NULL UNIQUE,
                                                             "text"	TEXT NOT NULL,
                                                             "filename"	TEXT NOT NULL,
                                                             "engine"	TEXT NOT NULL,
                                                             UNIQUE("id"),
                                                             PRIMARY KEY("id" AUTOINCREMENT));"""
-            sql2 = """CREATE UNIQUE INDEX IF NOT EXISTS "id_text" ON "History" ("text");"""
-            connection = sqlite3.connect(os.path.join(audio_files_path, 'cache_history.db'))
+            sql2 = (
+                """CREATE UNIQUE INDEX IF NOT EXISTS "id_text" ON "History" ("text");"""
+            )
+            connection = sqlite3.connect(
+                os.path.join(audio_files_path, "cache_history.db")
+            )
             connection.execute(sql1)
             connection.execute(sql2)
             connection.close()
@@ -307,31 +331,33 @@ def create_Database():
 def init(input_config, args):
     """Initialize configuration file path making it in memory instead of one time instance.
 
-        Args:
-            input_config: configuration file path.
-        Returns: None
+    Args:
+        input_config: configuration file path.
+    Returns: None
     """
 
     global config_path
     global audio_files_path
     global config
 
-    config_path = input_config['App']['config_path']
-    audio_files_path = input_config['App']['audio_files_path']
-    config = input_config  # This assigns the passed config to the global config variable
+    config_path = input_config["App"]["config_path"]
+    audio_files_path = input_config["App"]["audio_files_path"]
+    config = (
+        input_config  # This assigns the passed config to the global config variable
+    )
 
     logging.info(f"Initialized utils with config path: {config_path}")
     logging.info(f"Audio files path: {audio_files_path}")
 
-    if config.getboolean('App', 'collectstats'):
+    if config.getboolean("App", "collectstats"):
         distinct_id = get_uuid()
-        event_name = 'App Run'
+        event_name = "App Run"
         event_properties = {
-            'uuid': distinct_id,
-            'source': 'helperApp',
-            'version': 2.4,
-            'fromLang': config.get('translate', 'startlang'),
-            'toLang': config.get('translate', 'endlang'),
-            'ttsengine': config.get('TTS', 'engine'),
+            "uuid": distinct_id,
+            "source": "helperApp",
+            "version": 2.4,
+            "fromLang": config.get("translate", "startlang"),
+            "toLang": config.get("translate", "endlang"),
+            "ttsengine": config.get("TTS", "engine"),
         }
         notify_posthog(distinct_id, event_name, event_properties)

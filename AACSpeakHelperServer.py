@@ -200,10 +200,7 @@ class MainWindow(QWidget):
             for section, options in config_dict.items():
                 config[section] = options
 
-            config["googleTTS"]["creds"] = config["googleTTS"]["creds"].encode("utf-8")
-            config["googleTTS"]["creds"] = base64.b64decode(
-                config["googleTTS"]["creds"]
-            ).decode("utf-8")
+            logging.info(config["googleTTS"]["creds"])
 
             # Get the config path from the received config
             config_path = config.get("App", "config_path", fallback=None)
