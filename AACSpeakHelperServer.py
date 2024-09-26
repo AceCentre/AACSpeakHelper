@@ -385,7 +385,6 @@ def translate_clipboard(text, config):
 
 def normalize_text(text: str):
     normalizedText = unicodedata.normalize("NFC", text)
-    print("Normalized Text: " + normalizedText)
     logging.info("Normalized Text: {}".format(normalizedText))
     return normalizedText
 

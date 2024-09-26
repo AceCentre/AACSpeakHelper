@@ -46,24 +46,6 @@ from language_dictionary import *
 from ui_form import Ui_Widget
 
 
-def get_google_creds_path():
-    """
-    Determines the path for google_creds.json based on whether the application is frozen.
-
-    Returns:
-        Path: The path to google_creds.json.
-    """
-    if getattr(sys, "frozen", False):
-        # Running as a bundled executable
-        app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
-    else:
-        # Running as a script (development)
-        # Assume that config.enc is at the repository root, and so is google_creds.json
-        app_data = Path.cwd()
-
-    return app_data / "google_creds.json"
-
-
 class Widget(QWidget):
     def __init__(self, size, parent=None):
         super().__init__(parent)
@@ -304,7 +286,7 @@ class Widget(QWidget):
             self.voiceidAzure = self.config.get("azureTTS", "voiceid")
             self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
 
-            self.credsFilePath = self.config.get("googleTTS", "creds_file")
+            self.credsFilePath = self.config.get("googleTTS", "creds")
             self.voiceidGoogle = self.config.get("googleTTS", "voiceid")
 
             self.voiceid_sapi = self.config.get("sapi5TTS", "voiceid")
@@ -714,9 +696,9 @@ class Widget(QWidget):
             else print("")
         )
         if self.credsFilePath == "" and not permanent:
-            self.config.set("googleTTS", "creds_file", google_creds_path)
+            self.config.set("googleTTS", "creds", google_creds_path)
         else:
-            self.config.set("googleTTS", "creds_file", self.credsFilePath)
+            self.config.set("googleTTS", "creds", self.credsFilePath)
         if self.ui.listWidget_voicegoogle.currentItem() is None:
             self.config.set("googleTTS", "voiceid", "en-US-Wavenet-C")
         else:
