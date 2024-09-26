@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+import base64
 import configparser
 import json
 import logging
@@ -9,8 +10,8 @@ import sys
 import time
 import uuid
 import warnings
-import io
-from configure_enc_utils import load_config
+import ast
+from configure_enc_utils import load_config, load_credentials
 
 warnings.filterwarnings("ignore")
 import PySide6.QtCore
@@ -577,6 +578,7 @@ class Widget(QWidget):
         self.config.set(
             "translate", "deepL_pro", str(self.ui.checkBox_pro.isChecked()).lower()
         )
+        # Add default microsofttranslator_secret_key if not permanent.
         self.config.set(
             "translate",
             "microsofttranslator_secret_key",
@@ -1190,16 +1192,20 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setPlaceholderText("Invalid JSON Credentials")
 
     def get_google_credentials(self, filename, default=False):
-        if filename is not None and os.path.isfile(filename):
-            logging.info("Using User Defined Google Credentials")
-            return filename
-        else:
-            if default:
-                logging.info("Using Default Google Credentials")
-                return google_creds_path
+        try:
+            if filename is not None and os.path.isfile(filename) and not default:
+                logging.info("Using User Defined Google Credentials")
+                return filename
             else:
-                logging.info(f"Invalid Google Credentials {filename}")
-        return None
+                if default:
+                    logging.info("Using Default Google Credentials")
+                    return load_credentials(google_creds_path)
+                else:
+                    logging.info(f"Invalid Google Credentials {filename}")
+            return google_creds_path
+        except Exception as e:
+            print(f'Error: {e}')
+            return google_creds_path
 
     def generate_google_voice_models(self):
         try:
@@ -1584,12 +1590,13 @@ class Player(QRunnable):
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, "client.py")
+            print(GUI_script_path)
             cache_location = os.path.join(
                 os.path.dirname(self.temp_config_file.name), "Audio Files"
             )
             process = subprocess.Popen(
                 [
-                    "python",
+                    f"{application_path}/venv/Scripts/python.exe",
                     GUI_script_path,
                     "--config",
                     self.temp_config_file.name,
@@ -1658,7 +1665,7 @@ class VoiceLoader(QRunnable):
                 except Exception as getVoicesError:
                     logging.error(str(getVoicesError))
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = GoogleClient(credentials=google_creds_path)
+                    client = GoogleClient(credentials=self.parent.default_google_credential)
                     voices = client.get_voices()
             elif self.tts == "Sherpa-ONNX":
                 client = SherpaOnnxClient()
@@ -1720,10 +1727,10 @@ if __name__ == "__main__":
     except Exception as error:
         logging.debug(f"Error loading configuration: {error}")
         sys.exit(1)
-    ms_token = config.get("MICROSOFT_TOKEN")
-    ms_region = config.get("MICROSOFT_REGION")
-    google_creds_path = config.get("GOOGLE_CREDS_PATH")
-    ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
+    ms_token = config.get("azureTTS")["key"]
+    ms_region = config.get("azureTTS")["location"]
+    google_creds_path = config.get("googleTTS")["creds"]
+    ms_token_trans = config.get("translate")["microsofttranslator_secret_key"]
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()

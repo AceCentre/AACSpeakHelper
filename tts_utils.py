@@ -126,7 +126,7 @@ def init_sapi_tts():
 
 
 def init_onnx_tts():
-    """Initialize unique instance of GoogleTTS based on the changes in voiceid.
+    """Initialize unique instance of SherpaOnnxTTS based on the changes in voiceid.
 
     Returns: SherpaOnnxTTS
     """

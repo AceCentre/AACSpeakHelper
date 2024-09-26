@@ -1,12 +1,15 @@
 import ast
+import io
 import json
 import logging
 import os
+import pickle
 from pathlib import Path
 import configparser
 from cryptography.fernet import Fernet
 import sys
 import base64
+import argparse
 
 # Ensure CONFIG_ENCRYPTION_KEY is set
 if "CONFIG_ENCRYPTION_KEY" not in os.environ:
@@ -62,9 +65,10 @@ def load_config(custom_config_path=""):
     else:
         # Running as a script (development)
         # Assume that config.enc is at the repository root,
-        app_data = Path.cwd()
+        app_data = Path(os.path.dirname(__file__))
     encrypted_config_path = app_data / "config.enc"
     settings_cfg_path = app_data / "settings.cfg"
+    encrypted_json_path = app_data / "google_creds.enc"
 
     # Load configuration from the encrypted file
     try:
@@ -80,11 +84,11 @@ def load_config(custom_config_path=""):
         config = json.loads(decrypted_data.decode())
 
         # Overwrite the creds with base64 encoded creds. This is mad - it already is but somehow it gets decrypted
-        google_creds_json = config.get("GOOGLE_CREDS_JSON")
-        google_creds_bytes = google_creds_json.encode("utf-8")
-        base64_encoded_creds = base64.b64encode(google_creds_bytes)
-        base64_encoded_creds_str = base64_encoded_creds.decode("utf-8")
-        config["GOOGLE_CREDS_JSON"] = base64_encoded_creds_str
+        # google_creds_json = config.get("GOOGLE_CREDS_JSON")
+        # google_creds_bytes = google_creds_json.encode("utf-8")
+        # base64_encoded_creds = base64.b64encode(google_creds_bytes)
+        # base64_encoded_creds_str = base64_encoded_creds.decode("utf-8")
+        config["GOOGLE_CREDS_JSON"] = str(encrypted_json_path)
         logging.info("Successfully decrypted configuration from config.enc.")
 
     except Exception as e:
@@ -121,6 +125,37 @@ def load_config(custom_config_path=""):
     return config_dict
 
 
+def load_credentials(fp: str) -> object:
+    encryption_key = load_encryption_key()
+    fernet = Fernet(encryption_key)
+    with open(fp, 'rb') as f:
+        return pickle.loads(fernet.decrypt(f.read()))
+
+
+def save_credentials(obj: object, fp: str):
+    encryption_key = load_encryption_key()
+    fernet = Fernet(encryption_key)
+    with open(fp, 'wb') as f:
+        f.write(fernet.encrypt(pickle.dumps(obj)))
+
 # Example usage
 # prepare_config_enc()  # Run this to create config.enc
 # config = load_config()  # Load config when needed
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="AACSpeakHelper Encryption Utility")
+    parser.add_argument(
+        "-i",
+        "--input",
+        help="Path to a defined JSON file",
+        required=True
+    )
+    args = vars(parser.parse_args())
+    filename = Path(args['input'])
+    file_path = filename.resolve().parent
+    with io.open(filename, "r", encoding="utf-8") as json_file:
+        json_dict = json.load(json_file)
+        new_file = filename.with_suffix('.enc')
+        save_credentials(json_dict, os.path.join(file_path, new_file))
+        print(load_credentials(new_file))
