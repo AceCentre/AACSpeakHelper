@@ -28,7 +28,7 @@ jobs:
           $encryptionKey = "${{ secrets.CONFIG_ENCRYPTION_KEY }}"
 
           # Define paths to the files that need updating
-          $filePaths = @("configure_enc_utils.py", "GUI_TranslateAndTTS/configure_enc_utils.py")
+          $filePaths = @("configure_enc_utils.py")
 
           # Loop through each file path and replace the placeholder with the actual encryption key
           foreach ($filePath in $filePaths) {

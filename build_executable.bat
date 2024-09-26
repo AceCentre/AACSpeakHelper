@@ -16,14 +16,6 @@ poetry run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --nocon
 poetry run python -m PyInstaller client.py --noupx --noconsole --onedir --clean -i .\assets\translate.ico -y
 poetry run python -m PyInstaller CreateGridset.py --noupx --noconsole --onedir --clean -y
 
-rem Move config.enc to _internal directory
-if exist config.enc (
-    move config.enc "dist\AACSpeakHelperServer\_internal\config.enc"
-    echo Moved config.enc to _internal
-) else (
-    echo config.enc not found. Ensure encryption step ran correctly.
-)
-
 "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" .\buildscript.iss
 
 endlocal

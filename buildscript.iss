@@ -44,13 +44,13 @@ Source: "dist\AACSpeakHelperServer\AACSpeakHelperServer.exe"; DestDir: "{app}"; 
 Source: "dist\AACSpeakHelperServer\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "assets\translate.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "settings.cfg"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
+Source: "config.enc"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\Configure AACSpeakHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "assets\translate.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\translate_loading.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
-Source: "google_creds.json"; DestDir: "{app}\_internal"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
