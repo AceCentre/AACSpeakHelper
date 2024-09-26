@@ -3,6 +3,7 @@ import os
 import sys
 import warnings
 import unicodedata
+import base64
 
 warnings.filterwarnings("ignore")
 
@@ -198,6 +199,11 @@ class MainWindow(QWidget):
             config = configparser.ConfigParser()
             for section, options in config_dict.items():
                 config[section] = options
+
+            config["googleTTS"]["creds"] = config["googleTTS"]["creds"].encode("utf-8")
+            config["googleTTS"]["creds"] = base64.b64decode(
+                config["googleTTS"]["creds"]
+            ).decode("utf-8")
 
             # Get the config path from the received config
             config_path = config.get("App", "config_path", fallback=None)

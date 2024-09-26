@@ -78,6 +78,13 @@ def load_config(custom_config_path=""):
 
         # Load the decrypted JSON into a dictionary
         config = json.loads(decrypted_data.decode())
+
+        # Overwrite the creds with base64 encoded creds. This is mad - it already is but somehow it gets decrypted
+        google_creds_json = config.get("GOOGLE_CREDS_JSON")
+        google_creds_bytes = google_creds_json.encode("utf-8")
+        base64_encoded_creds = base64.b64encode(google_creds_bytes)
+        base64_encoded_creds_str = base64_encoded_creds.decode("utf-8")
+        config["GOOGLE_CREDS_JSON"] = base64_encoded_creds_str
         logging.info("Successfully decrypted configuration from config.enc.")
 
     except Exception as e:
