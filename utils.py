@@ -205,9 +205,9 @@ def get_uuid():
         identifier = uuid.UUID(config.get("App", "uuid"))
     except Exception as error:
         identifier = uuid.uuid4()
-        config.set("App", "uuid", str(identifier))
-        with open(config_path, "w") as configfile:
-            config.write(configfile)
+        # config.set("App", "uuid", str(identifier))
+        # with open(config_path, "w") as configfile:
+        #     config.write(configfile)
         logging.error("Failed to get uuid: {}".format(error), exc_info=True)
     logging.info("uuid: {}".format(identifier), exc_info=True)
     return str(identifier)
