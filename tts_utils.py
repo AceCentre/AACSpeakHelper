@@ -3,6 +3,8 @@ import io
 import os.path
 import sys
 import time
+from pathlib import Path
+
 import pyttsx3
 from gtts import gTTS
 from tts_wrapper import (
@@ -20,7 +22,7 @@ from tts_wrapper import (
 )
 import warnings
 from threading import Thread
-from configure_enc_utils import load_config
+from configure_enc_utils import load_config, load_credentials
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 utils = None
@@ -84,11 +86,12 @@ def init_azure_tts():
     Returns: MicrosoftTTS
     """
     key = utils.config.get("azureTTS", "key")
+    config = load_config()
     if key == "":
-        key = ms_token
+        key = config.get("azureTTS")["key"]
     location = utils.config.get("azureTTS", "location")
     if location == "":
-        location = ms_region
+        location = config.get("azureTTS")["location"]
     voiceid = utils.config.get("azureTTS", "voiceid")
     parts = voiceid.split("-")
     lang = parts[0] + "-" + parts[1]
@@ -102,10 +105,16 @@ def init_google_tts():
     Returns: GoogleTTS
     """
     gcreds = utils.config.get("googleTTS", "creds")
-    gcreds = base64.b64decode(gcreds.encode("utf-8")).decode("utf-8")
-    logging.info(f"Google TTS credentials file location: {creds_file_location}")
-    if os.path.isfile(gcreds):
-        logging.info(f"Google TTS credentials file: {creds_file}")
+    path = Path(gcreds)
+    if not path.exists():
+        path = Path('google_creds.enc')
+    file_format = path.suffix
+    if file_format == ".enc":
+        gcreds = load_credentials(path)
+        logging.info(f"Google TTS credentials file location: {path}")
+    logging.info(f"Google TTS credentials file location: {path}")
+    if not isinstance(gcreds, dict) and os.path.isfile(gcreds):
+        logging.info(f"Google TTS credentials file: {gcreds}")
     voiceid = utils.config.get("googleTTS", "voiceid")
     client = GoogleClient(credentials=gcreds)
     tts = GoogleTTS(client=client, voice=voiceid)
