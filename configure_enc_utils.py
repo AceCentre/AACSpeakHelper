@@ -8,6 +8,7 @@ import configparser
 from cryptography.fernet import Fernet
 import sys
 import argparse
+import base64
 
 # Ensure CONFIG_ENCRYPTION_KEY is set
 if "CONFIG_ENCRYPTION_KEY" not in os.environ:
