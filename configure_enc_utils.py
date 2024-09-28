@@ -14,6 +14,17 @@ if "CONFIG_ENCRYPTION_KEY" not in os.environ:
     os.environ["CONFIG_ENCRYPTION_KEY"] = "YOUR_ENCRYPTION_KEY"
 
 
+# use it like this
+# jq -c '@json' ttsandtranslate-7dd2e2d80d42.json
+
+def create_google_creds_file(filename):
+    google_creds_json = os.getenv("GOOGLE_CREDS_JSON")
+    if not google_creds_json:
+        raise ValueError("GOOGLE_CREDS_JSON environment variable is not set")
+    
+    with open(filename, "w") as f:
+        f.write(google_creds_json)
+
 def load_encryption_key():
     """Loads the encryption key from the environment variable."""
     encryption_key = os.getenv("CONFIG_ENCRYPTION_KEY")
