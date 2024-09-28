@@ -1,5 +1,4 @@
 # This Python file uses the following encoding: utf-8
-import base64
 import configparser
 import json
 import logging
@@ -10,6 +9,7 @@ import sys
 import time
 import uuid
 import warnings
+sys.path.append(os.path.abspath('..'))
 from configure_enc_utils import load_config, load_credentials
 
 warnings.filterwarnings("ignore")

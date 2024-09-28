@@ -1,4 +1,3 @@
-import ast
 import io
 import json
 import logging
@@ -8,7 +7,6 @@ from pathlib import Path
 import configparser
 from cryptography.fernet import Fernet
 import sys
-import base64
 import argparse
 
 # Ensure CONFIG_ENCRYPTION_KEY is set
