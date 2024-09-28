@@ -23,7 +23,7 @@ def create_google_creds_file(filename):
     # Fetch the Base64 encoded JSON string from the environment variable
     google_creds_base64 = os.getenv("GOOGLE_CREDS_JSON")
     if not google_creds_base64:
-        raise ValueError("GOOGLE_CREDS_BASE64 environment variable is not set")
+        raise ValueError("GOOGLE_CREDS_JSON environment variable is not set")
 
     try:
         # Decode the Base64 string to get the JSON string
