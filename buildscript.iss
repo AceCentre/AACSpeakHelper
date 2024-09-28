@@ -45,6 +45,7 @@ Source: "dist\AACSpeakHelperServer\*"; DestDir: "{app}"; Flags: ignoreversion re
 Source: "assets\translate.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "settings.cfg"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 Source: "config.enc"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
+Source: "google_creds.enc"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\Configure AACSpeakHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
