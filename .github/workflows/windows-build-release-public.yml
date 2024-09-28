@@ -51,7 +51,7 @@ jobs:
       - name: Inject secrets into environment and encrypt config
         shell: bash
         run: |
-          poetry run python prepare_config_enc.py
+          poetry run python configure_enc_utils.py -use-env
         env:
           MICROSOFT_TOKEN: ${{ secrets.MICROSOFT_TOKEN }}
           MICROSOFT_REGION: ${{ secrets.MICROSOFT_REGION }}
