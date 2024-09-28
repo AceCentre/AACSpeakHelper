@@ -9,8 +9,8 @@ import sys
 import time
 import uuid
 import warnings
-import io
-from configure_enc_utils import load_config
+sys.path.append(os.path.abspath('..'))
+from configure_enc_utils import load_config, load_credentials
 
 warnings.filterwarnings("ignore")
 import PySide6.QtCore
@@ -577,6 +577,7 @@ class Widget(QWidget):
         self.config.set(
             "translate", "deepL_pro", str(self.ui.checkBox_pro.isChecked()).lower()
         )
+        # Add default microsofttranslator_secret_key if not permanent.
         self.config.set(
             "translate",
             "microsofttranslator_secret_key",
@@ -1013,7 +1014,7 @@ class Widget(QWidget):
             parentWidget = self.ui.listWidget_voiceazure
             for index in range(self.ui.listWidget_voiceazure.count()):
                 item = self.ui.listWidget_voiceazure.item(index)
-                if text == item.toolTip():
+                if text == item.text():
                     self.azure_row = self.ui.listWidget_voiceazure.row(item)
                     self.ui.listWidget_voiceazure.setCurrentRow(self.azure_row)
                     break
@@ -1145,12 +1146,16 @@ class Widget(QWidget):
             azureThread.signals.errorDetected.connect(self.handleError)
             azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
             azureThread.signals.itemGenerated.connect(self.load_Azure_items)
-            azureThread.signals.completed.connect(
+            azureThread.signals.thread_completed.connect(
                 lambda: self.load_progress_azure(False)
+            )
+            azureThread.signals.completed.connect(
+                lambda: self.threadList.remove(azureThread)
             )
             self.threadList.append(azureThread)
         except Exception as azureError:
-            print(str(azureError))
+            print(f"Azure TTS Voice List Error: {azureError}")
+            logging.error(f"Azure TTS Voice List Error: {azureError}")
 
     def get_azure_voices(self):
         file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
@@ -1175,9 +1180,9 @@ class Widget(QWidget):
             pool = QThreadPool.globalInstance()
             for thread in self.threadList:
                 pool.start(thread)
-            self.threadList.clear()
         except Exception as threadError:
-            print(threadError)
+            print(f"ThreadPool Error: {threadError}")
+            logging.error(f"ThreadPool Error: {threadError}")
 
     def handleError(self, string, tts):
         if tts == "Azure TTS":
@@ -1190,16 +1195,20 @@ class Widget(QWidget):
             self.ui.credsFilePathEdit.setPlaceholderText("Invalid JSON Credentials")
 
     def get_google_credentials(self, filename, default=False):
-        if filename is not None and os.path.isfile(filename):
-            logging.info("Using User Defined Google Credentials")
-            return filename
-        else:
-            if default:
-                logging.info("Using Default Google Credentials")
-                return google_creds_path
+        try:
+            if filename is not None and os.path.isfile(filename) and not default:
+                logging.info("Using User Defined Google Credentials")
+                return filename
             else:
-                logging.info(f"Invalid Google Credentials {filename}")
-        return None
+                if default:
+                    logging.info("Using Default Google Credentials")
+                    return load_credentials(google_creds_path)
+                else:
+                    logging.info(f"Invalid Google Credentials {filename}")
+            return google_creds_path
+        except Exception as e:
+            print(f'Error: {e}')
+            return google_creds_path
 
     def generate_google_voice_models(self):
         try:
@@ -1220,12 +1229,16 @@ class Widget(QWidget):
                 lambda: self.load_progress_google(True)
             )
             googleThread.signals.itemGenerated.connect(self.load_Google_items)
-            googleThread.signals.completed.connect(
+            googleThread.signals.thread_completed.connect(
                 lambda: self.load_progress_google(False)
+            )
+            googleThread.signals.thread_completed.connect(
+                lambda: self.threadList.remove(googleThread)
             )
             self.threadList.append(googleThread)
         except Exception as googleError:
-            print(str(googleError))
+            print(f"Google TTS Voice List Error: {googleError}")
+            logging.error(f"Google TTS Voice List Error: {googleError}")
 
     def generate_googleTrans_voice_model(self):
         try:
@@ -1242,12 +1255,16 @@ class Widget(QWidget):
                 lambda: self.load_progress_googleTrans(True)
             )
             googleTransThread.signals.itemGenerated.connect(self.load_GoogleTrans_items)
-            googleTransThread.signals.completed.connect(
+            googleTransThread.signals.thread_completed.connect(
                 lambda: self.load_progress_googleTrans(False)
+            )
+            googleTransThread.signals.thread_completed.connect(
+                lambda: self.threadList.remove(googleTransThread)
             )
             self.threadList.append(googleTransThread)
         except Exception as googleTransError:
-            print(str(googleTransError))
+            print(f"GoogleTrans TTS Voice List Error: {googleTransError}")
+            logging.error(f"GoogleTrans TTS Voice List Error: {googleTransError}")
 
     def set_google_voice(self, text):
         if text == "":
@@ -1269,6 +1286,7 @@ class Widget(QWidget):
             )
 
     def open_onnx_cache(self):
+        print(len(self.threadList))
         if os.path.isdir(self.onnx_cache_path):
             self.ui.statusBar.setText(f"Opened {self.onnx_cache_path}")
             os.startfile(self.onnx_cache_path)
@@ -1322,10 +1340,12 @@ class Widget(QWidget):
         pyperclip.copy(self.ui.appPath.text())
 
     def azure_validation(self):
+        self.threadList.clear()
         self.generate_azure_voice_models()
         self.poolStarter()
 
     def google_validation(self):
+        self.threadList.clear()
         self.generate_google_voice_models()
         self.poolStarter()
 
@@ -1340,10 +1360,12 @@ class Widget(QWidget):
             onnxThread = VoiceLoader(parent=self, tts="Sherpa-ONNX")
             onnxThread.signals.started.connect(lambda: self.load_progress_onnx(True))
             onnxThread.signals.itemGenerated.connect(self.load_Onnx_Items)
-            onnxThread.signals.completed.connect(lambda: self.load_progress_onnx(False))
+            onnxThread.signals.thread_completed.connect(lambda: self.load_progress_onnx(False))
+            onnxThread.signals.thread_completed.connect(lambda: self.threadList.remove(onnxThread))
             self.threadList.append(onnxThread)
         except Exception as e:
-            print(e)
+            print(f"Sherpa ONNX Voice List Error: {e}")
+            logging.error(f"Sherpa ONNX Voice List Error: {e}")
 
     def load_progress_onnx(self, state):
         policy = self.ui.onnx_listWidget.sizePolicy()
@@ -1551,6 +1573,7 @@ class Widget(QWidget):
 class Signals(QObject):
     started = Signal()
     completed = Signal()
+    thread_completed = Signal(object)
     itemGenerated = Signal(int, dict, int)
     voicesFetched = Signal(list)
     errorDetected = Signal(str, str)
@@ -1584,12 +1607,13 @@ class Player(QRunnable):
             application_path = os.path.dirname(os.path.dirname(__file__))
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, "client.py")
+            print(GUI_script_path)
             cache_location = os.path.join(
                 os.path.dirname(self.temp_config_file.name), "Audio Files"
             )
             process = subprocess.Popen(
                 [
-                    "python",
+                    f"{application_path}/venv/Scripts/python.exe",
                     GUI_script_path,
                     "--config",
                     self.temp_config_file.name,
@@ -1629,6 +1653,9 @@ class VoiceLoader(QRunnable):
         self.signals = Signals()
         self.parent = parent
 
+    def __del__(self):
+        print('QRunnable is deleted')
+
     def run(self):
         try:
             self.signals.started.emit()
@@ -1646,7 +1673,7 @@ class VoiceLoader(QRunnable):
                 try:
                     voices = client.get_available_voices()
                 except Exception as getVoicesError:
-                    logging.error(str(getVoicesError))
+                    logging.error(f"Azure TTS Error: {getVoicesError}")
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
                     client = MicrosoftClient((ms_token, ms_region))
                     voices = client.get_available_voices()
@@ -1656,22 +1683,22 @@ class VoiceLoader(QRunnable):
                 try:
                     voices = client.get_voices()
                 except Exception as getVoicesError:
-                    logging.error(str(getVoicesError))
+                    logging.error(f"Google TTS Error: {getVoicesError}")
                     self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = GoogleClient(credentials=google_creds_path)
+                    client = GoogleClient(credentials=self.parent.default_google_credential)
                     voices = client.get_voices()
             elif self.tts == "Sherpa-ONNX":
                 client = SherpaOnnxClient()
                 try:
                     voices = client.get_voices()
                 except Exception as getVoicesError:
-                    logging.error(str(getVoicesError))
+                    logging.error(f"Sherpa-Onnx Error: {getVoicesError}")
             elif self.tts == "GoogleTranslator TTS":
                 client = GoogleTransClient()
                 try:
                     voices = client.get_voices()
                 except Exception as getVoicesError:
-                    logging.error(str(getVoicesError))
+                    logging.error(f"GoogleTranslator TTS Error: {getVoicesError}")
             self.signals.voicesFetched.emit(voices)
             count = len(voices)
             print(f"Voice fetch time for {self.tts}: {time.perf_counter() - start}")
@@ -1679,9 +1706,10 @@ class VoiceLoader(QRunnable):
                 for index, x in enumerate(voices):
                     time.sleep(0.001)
                     self.signals.itemGenerated.emit(index, x, count)
-            self.signals.completed.emit()
+            self.signals.thread_completed.emit(self)
         except Exception as e:
             print(e)
+            logging.error(f"Voice List Error: {e}")
 
 
 def setup_logging():
@@ -1720,10 +1748,10 @@ if __name__ == "__main__":
     except Exception as error:
         logging.debug(f"Error loading configuration: {error}")
         sys.exit(1)
-    ms_token = config.get("MICROSOFT_TOKEN")
-    ms_region = config.get("MICROSOFT_REGION")
-    google_creds_path = config.get("GOOGLE_CREDS_PATH")
-    ms_token_trans = config.get("MICROSOFT_TOKEN_TRANS")
+    ms_token = config.get("azureTTS")["key"]
+    ms_region = config.get("azureTTS")["location"]
+    google_creds_path = config.get("googleTTS")["creds"]
+    ms_token_trans = config.get("translate")["microsofttranslator_secret_key"]
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
