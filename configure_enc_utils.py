@@ -158,10 +158,28 @@ if __name__ == '__main__':
         "-i",
         "--input",
         help="Path to a defined JSON file",
-        required=True
+        required=False
+    )
+    parser.add_argument(
+        "-use-json-in-env",
+        action="store_true",
+        help="Create JSON from environment variables instead of input file"
     )
     args = vars(parser.parse_args())
-    filename = Path(args['input'])
+
+    # Check if -use-json-in-env is provided
+    if args['use_json_in_env']:
+        # Set a default filename for the JSON file to be created from the environment variable
+        filename = Path("google_creds.json")
+        create_google_creds_file(filename)
+    else:
+        # Handle the input flag normally
+        if not args['input']:
+            print("Either --input or --use-json-in-env must be specified.")
+            sys.exit(1)
+        
+        filename = Path(args['input'])
+
     file_path = filename.resolve().parent
     with io.open(filename, "r", encoding="utf-8") as json_file:
         json_dict = json.load(json_file)
