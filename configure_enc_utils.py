@@ -15,15 +15,29 @@ if "CONFIG_ENCRYPTION_KEY" not in os.environ:
 
 
 # use it like this
-# jq -c '@json' ttsandtranslate-7dd2e2d80d42.json
+#  Encode the JSON file and save it to a variable
+# base64 google_creds.json > google_creds_base64.txt
+
 
 def create_google_creds_file(filename):
-    google_creds_json = os.getenv("GOOGLE_CREDS_JSON")
-    if not google_creds_json:
-        raise ValueError("GOOGLE_CREDS_JSON environment variable is not set")
-    
-    with open(filename, "w") as f:
-        f.write(google_creds_json)
+    # Fetch the Base64 encoded JSON string from the environment variable
+    google_creds_base64 = os.getenv("GOOGLE_CREDS_JSON")
+    if not google_creds_base64:
+        raise ValueError("GOOGLE_CREDS_BASE64 environment variable is not set")
+
+    try:
+        # Decode the Base64 string to get the JSON string
+        google_creds_json = base64.b64decode(google_creds_base64).decode("utf-8")
+        # Parse the JSON string to ensure it's formatted correctly
+        google_creds_dict = json.loads(google_creds_json)
+
+        # Write the JSON dictionary back to a file if needed
+        with open(filename, "w") as f:
+            json.dump(google_creds_dict, f, indent=4)
+
+    except (json.JSONDecodeError, base64.binascii.Error) as e:
+        raise ValueError(f"Failed to decode and parse GOOGLE_CREDS_BASE64: {e}")
+
 
 def load_encryption_key():
     """Loads the encryption key from the environment variable."""
@@ -137,52 +151,50 @@ def load_config(custom_config_path=""):
 def load_credentials(fp: str) -> object:
     encryption_key = load_encryption_key()
     fernet = Fernet(encryption_key)
-    with open(fp, 'rb') as f:
+    with open(fp, "rb") as f:
         return pickle.loads(fernet.decrypt(f.read()))
 
 
 def save_credentials(obj: object, fp: str):
     encryption_key = load_encryption_key()
     fernet = Fernet(encryption_key)
-    with open(fp, 'wb') as f:
+    with open(fp, "wb") as f:
         f.write(fernet.encrypt(pickle.dumps(obj)))
+
 
 # Example usage
 # prepare_config_enc()  # Run this to create config.enc
 # config = load_config()  # Load config when needed
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AACSpeakHelper Encryption Utility")
     parser.add_argument(
-        "-i",
-        "--input",
-        help="Path to a defined JSON file",
-        required=False
+        "-i", "--input", help="Path to a defined JSON file", required=False
     )
     parser.add_argument(
-        "-use-json-in-env",
+        "-use-env",
         action="store_true",
-        help="Create JSON from environment variables instead of input file"
+        help="Create JSON from environment variables instead of input file",
     )
     args = vars(parser.parse_args())
 
-    # Check if -use-json-in-env is provided
-    if args['use_json_in_env']:
+    # Check if -use-env is provided
+    if args["use_env"]:
         # Set a default filename for the JSON file to be created from the environment variable
         filename = Path("google_creds.json")
         create_google_creds_file(filename)
     else:
         # Handle the input flag normally
-        if not args['input']:
-            print("Either --input or --use-json-in-env must be specified.")
+        if not args["input"]:
+            print("Either --input or --use-env must be specified.")
             sys.exit(1)
-        
-        filename = Path(args['input'])
+
+        filename = Path(args["input"])
 
     file_path = filename.resolve().parent
     with io.open(filename, "r", encoding="utf-8") as json_file:
         json_dict = json.load(json_file)
-        new_file = filename.with_suffix('.enc')
+        new_file = filename.with_suffix(".enc")
         save_credentials(json_dict, os.path.join(file_path, new_file))
         print(load_credentials(new_file))
