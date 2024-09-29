@@ -220,7 +220,7 @@ class MainWindow(QWidget):
             tts_utils.init(utils)
             # Process the clipboard text
             if not tts_utils.ready:
-                print(
+                logging.info(
                     "Application is not ready. Please wait until current session is finished."
                 )
                 return

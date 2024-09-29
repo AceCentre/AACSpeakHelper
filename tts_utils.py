@@ -107,7 +107,7 @@ def init_google_tts():
     gcreds = utils.config.get("googleTTS", "creds")
     path = Path(gcreds)
     if not path.exists():
-        path = Path('google_creds.enc')
+        path = Path("google_creds.enc")
     file_format = path.suffix
     if file_format == ".enc":
         gcreds = load_credentials(path)
@@ -184,81 +184,106 @@ def speak(text="", list_voices=False):
     global voices
     global ready
     ready = False
-    ttsengine = utils.config.get("TTS", "engine")
-    voice_id = utils.config.get(ttsengine, "voiceid")
-    if not voice_id:
-        voice_id = utils.config.get("TTS", "voiceid")
-    # Check if text is existing in the database
-    file = utils.check_history(text)
-    if file is not None and os.path.isfile(file):
-        if list_voices:
+
+    try:
+        ttsengine = utils.config.get("TTS", "engine")
+        voice_id = utils.config.get(ttsengine, "voiceid")
+        if not voice_id:
+            voice_id = utils.config.get("TTS", "voiceid")
+    except Exception as e:
+        logging.error(f"Error getting TTS engine or voice ID: {e}")
+        return
+
+    try:
+        file = utils.check_history(text)
+        if file is not None and os.path.isfile(file):
+            if list_voices:
+                tts_client = tts_voiceid[ttsengine][voice_id]
+                voices = tts_client.get_voices()
+                return
+            else:
+                voices = None
+            utils.play_audio(file, file=True)
+            print(f"Speech synthesized for text [{text}] from cache.")
+            logging.info(f"Speech synthesized for text [{text}] from cache.")
+            return
+    except Exception as e:
+        logging.error(f"Error checking history or playing audio: {e}")
+        return
+
+    print(f"Speech synthesized for text [{text}].")
+    logging.info(f"Speech synthesized for text [{text}].")
+
+    try:
+        if ttsengine in tts_voiceid and voice_id in tts_voiceid[ttsengine]:
             tts_client = tts_voiceid[ttsengine][voice_id]
+        else:
+            match ttsengine:
+                case "azureTTS":
+                    tts_client = init_azure_tts()
+                case "googleTTS":
+                    tts_client = init_google_tts()
+                case "sapi5":
+                    tts_client = init_sapi_tts()
+                case "SherpaOnnxTTS":
+                    tts_client = init_onnx_tts()
+                case "googleTransTTS":
+                    tts_client = init_googleTrans_tts()
+                case _:
+                    tts_client = pyttsx3.init(ttsengine)
+    except Exception as e:
+        logging.error(f"Error initializing TTS client: {e}")
+        return
+
+    try:
+        if ttsengine not in tts_voiceid:
+            tts_voiceid[ttsengine] = {voice_id: tts_client}
+        else:
+            if voice_id not in tts_voiceid[ttsengine]:
+                tts_voiceid[ttsengine][voice_id] = tts_client
+    except Exception as e:
+        logging.error(f"Error storing TTS client: {e}")
+        return
+
+    if list_voices:
+        try:
             voices = tts_client.get_voices()
             return
-        else:
-            voices = None
-        utils.play_audio(file, file=True)
-        print("Speech synthesized for text [{}] from cache.".format(text))
-        logging.info("Speech synthesized for text [{}] from cache.".format(text))
-        return
-    print("Speech synthesized for text [{}].".format(text))
-    # Check if the TTS client is already in memory
-    if ttsengine in tts_voiceid and voice_id in tts_voiceid[ttsengine]:
-        tts_client = tts_voiceid[ttsengine][voice_id]
-    else:
-        # Initialize the TTS client based on the engine
-        match ttsengine:
-            case "azureTTS":
-                tts_client = init_azure_tts()
-            case "googleTTS":
-                tts_client = init_google_tts()
-            case "sapi5":
-                tts_client = init_sapi_tts()
-            case "SherpaOnnxTTS":
-                tts_client = init_onnx_tts()
-            case "googleTransTTS":
-                tts_client = init_googleTrans_tts()
-            case _:
-                tts_client = pyttsx3.init(ttsengine)
-
-    # Store the client for future use
-    if ttsengine not in tts_voiceid:
-        tts_voiceid[ttsengine] = {voice_id: tts_client}
-    else:
-        if voice_id not in tts_voiceid[ttsengine]:
-            tts_voiceid[ttsengine][voice_id] = tts_client
-    if list_voices:
-        voices = tts_client.get_voices()
-        return
+        except Exception as e:
+            logging.error(f"Error getting voices: {e}")
+            return
     else:
         voices = None
-    # Use the TTS client
-    match ttsengine:
-        case "azureTTS":
-            if utils.args["style"]:
-                azureSpeak(
-                    text,
-                    ttsengine,
-                    tts_client,
-                    utils.args["style"],
-                    utils.args["styledegree"],
-                )
-            else:
-                azureSpeak(text, ttsengine, tts_client)
-        case "googleTTS":
-            googleSpeak(text, ttsengine, tts_client)
-        case "sapi5":
-            sapiSpeak(text, ttsengine, tts_client)
-        case "SherpaOnnxTTS":
-            onnxSpeak(text, ttsengine, tts_client)
-        case "googleTransTTS":
-            googleTransSpeak(text, ttsengine, tts_client)
-        case _:
-            tts_client.setProperty("voice", utils.config.get("TTS", "voiceid"))
-            tts_client.setProperty("rate", utils.config.get("TTS", "rate"))
-            tts_client.setProperty("volume", utils.config.get("TTS", "volume"))
-            tts_client.say(text)
-            tts_client.runAndWait()
+
+    try:
+        match ttsengine:
+            case "azureTTS":
+                if utils.args["style"]:
+                    azureSpeak(
+                        text,
+                        ttsengine,
+                        tts_client,
+                        utils.args["style"],
+                        utils.args["styledegree"],
+                    )
+                else:
+                    azureSpeak(text, ttsengine, tts_client)
+            case "googleTTS":
+                googleSpeak(text, ttsengine, tts_client)
+            case "sapi5":
+                sapiSpeak(text, ttsengine, tts_client)
+            case "SherpaOnnxTTS":
+                onnxSpeak(text, ttsengine, tts_client)
+            case "googleTransTTS":
+                googleTransSpeak(text, ttsengine, tts_client)
+            case _:
+                tts_client.setProperty("voice", utils.config.get("TTS", "voiceid"))
+                tts_client.setProperty("rate", utils.config.get("TTS", "rate"))
+                tts_client.setProperty("volume", utils.config.get("TTS", "volume"))
+                tts_client.say(text)
+                tts_client.runAndWait()
+    except Exception as e:
+        logging.error(f"Error during TTS processing: {e}")
 
 
 def onnxSpeak(text: str, engine, tts_client):
@@ -388,9 +413,15 @@ def playSpeech(text, engine, file_format, tts):
     save_audio_file = utils.config.getboolean("TTS", "save_audio_file")
     if save_audio_file:
         utils.save_audio(text=text, engine=engine, file_format=file_format, tts=tts)
+        logging.info(f"Speech synthesized for text [{text}] saved in cache.")
     else:
-        tts.speak_streamed(text)
+        try:
+            tts.speak_streamed(text)
+        except Exception as e:
+            logging.error(f"Error during TTS processing: {e}")
+            return
+
     stop = time.perf_counter() - start
-    print(f"Speech synthesis runtime is {stop:0.5f} seconds.")
+    logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
     global ready
     ready = True
