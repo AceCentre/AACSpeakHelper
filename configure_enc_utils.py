@@ -184,6 +184,7 @@ if __name__ == "__main__":
         # Set a default filename for the JSON file to be created from the environment variable
         filename = Path("google_creds.json")
         create_google_creds_file(filename)
+        prepare_config_enc()
     else:
         # Handle the input flag normally
         if not args["input"]:
@@ -197,4 +198,5 @@ if __name__ == "__main__":
         json_dict = json.load(json_file)
         new_file = filename.with_suffix(".enc")
         save_credentials(json_dict, os.path.join(file_path, new_file))
-        print(load_credentials(new_file))
+        files = os.listdir(".")
+        print(files)
