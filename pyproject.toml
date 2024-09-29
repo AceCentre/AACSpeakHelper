@@ -10,6 +10,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 PyAudio = "^0.2.14"
+numpy = "1.26.4"
 comtypes = "^1.4.6"
 pytz = "^2024.1"
 setuptools = "^74.0.0"
@@ -21,7 +22,7 @@ translate = "^3.6.1"
 configparser = "^7.1.0"
 pyperclip = "^1.9.0"
 pyinstaller = "^6.10.0"
-py3-tts-wrapper = {extras = ["google", "googletrans", "microsoft", "sapi", "sherpaonnx"], version = "^0.9.11"}
+py3-tts-wrapper = {extras = ["google", "googletrans", "microsoft", "sapi", "sherpaonnx"], version = "^0.9.15"}
 python-dotenv = "^1.0.1"
 cryptography = "^43.0.1"
 
