@@ -336,7 +336,7 @@ class Widget(QWidget):
             self.set_azure_voice(self.voiceidAzure)
             self.set_google_voice(self.voiceidGoogle)
             self.set_onnx_voice(self.voiceid_onnx)
-
+            self.set_googleTrans_voice(self.voiceidGoogleTrans)
             item = [
                 key
                 for key, value in self.voices_sapi_dict.items()
@@ -1032,6 +1032,7 @@ class Widget(QWidget):
             parentWidget = self.ui.onnx_listWidget
             for index in range(self.ui.onnx_listWidget.count()):
                 item = self.ui.onnx_listWidget.item(index)
+                print(text, item.text())
                 if text == item.text():
                     self.onnx_row = self.ui.onnx_listWidget.row(item)
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
@@ -1113,18 +1114,27 @@ class Widget(QWidget):
                     self.ui.listWidget_voiceazure.setCurrentItem(
                         self.ui.listWidget_voiceazure.item(self.azure_row)
                     )
+                self.ui.azure_voice_models.setTitle(
+                    f"Current Voice Model: {self.ui.listWidget_voiceazure.currentItem().text()}"
+                )
             elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
                 if self.ui.listWidget_voicegoogle.currentItem() is None:
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     self.ui.listWidget_voicegoogle.setCurrentItem(
                         self.ui.listWidget_voicegoogle.item(self.google_row)
                     )
+                self.ui.google_voice_models.setTitle(
+                    f"Current Voice Model: {self.ui.listWidget_voicegoogle.currentItem().text()}"
+                )
             elif self.ui.stackedWidget.currentWidget() == self.ui.onnx_page:
                 if self.ui.onnx_listWidget.currentItem() is None:
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     self.ui.onnx_listWidget.setCurrentItem(
-                        self.ui.listWidget_voicegoogle.item(self.onnx_row)
+                        self.ui.onnx_listWidget.item(self.onnx_row)
                     )
+                self.ui.onnx_voice_models.setTitle(
+                    f"Current Voice Model: {self.ui.onnx_listWidget.currentItem().text()} - {self.ui.onnx_listWidget.currentItem().toolTip()}"
+                )
             elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
                 if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
                     self.ui.listWidget_voicegoogleTrans.setCurrentRow(
@@ -1133,8 +1143,11 @@ class Widget(QWidget):
                     self.ui.listWidget_voicegoogleTrans.setCurrentItem(
                         self.ui.listWidget_voicegoogleTrans.item(self.googleTrans_row)
                     )
+                self.ui.gspeak_voice_models.setTitle(
+                    f"Current Voice Model: {self.ui.listWidget_voicegoogleTrans.currentItem().text()}"
+                )
         except Exception as error:
-            pass
+            logging.error(f"Voice Model Error: {error}")
 
     def generate_azure_voice_models(self):
         try:
@@ -1356,6 +1369,7 @@ class Widget(QWidget):
             self.iconDownload = QIcon(":/images/images/download.ico")
             self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
             self.onnx_location = self.onnx_cache_path
+            self.ui.onnx_listWidget.currentRowChanged.connect(self.updateRow)
             self.ui.onnx_listWidget.itemClicked.connect(self.print_data)
             self.ui.search_language.textChanged.connect(self.searchItem_Onnx)
             self.ui.onnx_listWidget.setUniformItemSizes(True)
@@ -1377,6 +1391,9 @@ class Widget(QWidget):
         self.ui.onnx_progressBar.setVisible(state)
         if not state:
             self.set_onnx_voice(self.voiceid_onnx)
+            self.ui.onnx_voice_models.setTitle(
+                f"Current Voice Model: {self.ui.onnx_listWidget.currentItem().text()} - {self.ui.onnx_listWidget.currentItem().toolTip()}"
+            )
 
     def load_progress_azure(self, state):
         policy = self.ui.listWidget_voiceazure.sizePolicy()
@@ -1388,6 +1405,9 @@ class Widget(QWidget):
         self.ui.checkBox_azure.setDisabled(state)
         if not state:
             self.set_azure_voice(self.voiceidAzure)
+            self.ui.azure_voice_models.setTitle(
+                f"Current Voice Model: {self.ui.listWidget_voiceazure.currentItem().text()}"
+            )
 
     def load_progress_google(self, state):
         policy = self.ui.listWidget_voicegoogle.sizePolicy()
@@ -1399,6 +1419,9 @@ class Widget(QWidget):
         self.ui.checkBox_google.setDisabled(state)
         if not state:
             self.set_google_voice(self.voiceidGoogle)
+            self.ui.google_voice_models.setTitle(
+                f"Current Voice Model: {self.ui.listWidget_voicegoogle.currentItem().text()}"
+            )
 
     def load_progress_googleTrans(self, state):
         policy = self.ui.listWidget_voicegoogleTrans.sizePolicy()
@@ -1408,6 +1431,9 @@ class Widget(QWidget):
         self.ui.googleTransTTS_progressBar.setVisible(state)
         if not state:
             self.set_googleTrans_voice(self.voiceidGoogleTrans)
+            self.ui.gspeak_voice_models.setTitle(
+                f"Current Voice Model: {self.ui.listWidget_voicegoogleTrans.currentItem().text()}"
+            )
 
     def set_googleTrans_voice(self, text):
         if text == "":
@@ -1480,7 +1506,7 @@ class Widget(QWidget):
             font.setBold(False)
             font.setPointSize(8)
             item_UI.gender.setFont(font)
-            item_UI.gender.setText(data["gender"])
+            item_UI.gender.setText(f"{data['gender']} - {data['language_codes'][0]}")
             item_UI.play.clicked.connect(self.preview_pressed)
             item_widget.setObjectName(data["name"])
 

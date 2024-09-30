@@ -28,7 +28,7 @@ class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
             Widget.setObjectName(u"Widget")
-        Widget.resize(631, 427)
+        Widget.resize(705, 427)
         icon = QIcon()
         icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
         Widget.setWindowIcon(icon)
@@ -96,20 +96,20 @@ class Ui_Widget(object):
         self.gridLayout_4.setSpacing(3)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.groupBox_2 = QGroupBox(self.formWidget_4)
-        self.groupBox_2.setObjectName(u"groupBox_2")
+        self.azure_voice_models = QGroupBox(self.formWidget_4)
+        self.azure_voice_models.setObjectName(u"azure_voice_models")
         font = QFont()
         font.setPointSize(10)
         font.setBold(True)
-        self.groupBox_2.setFont(font)
-        self.groupBox_2.setStyleSheet(u"")
-        self.groupBox_2.setAlignment(Qt.AlignCenter)
-        self.groupBox_2.setFlat(False)
-        self.verticalLayout_7 = QVBoxLayout(self.groupBox_2)
+        self.azure_voice_models.setFont(font)
+        self.azure_voice_models.setStyleSheet(u"")
+        self.azure_voice_models.setAlignment(Qt.AlignCenter)
+        self.azure_voice_models.setFlat(False)
+        self.verticalLayout_7 = QVBoxLayout(self.azure_voice_models)
         self.verticalLayout_7.setSpacing(0)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
         self.verticalLayout_7.setContentsMargins(2, 2, 2, 2)
-        self.azure_progressBar = QProgressBar(self.groupBox_2)
+        self.azure_progressBar = QProgressBar(self.azure_voice_models)
         self.azure_progressBar.setObjectName(u"azure_progressBar")
         self.azure_progressBar.setMaximumSize(QSize(16777215, 15))
         self.azure_progressBar.setStyleSheet(u"")
@@ -119,21 +119,24 @@ class Ui_Widget(object):
 
         self.verticalLayout_7.addWidget(self.azure_progressBar)
 
-        self.listWidget_voiceazure = QListWidget(self.groupBox_2)
+        self.listWidget_voiceazure = QListWidget(self.azure_voice_models)
         self.listWidget_voiceazure.setObjectName(u"listWidget_voiceazure")
         sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
         self.listWidget_voiceazure.setSizePolicy(sizePolicy1)
-        self.listWidget_voiceazure.setStyleSheet(u"")
+        self.listWidget_voiceazure.setStyleSheet(u"QListWidget::item:selected {\n"
+"        background-color: blue;\n"
+"        color: white;\n"
+"    }")
         self.listWidget_voiceazure.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.listWidget_voiceazure.setSortingEnabled(True)
 
         self.verticalLayout_7.addWidget(self.listWidget_voiceazure)
 
 
-        self.gridLayout_4.addWidget(self.groupBox_2, 5, 0, 1, 2)
+        self.gridLayout_4.addWidget(self.azure_voice_models, 5, 0, 1, 2)
 
         self.frame_4 = QFrame(self.formWidget_4)
         self.frame_4.setObjectName(u"frame_4")
@@ -252,15 +255,15 @@ class Ui_Widget(object):
 
         self.gridLayout_6.addWidget(self.validate_google, 0, 3, 1, 1)
 
-        self.groupBox_3 = QGroupBox(self.gridWidget_2)
-        self.groupBox_3.setObjectName(u"groupBox_3")
-        self.groupBox_3.setFont(font)
-        self.groupBox_3.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_8 = QVBoxLayout(self.groupBox_3)
+        self.google_voice_models = QGroupBox(self.gridWidget_2)
+        self.google_voice_models.setObjectName(u"google_voice_models")
+        self.google_voice_models.setFont(font)
+        self.google_voice_models.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_8 = QVBoxLayout(self.google_voice_models)
         self.verticalLayout_8.setSpacing(0)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
-        self.gTTS_progressBar = QProgressBar(self.groupBox_3)
+        self.gTTS_progressBar = QProgressBar(self.google_voice_models)
         self.gTTS_progressBar.setObjectName(u"gTTS_progressBar")
         self.gTTS_progressBar.setMaximumSize(QSize(16777215, 15))
         self.gTTS_progressBar.setFont(font)
@@ -271,15 +274,19 @@ class Ui_Widget(object):
 
         self.verticalLayout_8.addWidget(self.gTTS_progressBar)
 
-        self.listWidget_voicegoogle = QListWidget(self.groupBox_3)
+        self.listWidget_voicegoogle = QListWidget(self.google_voice_models)
         self.listWidget_voicegoogle.setObjectName(u"listWidget_voicegoogle")
+        self.listWidget_voicegoogle.setStyleSheet(u"QListWidget::item:selected {\n"
+"        background-color: blue;\n"
+"        color: white;\n"
+"    }")
         self.listWidget_voicegoogle.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.listWidget_voicegoogle.setSortingEnabled(True)
 
         self.verticalLayout_8.addWidget(self.listWidget_voicegoogle)
 
 
-        self.gridLayout_6.addWidget(self.groupBox_3, 4, 0, 1, 4)
+        self.gridLayout_6.addWidget(self.google_voice_models, 4, 0, 1, 4)
 
         self.search_language_google = QLineEdit(self.gridWidget_2)
         self.search_language_google.setObjectName(u"search_language_google")
@@ -321,15 +328,15 @@ class Ui_Widget(object):
 
         self.verticalLayout_11.addWidget(self.search_language_googleTrans)
 
-        self.groupBox_4 = QGroupBox(self.gspeak_page)
-        self.groupBox_4.setObjectName(u"groupBox_4")
-        self.groupBox_4.setFont(font)
-        self.groupBox_4.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_19 = QVBoxLayout(self.groupBox_4)
+        self.gspeak_voice_models = QGroupBox(self.gspeak_page)
+        self.gspeak_voice_models.setObjectName(u"gspeak_voice_models")
+        self.gspeak_voice_models.setFont(font)
+        self.gspeak_voice_models.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_19 = QVBoxLayout(self.gspeak_voice_models)
         self.verticalLayout_19.setSpacing(0)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.verticalLayout_19.setContentsMargins(2, 2, 2, 2)
-        self.googleTransTTS_progressBar = QProgressBar(self.groupBox_4)
+        self.googleTransTTS_progressBar = QProgressBar(self.gspeak_voice_models)
         self.googleTransTTS_progressBar.setObjectName(u"googleTransTTS_progressBar")
         self.googleTransTTS_progressBar.setMaximumSize(QSize(16777215, 15))
         self.googleTransTTS_progressBar.setFont(font)
@@ -338,13 +345,17 @@ class Ui_Widget(object):
 
         self.verticalLayout_19.addWidget(self.googleTransTTS_progressBar)
 
-        self.listWidget_voicegoogleTrans = QListWidget(self.groupBox_4)
+        self.listWidget_voicegoogleTrans = QListWidget(self.gspeak_voice_models)
         self.listWidget_voicegoogleTrans.setObjectName(u"listWidget_voicegoogleTrans")
+        self.listWidget_voicegoogleTrans.setStyleSheet(u"QListWidget::item:selected {\n"
+"        background-color: blue;\n"
+"        color: white;\n"
+"}")
 
         self.verticalLayout_19.addWidget(self.listWidget_voicegoogleTrans)
 
 
-        self.verticalLayout_11.addWidget(self.groupBox_4)
+        self.verticalLayout_11.addWidget(self.gspeak_voice_models)
 
         self.stackedWidget.addWidget(self.gspeak_page)
         self.sapi_page = QWidget()
@@ -525,15 +536,15 @@ class Ui_Widget(object):
 
         self.verticalLayout_17.addWidget(self.search_language)
 
-        self.groupBox = QGroupBox(self.onnx_page)
-        self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setFont(font)
-        self.groupBox.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_18 = QVBoxLayout(self.groupBox)
+        self.onnx_voice_models = QGroupBox(self.onnx_page)
+        self.onnx_voice_models.setObjectName(u"onnx_voice_models")
+        self.onnx_voice_models.setFont(font)
+        self.onnx_voice_models.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_18 = QVBoxLayout(self.onnx_voice_models)
         self.verticalLayout_18.setSpacing(0)
         self.verticalLayout_18.setObjectName(u"verticalLayout_18")
         self.verticalLayout_18.setContentsMargins(2, 2, 2, 2)
-        self.onnx_progressBar = QProgressBar(self.groupBox)
+        self.onnx_progressBar = QProgressBar(self.onnx_voice_models)
         self.onnx_progressBar.setObjectName(u"onnx_progressBar")
         self.onnx_progressBar.setMaximumSize(QSize(16777215, 15))
         self.onnx_progressBar.setStyleSheet(u"")
@@ -544,14 +555,18 @@ class Ui_Widget(object):
 
         self.verticalLayout_18.addWidget(self.onnx_progressBar)
 
-        self.onnx_listWidget = QListWidget(self.groupBox)
+        self.onnx_listWidget = QListWidget(self.onnx_voice_models)
         self.onnx_listWidget.setObjectName(u"onnx_listWidget")
+        self.onnx_listWidget.setStyleSheet(u"QListWidget::item:selected {\n"
+"        background-color: blue;\n"
+"        color: white;\n"
+"    }")
         self.onnx_listWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.verticalLayout_18.addWidget(self.onnx_listWidget)
 
 
-        self.verticalLayout_17.addWidget(self.groupBox)
+        self.verticalLayout_17.addWidget(self.onnx_voice_models)
 
         self.stackedWidget.addWidget(self.onnx_page)
 
@@ -946,7 +961,7 @@ class Ui_Widget(object):
         self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
         self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
-        self.groupBox_2.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
+        self.azure_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
         self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))
         self.label_9.setText(QCoreApplication.translate("Widget", u"Key:", None))
         self.checkBox_saveAudio.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
@@ -962,13 +977,13 @@ class Ui_Widget(object):
         self.validate_google.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><p><span style=\" font-size:10pt;\">Test the validity of the credential. If no error is detected, there will be no changes else, the credentials will be cleared.</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.validate_google.setText(QCoreApplication.translate("Widget", u"Validate Credentials", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
+        self.google_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
         self.search_language_google.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
         self.checkBox_saveAudio_gTTS.setText(QCoreApplication.translate("Widget", u"Save Audio File", None))
         self.checkBox_google.setText(QCoreApplication.translate("Widget", u"Refresh Voice Models Upon validation", None))
         self.checkBox_saveAudio_googleTrans.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language_googleTrans.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
-        self.groupBox_4.setTitle(QCoreApplication.translate("Widget", u"Voice Model", None))
+        self.gspeak_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voice Model", None))
         self.label_8.setText(QCoreApplication.translate("Widget", u"Rate:", None))
 #if QT_CONFIG(tooltip)
         self.label_12.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">VoiceID. To find what this would be run the programme with --listvoices</span></pre></body></html>", None))
@@ -988,7 +1003,7 @@ class Ui_Widget(object):
         self.cache_pushButton.setText(QCoreApplication.translate("Widget", u"Open Cache", None))
         self.onnx_checkBox.setText(QCoreApplication.translate("Widget", u"Save Audio", None))
         self.search_language.setPlaceholderText(QCoreApplication.translate("Widget", u"Search Language", None))
-        self.groupBox.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
+        self.onnx_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voice Models", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.TextToSpeechSetting), QCoreApplication.translate("Widget", u"Tab 1", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_translate.setToolTip(QCoreApplication.translate("Widget", u"<html><head/><body><pre style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; line-height:19px; background-color:#1f1f1f;\"><span style=\" font-family:'Consolas','Courier New','monospace'; font-size:14px; color:#6a9955;\">Uncheck this option If you just want it to speak in the text you are writing</span></pre></body></html>", None))
