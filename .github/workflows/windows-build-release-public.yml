@@ -80,8 +80,7 @@ jobs:
     runs-on: self-hosted
     needs: build
     env:
-      # Convenience variables with v prefix and short name.
-      VersionTag: v${{github.ref_name}}
+      VersionTag: ${{github.ref_name}}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
