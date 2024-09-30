@@ -67,6 +67,7 @@ jobs:
           MICROSOFT_REGION: ${{ secrets.MICROSOFT_REGION }}
           GOOGLE_CREDS_JSON: ${{ secrets.GOOGLE_CREDS_JSON }}
           MICROSOFT_TOKEN_TRANS: ${{ secrets.MICROSOFT_TOKEN_TRANS }}
+          MYAPP_VERSION: ${{ github.ref_name }}  
       - name: Verify Output Directory
         run: |
           dir Output
