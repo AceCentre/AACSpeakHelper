@@ -193,6 +193,8 @@ def speak(text="", list_voices=False):
     except Exception as e:
         logging.error(f"Error getting TTS engine or voice ID: {e}")
         return
+    finally:
+        ready = True
 
     try:
         file = utils.check_history(text)
@@ -204,14 +206,14 @@ def speak(text="", list_voices=False):
             else:
                 voices = None
             utils.play_audio(file, file=True)
-            print(f"Speech synthesized for text [{text}] from cache.")
             logging.info(f"Speech synthesized for text [{text}] from cache.")
+            ready = True  # Make sure to update ready after cache playback
             return
     except Exception as e:
         logging.error(f"Error checking history or playing audio: {e}")
+        ready = True  # In case of error, ensure ready is set back
         return
 
-    print(f"Speech synthesized for text [{text}].")
     logging.info(f"Speech synthesized for text [{text}].")
 
     try:
@@ -409,19 +411,21 @@ def playSpeech(text, engine, file_format, tts):
         tts: Instance of TTS Engine.
     Returns: None
     """
-    start = time.perf_counter()
-    save_audio_file = utils.config.getboolean("TTS", "save_audio_file")
-    if save_audio_file:
-        utils.save_audio(text=text, engine=engine, file_format=file_format, tts=tts)
-        logging.info(f"Speech synthesized for text [{text}] saved in cache.")
-    else:
-        try:
-            tts.speak_streamed(text)
-        except Exception as e:
-            logging.error(f"Error during TTS processing: {e}")
-            return
-
-    stop = time.perf_counter() - start
-    logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
     global ready
-    ready = True
+    ready = False  # Start in an unready state
+
+    start = time.perf_counter()
+    try:
+        save_audio_file = utils.config.getboolean("TTS", "save_audio_file")
+        if save_audio_file:
+            utils.save_audio(text=text, engine=engine, file_format=file_format, tts=tts)
+            logging.info(f"Speech synthesized for text [{text}] saved in cache.")
+        else:
+            tts.speak_streamed(text)
+    except Exception as e:
+        logging.error(f"Error during TTS processing: {e}")
+        return
+    finally:
+        stop = time.perf_counter() - start
+        logging.info(f"Speech synthesis runtime is {stop:0.5f} seconds.")
+        ready = True  # Ensure ready is set to True even after an exception
