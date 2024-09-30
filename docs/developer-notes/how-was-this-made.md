@@ -25,6 +25,7 @@ There is a lot of magic to make this work though. This includes
 * Will Wade (original v1, refactoring v2 several times, dealing with encryption, build scripts and generally pulling my hair out)
 * Acer Jay Costillo (QT work and refactoring)
 * Gavin Henderson - for making the call on baking in creds. I hated that and several times threw the idea out.&#x20;
+* Simon Poole - CTO at Smartbox for making me aware of MMS.&#x20;
 
 **Whats next?**
 
