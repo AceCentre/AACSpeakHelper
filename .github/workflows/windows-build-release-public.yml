@@ -107,7 +107,7 @@ jobs:
     needs: sign
     env:
       # Convenience variables with v prefix and short name.
-      VersionTag: v${{github.ref_name}}
+      VersionTag: ${{github.ref_name}}
     steps:
       - name: Create tag
         if: startsWith(github.ref, 'refs/tags/')
