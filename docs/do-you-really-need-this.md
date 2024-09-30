@@ -1,10 +1,12 @@
 # Do you really need this?
 
-First up, check the table below for Languages officially supported by the software you are using. You can also use this as a tool to find which apps support a language you are interested in. **Be careful. Some languages write in different scripts. Check the script that the TTS engine expects.** \
+First up, check the table below for Languages officially supported by the software you are using. You can also use this as a tool to find which apps support a language you are interested in. **Be careful. Some languages write in different scripts. Check the script that the TTS engine expects.**&#x20;
 
-
+{% hint style="warning" %}
+Want a easy way of finding which systems and what voice is supported by what system - try using this [http://ttsvoicesavailable.streamlit.app](http://ttsvoicesavailable.streamlit.app) - alternatively use ctrl+f to search for a language/voice for your AAC app/system here. \
 \
-
+Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will include as we go forward.
+{% endhint %}
 
 | Software    | Language Details                                         | ISO Language Code | Cost | Download                                                 | More Info                                                 |
 | ----------- | -------------------------------------------------------- | ----------------- | ---- | -------------------------------------------------------- | --------------------------------------------------------- |
@@ -99,8 +101,9 @@ First up, check the table below for Languages officially supported by the softwa
 * All versions of anReader 4.2.8 support both 32-bit and 64-bit versions of Windows OS.
 * It is recommended that Windows is updated and the latest system patches are installed.
 * On Windows 10 and Windows 11, only the latest version of NVDA is currently supported, with other screen readers minor problems may occur in the operation of anReader.\
-  \
-  Cereproc
+
+
+## Cereproc
 
 | Voice Name                   | Accent/Region                 | Type of Voice                | Personal Use Price | Commercial Use Price |
 | ---------------------------- | ----------------------------- | ---------------------------- | ------------------ | -------------------- |
