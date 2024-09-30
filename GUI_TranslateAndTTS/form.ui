@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>631</width>
+    <width>705</width>
     <height>427</height>
    </rect>
   </property>
@@ -79,7 +79,7 @@
            <string>Sherpa-ONNX</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/downloaded.ico</normaloff>:/images/images/downloaded.ico</iconset>
           </property>
          </item>
@@ -88,7 +88,7 @@
            <string>Azure TTS</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/downloaded.ico</normaloff>:/images/images/downloaded.ico</iconset>
           </property>
          </item>
@@ -97,7 +97,7 @@
            <string>Google TTS</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/downloaded.ico</normaloff>:/images/images/downloaded.ico</iconset>
           </property>
          </item>
@@ -106,7 +106,7 @@
            <string>GoogleTranslator TTS</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/downloaded.ico</normaloff>:/images/images/downloaded.ico</iconset>
           </property>
          </item>
@@ -115,7 +115,7 @@
            <string>Sapi5 (Windows)</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/unavailable.ico</normaloff>:/images/images/unavailable.ico</iconset>
           </property>
          </item>
@@ -124,7 +124,7 @@
            <string>espeak (Unsupported)</string>
           </property>
           <property name="icon">
-           <iconset resource="resources.qrc">
+           <iconset>
             <normaloff>:/images/images/unavailable.ico</normaloff>:/images/images/unavailable.ico</iconset>
           </property>
          </item>
@@ -190,7 +190,7 @@
                <number>3</number>
               </property>
               <item row="5" column="0" colspan="2">
-               <widget class="QGroupBox" name="groupBox_2">
+               <widget class="QGroupBox" name="azure_voice_models">
                 <property name="font">
                  <font>
                   <pointsize>10</pointsize>
@@ -257,7 +257,10 @@
                     </sizepolicy>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true"/>
+                    <string notr="true">QListWidget::item:selected {
+        background-color: blue;
+        color: white;
+    }</string>
                    </property>
                    <property name="verticalScrollBarPolicy">
                     <enum>Qt::ScrollBarAsNeeded</enum>
@@ -465,7 +468,7 @@ padding: 6px;</string>
                </widget>
               </item>
               <item row="4" column="0" colspan="4">
-               <widget class="QGroupBox" name="groupBox_3">
+               <widget class="QGroupBox" name="google_voice_models">
                 <property name="font">
                  <font>
                   <pointsize>10</pointsize>
@@ -526,6 +529,12 @@ padding: 6px;</string>
                  </item>
                  <item>
                   <widget class="QListWidget" name="listWidget_voicegoogle">
+                   <property name="styleSheet">
+                    <string notr="true">QListWidget::item:selected {
+        background-color: blue;
+        color: white;
+    }</string>
+                   </property>
                    <property name="verticalScrollBarPolicy">
                     <enum>Qt::ScrollBarAsNeeded</enum>
                    </property>
@@ -605,7 +614,7 @@ padding: 6px;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
+            <widget class="QGroupBox" name="gspeak_voice_models">
              <property name="font">
               <font>
                <pointsize>10</pointsize>
@@ -659,7 +668,14 @@ padding: 6px;</string>
                </widget>
               </item>
               <item>
-               <widget class="QListWidget" name="listWidget_voicegoogleTrans"/>
+               <widget class="QListWidget" name="listWidget_voicegoogleTrans">
+                <property name="styleSheet">
+                 <string notr="true">QListWidget::item:selected {
+        background-color: blue;
+        color: white;
+}</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -960,7 +976,7 @@ padding: 6px;</string>
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox">
+            <widget class="QGroupBox" name="onnx_voice_models">
              <property name="font">
               <font>
                <pointsize>10</pointsize>
@@ -1017,6 +1033,12 @@ padding: 6px;</string>
               </item>
               <item>
                <widget class="QListWidget" name="onnx_listWidget">
+                <property name="styleSheet">
+                 <string notr="true">QListWidget::item:selected {
+        background-color: blue;
+        color: white;
+    }</string>
+                </property>
                 <property name="horizontalScrollBarPolicy">
                  <enum>Qt::ScrollBarAlwaysOff</enum>
                 </property>
