@@ -40,7 +40,7 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 | Turkish    | Ukrainian  | Urdu             |
 | Uzbek      | Vietnamese | Welsh            |
 
-#### Languages by Google Cloud (Online)
+### Languages by Google Cloud (Online)
 
 |                          |                        |                     |
 | ------------------------ | ---------------------- | ------------------- |
@@ -58,8 +58,7 @@ For the most up-to-date list see the list [here](https://learn.microsoft.com/en-
 | Lithuanian (Lithuania)   | Malay (Malaysia)       | Malayalam (India)   |
 | Mandarin Chinese         | Marathi (India)        |                     |
 
-**Languages by Sherpa-Onnx (MMS)**\
-
+### **Languages by Sherpa-Onnx (MMS)** 
 
 |                                 |                                   |                              |
 | ------------------------------- | --------------------------------- | ---------------------------- |

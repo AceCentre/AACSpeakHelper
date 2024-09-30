@@ -7,7 +7,6 @@
 * [Install](install.md)
 * [Configure](configure.md)
 * [AAC Setup](aac-setup.md)
-* [AAC Guides](aac-guides.md)
 * [Developer Notes](developer-notes/README.md)
   * [Command Line Flags](developer-notes/command-line-flags.md)
   * [Getting keys for Azure or Google](developer-notes/getting-keys-for-azure-or-google.md)

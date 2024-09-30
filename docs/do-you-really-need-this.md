@@ -8,6 +8,10 @@ Want a easy way of finding which systems and what voice is supported by what sys
 Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will include as we go forward.
 {% endhint %}
 
+
+
+### **MindExpress**
+
 | Software    | Language Details                                         | ISO Language Code | Cost | Download                                                 | More Info                                                 |
 | ----------- | -------------------------------------------------------- | ----------------- | ---- | -------------------------------------------------------- | --------------------------------------------------------- |
 | MindExpress | English (Australia) - Acapela: Lisa (F), Tyler (M)       | en-AU             |      | [Download](https://www.jabbla.co.uk/mindexpress/voices/) | [More Info](https://www.jabbla.co.uk/mindexpress/voices/) |
@@ -31,6 +35,8 @@ Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will
 | MindExpress | Turkish - Acapela: Ipek (F)                              | tr-TR             |      | [Download](https://www.jabbla.co.uk/mindexpress/voices/) | [More Info](https://www.jabbla.co.uk/mindexpress/voices/) |
 | MindExpress | Ukrainian - Acapela: Dmytro (M)                          | uk-UA             |      | [Download](https://www.jabbla.co.uk/mindexpress/voices/) | [More Info](https://www.jabbla.co.uk/mindexpress/voices/) |
 
+### RHVoice (SAPI)
+
 | Software | Voice Name | Description | Download for NVDA                                                                                                                                 | Download for Other Windows Programs                                                                                                          |
 | -------- | ---------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | RHVoice  | Azamat     | Kyrgyz      | [Download NVDA Addon v4.0](https://github.com/RHVoice/azamat-kir/releases/download/4.0/RHVoice-voice-Kyrgyz-Azamat-4.0.1021.10.nvda-addon)        | [Download Setup v4.0](https://github.com/RHVoice/azamat-kir/releases/download/4.0/RHVoice-voice-Kyrgyz-Azamat-v4.0.1021.19-setup.exe)        |
@@ -51,6 +57,8 @@ Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will
 | RHVoice  | Sevinch    | Uzbek       | [Download NVDA Addon v4.5](https://github.com/RHVoice/Sevinch-uzb/releases/download/4.5/RHVoice-voice-Uzbek-Sevinch-4.5.1007.10.nvda-addon)   | [Download Setup v4.5](https://github.com/RHVoice/Sevinch-uzb/releases/download/4.5/RHVoice-voice-Uzbek-Sevinch-v4.5.1007.19-setup.exe)   |
 | RHVoice  | Islom      | Uzbek       | [Download NVDA Addon v4.1.1](https://github.com/RHVoice/islom-uzb/releases/download/4.1.1/RHVoice-voice-Uzbek-Islom-4.1.1007.10.nvda-addon)   | [Download Setup v4.1.1](https://github.com/RHVoice/islom-uzb/releases/download/4.1.1/RHVoice-voice-Uzbek-Islom-v4.1.1007.19-setup.exe)   |
 | RHVoice  | Dil’navoz  | Uzbek       | [Download NVDA Addon v4.0](https://github.com/RHVoice/dilnavoz-uzb/releases/download/4.0/RHVoice-voice-Uzbek-Dilnavoz-4.0.1007.10.nvda-addon) | [Download Setup v4.0](https://github.com/RHVoice/dilnavoz-uzb/releases/download/4.0/RHVoice-voice-Uzbek-Dilnavoz-v4.0.1007.19-setup.exe) |
+
+### SAPI - MSSpeech
 
 | Software | Voice Name | Language Details      | Download Link                                                                        |
 | -------- | ---------- | --------------------- | ------------------------------------------------------------------------------------ |
@@ -87,6 +95,8 @@ Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will
 | -------- | ---------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------- |
 | SAPI     | UkrVox     | 4.2     | [Download UkrVox 4.2](https://dl2.topfiles.net/files/2/2939/50089/ZlZJVG7csHtDdDJCM0F2cGp1aFp2cDBMTUVDKzd2MWxtRERuWjhkUjNNRkljZz06OuzMpyA1Hwe0JmE6-C8fvq4/ukrvox\_4.2.exe) | 29.07 MB  | Windows XP+   |
 
+### anReader
+
 | Language | Version Description         | Download Link                                                                                                              | File Size | Additional Info                                                                                                                                                                                                                                                            |
 | -------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Serbian  | Version with serial number  | [anReader 4.2.8 Snezana Act](https://anreader.alfanum.co.rs/download/4.2/anReader\_4.2.8\_Snezana\_Act.exe)                | \~567 MB  | Request a test serial number as described in the Licensing by serial section.                                                                                                                                                                                              |
@@ -103,7 +113,7 @@ Note: We are covering largely TTS on Windows here. TTS on Android or iOS we will
 * On Windows 10 and Windows 11, only the latest version of NVDA is currently supported, with other screen readers minor problems may occur in the operation of anReader.\
 
 
-## Cereproc
+## Cereproc (SAPI)
 
 | Voice Name                   | Accent/Region                 | Type of Voice                | Personal Use Price | Commercial Use Price |
 | ---------------------------- | ----------------------------- | ---------------------------- | ------------------ | -------------------- |
