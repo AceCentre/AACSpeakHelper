@@ -1,5 +1,9 @@
 # Introduction
 
+{% embed url="https://youtu.be/mGgfczEWDvQ" %}
+Basic, very short demo showing config and running
+{% endembed %}
+
 AACSpeakHelper is a small tool that enables you to\
 
 
