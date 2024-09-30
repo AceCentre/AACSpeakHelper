@@ -14,11 +14,35 @@ from configure_enc_utils import load_config
 
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,  # Set to DEBUG for more detailed logs
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("client.log"), logging.StreamHandler(sys.stdout)],
-)
+def setup_logging():
+    if getattr(sys, "frozen", False):
+        # If the application is run as a bundle, use the AppData directory
+        log_dir = os.path.join(
+            os.path.expanduser("~"),
+            "AppData",
+            "Roaming",
+            "Ace Centre",
+            "AACSpeakHelper",
+        )
+    else:
+        # If run from a Python environment, use the current directory
+        log_dir = os.path.dirname(os.path.abspath(__file__))
+
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_file = os.path.join(log_dir, "client.log")
+
+    logging.basicConfig(
+        filename=log_file,
+        filemode="a",
+        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+        level=logging.DEBUG,
+    )
+
+    return log_file
+
+
+logfile = setup_logging()
 
 
 def get_clipboard_text():
