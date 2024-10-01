@@ -22,7 +22,7 @@ translate = "^3.6.1"
 configparser = "^7.1.0"
 pyperclip = "^1.9.0"
 pyinstaller = "^6.10.0"
-py3-tts-wrapper = {extras = ["google", "googletrans", "microsoft", "sapi", "sherpaonnx"], version = "^0.9.15"}
+py3-tts-wrapper = {extras = ["google", "googletrans", "microsoft", "sapi", "sherpaonnx"], version = "^0.9.16"}
 python-dotenv = "^1.0.1"
 cryptography = "^43.0.1"
 

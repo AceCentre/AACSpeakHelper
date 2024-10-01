@@ -2,13 +2,13 @@
 
 [[package]]
 name = "aiohappyeyeballs"
-version = "2.4.2"
+version = "2.4.3"
 description = "Happy Eyeballs for asyncio"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "aiohappyeyeballs-2.4.2-py3-none-any.whl", hash = "sha256:8522691d9a154ba1145b157d6d5c15e5c692527ce6a53c5e5f9876977f6dab2f"},
-    {file = "aiohappyeyeballs-2.4.2.tar.gz", hash = "sha256:4ca893e6c5c1f5bf3888b04cb5a3bee24995398efef6e0b9f747b5e89d84fd74"},
+    {file = "aiohappyeyeballs-2.4.3-py3-none-any.whl", hash = "sha256:8a7a83727b2756f394ab2895ea0765a0a8c475e3c71e98d43d76f22b4b435572"},
+    {file = "aiohappyeyeballs-2.4.3.tar.gz", hash = "sha256:75cf88a15106a5002a8eb1dab212525c00d1f4c0fa96e551c9fbe6f09a621586"},
 ]
 
 [[package]]
@@ -1399,13 +1399,13 @@ files = [
 
 [[package]]
 name = "py3-tts-wrapper"
-version = "0.9.15"
+version = "0.9.16"
 description = "TTS-Wrapper makes it easier to use text-to-speech APIs by providing a unified and easy-to-use interface."
 optional = false
 python-versions = "<3.13,>=3.10"
 files = [
-    {file = "py3_tts_wrapper-0.9.15-py3-none-any.whl", hash = "sha256:ec9ee07ca6262fa7968f14118b92c348fd532d67bfc767032214cc20730b5800"},
-    {file = "py3_tts_wrapper-0.9.15.tar.gz", hash = "sha256:ac3f5605779995b097cb6f53b2658987d98a549f9aaf9eba790289394b0d88b3"},
+    {file = "py3_tts_wrapper-0.9.16-py3-none-any.whl", hash = "sha256:42114d3d1dfd15b3fd1ebfd6d37bf41596e2a285314ea74a91852eed2d0660a3"},
+    {file = "py3_tts_wrapper-0.9.16.tar.gz", hash = "sha256:12e7baabcdd442725ebcd5ec4e9b241f21165c999181fb316ed05fa11d584c32"},
 ]
 
 [package.dependencies]
@@ -5005,4 +5005,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "bc242e8fdeda862ef8f95695011be5b06ee775dbbf4c9ac1d3cd0b7068d9b2e5"
+content-hash = "293a433e21b0d57401316c6ec47a5a035e5c9bcdd21f8b0f920d718f0c24282d"
