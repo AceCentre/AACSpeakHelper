@@ -41,17 +41,11 @@ if (Test-Path $textFilePath) {
 
 ```
 
-#### Using RHVoice for minority languages offline
+#### When supporting people with a language not supported by AAC
 
-[RHVoice](https://rhvoice.org) is a great project creating TTS Systems for minority languages. Its also great because they work offline. This isnt so much of a tip but a reminder that the project exists. To install SAPI voices for this system see the [prebuilt binaries here](https://github.com/RHVoice/RHVoice/blob/master/doc/en/Binaries.md). RHVoice supports:
+* Does the Voice exist on any system? (See our[ links here](supported-languages.md))
+* If it doesnt can we get by with recorded clips?
+* Do we need symbol vocabulary or can they write?
+* If they can write what script are they familar with (Hint: Ask them if they write in their language to their friends on their phone - if they use the standard latin (UK/US) keyboard  they _could be using transliteration._ This is not bad - you will just have to test if your TTS engine works with that. And remember if you are going to do phrases you may want to use transliteration too if they are not familar with the written form )
+*
 
-* American and Scottish English
-* Brazilian Portuguese
-* Esperanto
-* Georgian
-* Ukrainian
-* Kyrgyz
-* Tatar
-* Macedonian
-* Albanian
-* Polish
