@@ -16,9 +16,10 @@ We have
 There is a lot of magic to make this work though. This includes
 
 * [TTS-Wrapper ](https://github.com/willwade/tts-wrapper)- a unified wrapper to a range of TTS engines. This is needed as we need a unified way of get\_voices and speak, speak\_streamed etc
-* [Sherpa-Onnx](https://github.com/k2-fsa/sherpa-onnx) - a really nice tooling pipleine to deal with VITS models that run on the edge
-* [MMS](https://ai.meta.com/blog/multilingual-model-speech-recognition/) and [Models readied for Sherpa-Onnx](https://huggingface.co/willwade/mms-tts-multilingual-models-onnx) - Massive help this work from Meta - and it was "fun" converting their models for Sherpa-Onnx. We made some things on the way like a nice JSON with details on the voices
-* QT/QT Threading. We had "fun" with threads. Never again
+* [Sherpa-Onnx](https://github.com/k2-fsa/sherpa-onnx) - a really nice tooling pipleine to deal with VITS models that run on the edge.&#x20;
+* [MMS](https://ai.meta.com/blog/multilingual-model-speech-recognition/) and [Models readied for Sherpa-Onnx](https://huggingface.co/willwade/mms-tts-multilingual-models-onnx) - Massive help this work from Meta - and it was "fun" converting their models for Sherpa-Onnx. We made some things on the way like a nice JSON with details on the voices. Commerical Providers: **Please note the licence these are under**
+* QT/QT Threading. We had "fun" with threads. Never again will I do it like this
+* Encryption in a github Action of keys and a hideous JSON file from Google. That wasted us a week.&#x20;
 
 ### Credits
 
