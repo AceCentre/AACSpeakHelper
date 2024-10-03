@@ -13,4 +13,5 @@
   * [Getting keys for Azure or Google](developer-notes/getting-keys-for-azure-or-google.md)
   * [How was this made](developer-notes/how-was-this-made.md)
 * [Tips](tips.md)
-* [Troubleshooting and Feature requests](troubleshooting-and-feature-requests.md)
+* [Troubleshooting and Feature requests](troubleshooting-and-feature-requests/README.md)
+  * [Roadmap](troubleshooting-and-feature-requests/roadmap.md)
