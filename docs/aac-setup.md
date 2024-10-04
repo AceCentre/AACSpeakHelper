@@ -12,6 +12,10 @@ In short you need to:
 
 You can test it by copying some text from a text file and running the app **client.exe**. Give it a go.
 
+{% hint style="warning" %}
+If you are not using translate you will need a keyboard in the right language. This can be tricky to make. Try using this  [http://aackeyboardmaker.streamlit.app](http://aackeyboardmaker.streamlit.app) - right now only supporting the Grid3. It certainly wont make complete keyboards but it will be a good starting point
+{% endhint %}
+
 ### The Grid 3&#x20;
 
 We make things a little easier for the Grid as we provide an example pageset with the correct path to the application on your desktop under "Example pagesets". You can double click this and then try it out. Write some text - and then press on the flag icon
