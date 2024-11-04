@@ -168,6 +168,7 @@ class MainWindow(QWidget):
         self.init_ui()
         self.init_pipe_server()
         self.init_cache_cleaner()
+        self.init_log_cleaner()
         self.tray_icon.setToolTip("Waiting for new client...")
 
     def init_ui(self):
@@ -184,6 +185,23 @@ class MainWindow(QWidget):
         self.cache_timer = QTimer(self)
         self.cache_timer.timeout.connect(lambda: self.cache_cleaner.start())
         self.cache_timer.start(24 * 60 * 60 * 1000)  # Run once a day
+
+    def init_log_cleaner(self):
+        self.log_timer = QTimer(self)
+        self.log_timer.timeout.connect(self.check_log_size)
+        self.log_timer.start(3600000)  # Check every hour, adjust as needed
+
+    def check_log_size(self):
+        log_file = logfile
+        size_limit_mb = 1  # Size limit in MB
+        size_limit_bytes = size_limit_mb * 1024 * 1024  # Convert MB to bytes
+
+        try:
+            if os.path.isfile(log_file) and os.path.getsize(log_file) > size_limit_bytes:
+                with open(log_file, "w"):  # Truncate the log file
+                    logging.info("Log file exceeded size limit; log file truncated.")
+        except Exception as e:
+            logging.error(f"Error cleaning log file: {e}", exc_info=True)
 
     @Slot(str)
     def handle_message(self, message):
