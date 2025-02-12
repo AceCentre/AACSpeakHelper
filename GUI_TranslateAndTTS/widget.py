@@ -1010,8 +1010,8 @@ class Widget(QWidget):
 
     def preview_pressed(self):
         self.currentButton = self.sender()
-        text = self.sender().parent().parent().parent().objectName()
-        # print(text)
+        text = self.sender().parent().findChild(QLabel, "name").text()
+        
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             parentWidget = self.ui.listWidget_voiceazure
             for index in range(self.ui.listWidget_voiceazure.count()):
@@ -1024,7 +1024,7 @@ class Widget(QWidget):
             parentWidget = self.ui.listWidget_voicegoogle
             for index in range(self.ui.listWidget_voicegoogle.count()):
                 item = self.ui.listWidget_voicegoogle.item(index)
-                if text == item.toolTip():
+                if text == item.text():
                     self.google_row = self.ui.listWidget_voicegoogle.row(item)
                     self.ui.listWidget_voicegoogle.setCurrentRow(self.google_row)
                     break
@@ -1032,24 +1032,17 @@ class Widget(QWidget):
             parentWidget = self.ui.onnx_listWidget
             for index in range(self.ui.onnx_listWidget.count()):
                 item = self.ui.onnx_listWidget.item(index)
-                print(text, item.text())
                 if text == item.text():
                     self.onnx_row = self.ui.onnx_listWidget.row(item)
                     self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
                     break
-            if self.sender().objectName() == "Play":
-                self.ui.statusBar.setText(f"Playing: {text}")
-            else:
-                self.ui.statusBar.setText(f"Downloading: {text}")
         elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
             parentWidget = self.ui.listWidget_voicegoogleTrans
             for index in range(self.ui.listWidget_voicegoogleTrans.count()):
                 item = self.ui.listWidget_voicegoogleTrans.item(index)
                 if text == item.text():
                     self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
-                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(
-                        self.googleTrans_row
-                    )
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
                     break
         self.OnSavePressed(False)
         if self.temp_config_file is None:
@@ -1508,6 +1501,7 @@ class Widget(QWidget):
             item_UI.gender.setFont(font)
             item_UI.gender.setText(f"{data['gender']} - {data['language_codes'][0]}")
             item_UI.play.clicked.connect(self.preview_pressed)
+            item_widget.setProperty("language_code", data["language_codes"][0])
             item_widget.setObjectName(data["name"])
 
             item = QListWidgetItem()
@@ -1517,6 +1511,7 @@ class Widget(QWidget):
             item.setSizeHint(item_widget.sizeHint())
             self.ui.onnx_listWidget.insertItem(index, item)
             self.ui.onnx_listWidget.setItemWidget(item, item_widget)
+            
             model_path = os.path.join(self.onnx_location, data["language_codes"][0])
             if os.path.exists(model_path):
                 item_UI.play.setIcon(self.iconPlayed)
@@ -1526,6 +1521,7 @@ class Widget(QWidget):
                 item_UI.play.setObjectName("Download")
         except Exception as onnxError:
             print(str(onnxError))
+            logging.error(f"Error loading ONNX item: {onnxError}")
 
     def load_Azure_items(self, index, data, count):
         try:
