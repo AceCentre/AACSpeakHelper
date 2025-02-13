@@ -22,9 +22,14 @@ jobs:
       - name: Install dependencies
         run: |
           uv venv
-          uv pip install -e .[build]
-          uv pip install "pyside6-uic>=6.7.2"  # Explicitly install the UI compiler
+          uv pip install -e .
+          uv pip install pyinstaller pyside6
+          uv pip install pyside6-tools  # This package includes uic
           uv sync
+      - name: Verify installations
+        run: |
+          uv run python -c "import PyInstaller; import PySide6; print('Imports successful')"
+          uv run pyside6-uic --version
       - name: Replace Encryption Key in Multiple Files
         shell: powershell
         run: |
