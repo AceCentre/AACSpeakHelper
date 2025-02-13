@@ -23,6 +23,7 @@ jobs:
         run: |
           uv venv
           uv pip install -e .[build]
+          uv pip install "pyside6-uic>=6.7.2"  # Explicitly install the UI compiler
           uv sync
       - name: Replace Encryption Key in Multiple Files
         shell: powershell

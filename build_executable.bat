@@ -6,9 +6,9 @@ for /f "tokens=*" %%i in ('uv run python -c "import site; print(site.getsitepack
 REM Echo the site-packages path for debugging
 echo Site packages path: %site_packages%
 
-REM Convert UI files
-uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/form.ui -o GUI_TranslateAndTTS/ui_form.py
-uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/item.ui -o GUI_TranslateAndTTS/item.py
+REM Convert UI files using pyside6-uic directly
+uv run pyside6-uic GUI_TranslateAndTTS/form.ui -o GUI_TranslateAndTTS/ui_form.py
+uv run pyside6-uic GUI_TranslateAndTTS/item.ui -o GUI_TranslateAndTTS/item.py
 
 REM Build Python executables with PyInstaller
 uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --add-binary "%site_packages%\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll;." --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz -y
