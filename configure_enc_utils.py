@@ -81,72 +81,98 @@ def prepare_config_enc(output_path="config.enc"):
     logging.info(f"Encrypted configuration saved to {output_path}.")
 
 
-def load_config(custom_config_path=""):
-    """Load configuration from the encrypted config.enc file and optionally from settings.cfg."""
+def generate_key():
+    """Generate a new Fernet key and save it"""
+    key = Fernet.generate_key()
+    key_file = os.path.join(get_config_dir(), ".key")
+    with open(key_file, "wb") as f:
+        f.write(key)
+    return key
+
+
+def get_config_dir():
+    """Get the configuration directory path"""
     if getattr(sys, "frozen", False):
-        # Running as a bundled executable
-        app_data = Path.home() / "AppData" / "Roaming" / "Ace Centre" / "AACSpeakHelper"
-    else:
-        # Running as a script (development)
-        # Assume that config.enc is at the repository root,
-        app_data = Path(os.path.dirname(__file__))
-    encrypted_config_path = app_data / "config.enc"
-    settings_cfg_path = app_data / "settings.cfg"
-    encrypted_json_path = app_data / "google_creds.enc"
-
-    # Load configuration from the encrypted file
-    try:
-        encryption_key = load_encryption_key()
-        fernet = Fernet(encryption_key)
-
-        # Read and decrypt the configuration
-        with encrypted_config_path.open("rb") as f:
-            encrypted_data = f.read()
-        decrypted_data = fernet.decrypt(encrypted_data)
-
-        # Load the decrypted JSON into a dictionary
-        config = json.loads(decrypted_data.decode())
-
-        # Overwrite the creds with base64 encoded creds. This is mad - it already is but somehow it gets decrypted
-        # google_creds_json = config.get("GOOGLE_CREDS_JSON")
-        # google_creds_bytes = google_creds_json.encode("utf-8")
-        # base64_encoded_creds = base64.b64encode(google_creds_bytes)
-        # base64_encoded_creds_str = base64_encoded_creds.decode("utf-8")
-        config["GOOGLE_CREDS_JSON"] = str(encrypted_json_path)
-        logging.info("Successfully decrypted configuration from config.enc.")
-
-    except Exception as e:
-        logging.error(f"Failed to load configuration from encrypted file: {e}")
-        raise
-
-    # Load configuration from settings.cfg if it exists or if a custom path is provided
-    if custom_config_path:
-        settings_cfg_path = Path(custom_config_path)
-
-    if settings_cfg_path.is_file():
-
-        logging.info(f"Loading configuration overrides from {settings_cfg_path}")
-        config_parser = configparser.ConfigParser()
-        config_parser.read(settings_cfg_path)
-        config_dict = {
-            section: dict(config_parser.items(section))
-            for section in config_parser.sections()
-        }
-
-        config_dict["azureTTS"]["key"] = config.get("MICROSOFT_TOKEN")
-        config_dict["azureTTS"]["location"] = config.get("MICROSOFT_REGION")
-        config_dict["googleTTS"]["creds"] = config.get("GOOGLE_CREDS_JSON")
-        config_dict["translate"]["microsofttranslator_secret_key"] = config.get(
-            "MICROSOFT_TOKEN_TRANS"
+        config_dir = os.path.join(
+            os.path.expanduser("~"),
+            "AppData",
+            "Roaming",
+            "Ace Centre",
+            "AACSpeakHelper"
         )
-
     else:
-        config_dict = None
-        logging.info("No settings.cfg file found. Skipping overrides.")
+        config_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    os.makedirs(config_dir, exist_ok=True)
+    return config_dir
 
-    logging.info("Final configuration loaded successfully.")
 
-    return config_dict
+def create_default_config():
+    """Create a default configuration"""
+    config = configparser.ConfigParser()
+    
+    # Add default sections and values
+    config["azureTTS"] = {
+        "key": "",
+        "location": "",
+        "voiceid": ""
+    }
+    
+    config["googleTTS"] = {
+        "creds": "",
+        "voiceid": ""
+    }
+    
+    config["translate"] = {
+        "microsofttranslator_secret_key": "",
+        "papagotranslator_client_id": "",
+        "papagotranslator_client_secret": ""
+    }
+    
+    config["TTS"] = {
+        "engine": "Azure TTS"
+    }
+    
+    return config
+
+
+def load_config():
+    try:
+        key_file = os.path.join(get_config_dir(), ".key")
+        config_file = os.path.join(get_config_dir(), "settings.cfg")
+        
+        # If no key exists, generate one
+        if not os.path.exists(key_file):
+            logging.info("No encryption key found, generating new key")
+            encryption_key = generate_key()
+        else:
+            with open(key_file, "rb") as f:
+                encryption_key = f.read()
+        
+        fernet = Fernet(encryption_key)
+        
+        # If no config exists, create default
+        if not os.path.exists(config_file):
+            logging.info("No configuration found, creating default")
+            config = create_default_config()
+            return config
+            
+        # Try to load existing encrypted config
+        try:
+            with open(config_file, "rb") as f:
+                encrypted_data = f.read()
+            decrypted_data = fernet.decrypt(encrypted_data)
+            config = configparser.ConfigParser()
+            config.read_string(decrypted_data.decode())
+            return config
+        except Exception as e:
+            logging.error(f"Failed to load encrypted configuration: {e}")
+            logging.info("Creating new default configuration")
+            return create_default_config()
+            
+    except Exception as e:
+        logging.error(f"Failed to load configuration: {e}")
+        raise
 
 
 def load_credentials(fp: str) -> object:

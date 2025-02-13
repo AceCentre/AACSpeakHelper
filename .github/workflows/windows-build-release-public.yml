@@ -16,30 +16,22 @@ jobs:
         uses: actions/setup-python@v4.7.1
         with:
           python-version: "3.11.4"
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
+      - name: Install uv
+        run: |
+          python -m pip install uv
       - name: Install dependencies
         run: |
-          poetry install
+          uv venv
+          uv sync
       - name: Replace Encryption Key in Multiple Files
         shell: powershell
         run: |
-          # Fetch the encryption key from GitHub secrets
           $encryptionKey = "${{ secrets.CONFIG_ENCRYPTION_KEY }}"
-
-          # Define paths to the files that need updating
           $filePaths = @("configure_enc_utils.py")
-
-          # Loop through each file path and replace the placeholder with the actual encryption key
           foreach ($filePath in $filePaths) {
             if (Test-Path $filePath) {
-              # Read the file content
               $fileContent = Get-Content $filePath
-
-              # Replace the placeholder with the actual encryption key
               $updatedContent = $fileContent -replace "YOUR_ENCRYPTION_KEY", $encryptionKey
-
-              # Write the updated content back to the file
               Set-Content $filePath -Value $updatedContent
               Write-Output "Replaced encryption key in $filePath"
             } else {
@@ -51,7 +43,7 @@ jobs:
       - name: Inject secrets into environment and encrypt config
         shell: bash
         run: |
-          poetry run python configure_enc_utils.py -use-env
+          uv run python configure_enc_utils.py -use-env
         env:
           MICROSOFT_TOKEN: ${{ secrets.MICROSOFT_TOKEN }}
           MICROSOFT_REGION: ${{ secrets.MICROSOFT_REGION }}
@@ -60,7 +52,7 @@ jobs:
           CONFIG_ENCRYPTION_KEY: ${{ secrets.CONFIG_ENCRYPTION_KEY }} 
       - name: Build Apps
         run: |
-          poetry run python -c "import site; print(site.getsitepackages()[0])"
+          uv run python -c "import site; print(site.getsitepackages()[0])"
           .\build_executable.bat
         env:
           MICROSOFT_TOKEN: ${{ secrets.MICROSOFT_TOKEN }}

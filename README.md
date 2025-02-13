@@ -62,22 +62,16 @@ It will now have a config.enc file created. Our code will use that. If keys are 
 
 1. **Install Python 3.11** (or higher) for Windows from the [official Python website](https://www.python.org/downloads/release/python-31011/).
 
-2. **Install Poetry** if you don't have it already. You can install Poetry by running:
+2. **Install uv** if you don't have it already. You can install uv by running:
 
     ```sh
-    curl -sSL https://install.python-poetry.org | python3 -
+    python -m pip install uv
     ```
 
-    Alternatively, on Windows, you can use:
+    Ensure that uv is available in your PATH. You can verify this by running:
 
     ```sh
-    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-    ```
-
-    Ensure that Poetry is available in your PATH. You can verify this by running:
-
-    ```sh
-    poetry --version
+    uv --version
     ```
 
 ## Setting Up the Development Environment
@@ -91,23 +85,26 @@ It will now have a config.enc file created. Our code will use that. If keys are 
 
 2. **Create a Virtual Environment and Install Dependencies**:
 
-    Poetry automatically handles virtual environments, so you don't need to manually create one. Simply run:
+    uv handles virtual environments automatically. Simply run:
 
     ```sh
-    poetry install
+    uv venv
+    uv sync
     ```
 
     This command will:
     
     - Create a virtual environment in the `.venv` directory within your project.
-    - Install all dependencies listed in `pyproject.toml` and lock them in `poetry.lock`.
+    - Install all dependencies listed in `pyproject.toml`.
 
 3. **Activate the Virtual Environment** (if needed):
 
-    While Poetry typically handles this automatically, you can activate the virtual environment manually if required:
+    While uv handles this automatically with `uv run`, you can activate the virtual environment manually if required:
 
     ```sh
-    poetry shell
+    .venv/Scripts/activate  # On Windows
+    # or
+    source .venv/bin/activate  # On Unix-like systems
     ```
 
 ## Running the Application
@@ -117,44 +114,46 @@ It will now have a config.enc file created. Our code will use that. If keys are 
     With the virtual environment active, you can run the application directly:
 
     ```sh
-    poetry run python AACSpeakHelperServer.py
+    uv run python AACSpeakHelperServer.py
     ```
 
-    This ensures that the Python interpreter and dependencies used are from the Poetry-managed environment.
+    This ensures that the Python interpreter and dependencies used are from the managed environment.
     
     to call the client now you do (in a different terminal/console)
 
 
     ```sh
-    poetry run python client.py
+    uv run python client.py
     ```
 
     And GUI
 
 
     ```sh
-    poetry run python GUI_TranslateAndTTS/widget.py
+    uv run python GUI_TranslateAndTTS/widget.py
     ```
     
     
 ## Additional Tips
 
-- **Adding Dependencies**: To add new dependencies, use:
+- **Adding Dependencies**: To add new dependencies:
 
     ```sh
-    poetry add <package_name>
+    # Edit pyproject.toml to add dependencies, then run:
+    uv sync
     ```
 
-- **Updating Dependencies**: To update all dependencies to their latest versions (within the constraints defined):
+- **Updating Dependencies**: To update all dependencies:
 
     ```sh
-    poetry update
+    uv pip compile pyproject.toml -o requirements.txt
+    uv sync
     ```
 
-- **Exiting the Virtual Environment**: To exit the Poetry shell (virtual environment), simply type:
+- **Exiting the Virtual Environment**: To exit the virtual environment:
 
     ```sh
-    exit
+    deactivate
     ```
     
 
