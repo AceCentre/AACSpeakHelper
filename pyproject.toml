@@ -14,26 +14,34 @@ license = {text = "MIT"}
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    "PyAudio==0.2.14",
-    "numpy==1.26.4",
-    "comtypes==1.4.6",
-    "pytz>=2024.1",
-    "setuptools>=74.0.0",
-    "langcodes>=3.4.0",
-    "deep-translator[ai]>=1.11.4",
-    "posthog>=3.6.0",
-    "PySide6>=6.7.2",
-    "translate>=3.6.1",
-    "configparser>=7.1.0",
-    "pyperclip>=1.9.0",
-    "py3-tts-wrapper[google,googletrans,microsoft,sapi,sherpaonnx]>=0.9.16",
-    "python-dotenv>=1.0.1",
-    "cryptography>=43.0.1",
+    "PyAudio",
+    "numpy",
+    "comtypes",
+    "pytz",
+    "setuptools",
+    "langcodes",
+    "deep-translator[ai]",
+    "posthog",
+    "PySide6",
+    "translate",
+    "configparser",
+    "pyperclip",
+    "py3-tts-wrapper[google,googletrans,microsoft,sapi,sherpaonnx]",
+    "python-dotenv",
+    "cryptography",
+    "pyinstaller",  # Move to main dependencies since it's needed for distribution
 ]
 
 [project.optional-dependencies]
+dev = [
+    "black",  # for code formatting
+    "ruff",   # for linting
+    "pytest", # for testing
+]
+
+# Keep build for backward compatibility if needed
 build = [
-    "pyinstaller>=6.10.0",
+    "pyinstaller",
 ]
 
 [tool.setuptools]
@@ -42,8 +50,6 @@ py-modules = [
     "AACSpeakHelperServer",
     "configure_enc_utils",
     "utils",
-    "tts_utils",
-    "GUI_TranslateAndTTS.widget",
-    "GUI_TranslateAndTTS.ui_form",
-    "GUI_TranslateAndTTS.item"
+    "tts_utils"
 ]
+packages = ["GUI_TranslateAndTTS"]

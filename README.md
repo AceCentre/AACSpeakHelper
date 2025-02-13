@@ -85,17 +85,15 @@ It will now have a config.enc file created. Our code will use that. If keys are 
 
 2. **Create a Virtual Environment and Install Dependencies**:
 
-    uv handles virtual environments automatically. Simply run:
-
     ```sh
     uv venv
-    uv sync
+    uv sync --all-extras  # Installs all dependencies including dev tools
     ```
 
     This command will:
     
     - Create a virtual environment in the `.venv` directory within your project.
-    - Install all dependencies listed in `pyproject.toml`.
+    - Install all dependencies and development tools listed in `pyproject.toml`.
 
 3. **Activate the Virtual Environment** (if needed):
 
