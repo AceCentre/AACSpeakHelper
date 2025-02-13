@@ -1,7 +1,7 @@
 @echo off
 
 REM Get site-packages path
-for /f "tokens=*" %%i in ('uv run python -c "import site; print(site.getsitepackages()[0])"') do set site_packages=%%i
+for /f "tokens=*" %%i in ('uv run python -c "import site; print(site.getsitepackages()[0])"') do set site_packages=%%i\Lib\site-packages
 
 REM Echo the site-packages path for debugging
 echo Site packages path: %site_packages%

@@ -22,7 +22,8 @@ jobs:
       - name: Install dependencies
         run: |
           uv venv
-          uv pip install -e .[build]  # Install package with build extras
+          uv pip install -e .
+          uv pip install pyinstaller pyside6
           uv sync
       - name: Replace Encryption Key in Multiple Files
         shell: powershell
