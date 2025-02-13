@@ -23,13 +23,15 @@ jobs:
         run: |
           uv venv
           uv pip install -e .
-          uv pip install pyinstaller pyside6 pyside6-tools
+          uv pip install "pyinstaller>=6.10.0"
+          uv pip install "pyside6>=6.7.2"
+          uv pip install "pyside6-essentials>=6.7.2"
           uv sync
           uv pip freeze  # Let's see what's actually installed
       - name: Verify installations
         run: |
-          uv run python -c "from importlib import import_module; print('PyInstaller:', import_module('PyInstaller').__file__); print('PySide6:', import_module('PySide6').__file__)"
-          .venv\Scripts\pyside6-uic.exe --version
+          uv run python -c "import sys; print('Python path:', sys.path); from importlib import import_module; print('PySide6:', import_module('PySide6').__file__)"
+          uv run python -m PySide6.uic.pyuic --version
       - name: Replace Encryption Key in Multiple Files
         shell: powershell
         run: |
