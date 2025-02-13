@@ -1810,10 +1810,10 @@ if __name__ == "__main__":
         logging.info("Configuration Loaded Successfully.")
         
         logging.info("Initializing tokens...")
-        ms_token = config.get("azureTTS")["key"]
-        ms_region = config.get("azureTTS")["location"]
-        google_creds_path = config.get("googleTTS")["creds"]
-        ms_token_trans = config.get("translate")["microsofttranslator_secret_key"]
+        ms_token = config.get("azureTTS", "key")
+        ms_region = config.get("azureTTS", "location")
+        google_creds_path = config.get("googleTTS", "creds")
+        ms_token_trans = config.get("translate", "microsofttranslator_secret_key")
         logging.info("Tokens initialized successfully")
         
         logging.info("Creating QApplication...")
