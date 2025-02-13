@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "aacspeakhelper"
 version = "0.1.0"
@@ -30,4 +34,16 @@ dependencies = [
 [project.optional-dependencies]
 build = [
     "pyinstaller>=6.10.0",
+]
+
+[tool.setuptools]
+py-modules = [
+    "client",
+    "AACSpeakHelperServer",
+    "configure_enc_utils",
+    "utils",
+    "tts_utils",
+    "GUI_TranslateAndTTS.widget",
+    "GUI_TranslateAndTTS.ui_form",
+    "GUI_TranslateAndTTS.item"
 ]
