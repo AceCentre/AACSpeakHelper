@@ -9,6 +9,7 @@ import sys
 import time
 import uuid
 import warnings
+import platform
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
@@ -165,11 +166,11 @@ class Widget(QWidget):
             self.poolStarter()
             self.get_microsoft_language()
             self.notranslate = self.ttsEngine = self.config.getboolean(
-                "translate", "noTranslate"
+                "translate", "no_translate"
             )
-            self.startLang = self.config.get("translate", "startLang")
-            self.endLang = self.config.get("translate", "endLang")
-            self.overwritePb = self.config.getboolean("translate", "replacepb")
+            self.startLang = self.config.get("translate", "start_lang")
+            self.endLang = self.config.get("translate", "end_lang")
+            self.overwritePb = self.config.getboolean("translate", "replace_pb")
             self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
             self.provider = self.config.get("translate", "provider")
             self.ui.comboBox_provider.setCurrentIndex(
@@ -221,57 +222,57 @@ class Widget(QWidget):
                         self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
                     )
             self.ui.mymemory_secret_key.setText(
-                self.config.get("translate", "MyMemoryTranslator_secret_key")
+                self.config.get("translate", "my_memory_translator_secret_key")
             )
             self.ui.email_mymemory.setText(self.config.get("translate", "email"))
             self.ui.LibreTranslate_secret_key.setText(
-                self.config.get("translate", "LibreTranslator_secret_key")
+                self.config.get("translate", "libre_translator_secret_key")
             )
             self.ui.LibreTranslate_url.setText(self.config.get("translate", "url"))
             self.ui.deepl_secret_key.setText(
-                self.config.get("translate", "DeeplTranslator_secret_key")
+                self.config.get("translate", "deep_l_translator_secret_key")
             )
             self.ui.checkBox_pro.setChecked(
                 self.config.getboolean("translate", "deepl_pro")
             )
             self.ui.microsoft_secret_key.setText(
-                self.config.get("translate", "MicrosoftTranslator_secret_key")
+                self.config.get("translate", "microsoft_translator_secret_key")
             )
             self.ui.microsoft_region.setText(self.config.get("translate", "region"))
             self.ui.yandex_secret_key.setText(
-                self.config.get("translate", "YandexTranslator_secret_key")
+                self.config.get("translate", "yandex_translator_secret_key")
             )
             self.ui.qcri_secret_key.setText(
-                self.config.get("translate", "QCRITranslator_secret_key")
+                self.config.get("translate", "qcri_translator_secret_key")
             )
             self.ui.papago_secret_key.setText(
-                self.config.get("translate", "PapagoTranslator_secret_key")
+                self.config.get("translate", "papago_translator_secret_key")
             )
             self.ui.papago_client_id.setText(
-                self.config.get("translate", "papagotranslator_client_id")
+                self.config.get("translate", "papago_translator_client_id")
             )
             self.ui.baidu_secret_key.setText(
-                self.config.get("translate", "BaiduTranslator_secret_key")
+                self.config.get("translate", "baidu_translator_secret_key")
             )
             self.ui.baidu_appid.setText(
-                self.config.get("translate", "baidutranslator_appid")
+                self.config.get("translate", "baidu_translator_appid")
             )
             # TODO: Add ChatGPT translator
             self.ttsEngine = self.config.get("TTS", "engine")
-            self.voiceid = self.config.get("TTS", "voiceid")
+            self.voiceid = self.config.get("TTS", "voice_id")
             self.rate = self.config.getint("TTS", "rate")
             self.volume = self.config.getint("TTS", "volume")
 
             self.key = self.config.get("azureTTS", "key")
             self.region = self.config.get("azureTTS", "location")
-            self.voiceidAzure = self.config.get("azureTTS", "voiceid")
+            self.voiceidAzure = self.config.get("azureTTS", "voice_id")
             self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
 
             self.credsFilePath = self.config.get("googleTTS", "creds")
-            self.voiceidGoogle = self.config.get("googleTTS", "voiceid")
+            self.voiceidGoogle = self.config.get("googleTTS", "voice_id")
 
-            self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voiceid")
-            self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voiceid")
+            self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voice_id")
+            self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voice_id")
             match self.ttsEngine:
                 case "azureTTS":
                     self.comboBox = "Azure TTS"
@@ -503,11 +504,11 @@ class Widget(QWidget):
             if not self.config.has_section("translate")
             else print("")
         )
-        self.config.set("translate", "noTranslate", str(self.notranslate))
-        self.config.set("translate", "startLang", self.startLang)
-        self.config.set("translate", "endLang", self.endLang)
+        self.config.set("translate", "no_translate", str(self.notranslate))
+        self.config.set("translate", "start_lang", self.startLang)
+        self.config.set("translate", "end_lang", self.endLang)
         self.config.set(
-            "translate", "replacepb", str(self.ui.checkBox_overwritepb.isChecked())
+            "translate", "replace_pb", str(self.ui.checkBox_overwritepb.isChecked())
         )
         self.config.set(
             "translate", "provider", str(self.ui.comboBox_provider.currentText())
@@ -515,46 +516,46 @@ class Widget(QWidget):
 
         self.config.set(
             "translate",
-            "mymemorytranslator_secret_key",
+            "my_memory_translator_secret_key",
             self.ui.mymemory_secret_key.text(),
         )
         self.config.set("translate", "email", self.ui.email_mymemory.text())
         self.config.set(
             "translate",
-            "libretranslator_secret_key",
+            "libre_translator_secret_key",
             self.ui.LibreTranslate_secret_key.text(),
         )
         self.config.set("translate", "url", self.ui.LibreTranslate_url.text())
         self.config.set(
-            "translate", "deepltranslator_secret_key", self.ui.deepl_secret_key.text()
+            "translate", "deep_l_translator_secret_key", self.ui.deepl_secret_key.text()
         )
         self.config.set(
-            "translate", "deepL_pro", str(self.ui.checkBox_pro.isChecked()).lower()
+            "translate", "deepl_pro", str(self.ui.checkBox_pro.isChecked()).lower()
         )
         # Add default microsofttranslator_secret_key if not permanent.
         self.config.set(
             "translate",
-            "microsofttranslator_secret_key",
+            "microsoft_translator_secret_key",
             self.ui.microsoft_secret_key.text(),
         )
         self.config.set("translate", "region", self.ui.microsoft_region.text())
         self.config.set(
-            "translate", "yandextranslator_secret_key", self.ui.yandex_secret_key.text()
+            "translate", "yandex_translator_secret_key", self.ui.yandex_secret_key.text()
         )
         self.config.set(
-            "translate", "papagotranslator_client_id", self.ui.papago_client_id.text()
+            "translate", "papago_translator_client_id", self.ui.papago_client_id.text()
         )
         self.config.set(
-            "translate", "papagotranslator_secret_key", self.ui.papago_secret_key.text()
+            "translate", "papago_translator_secret_key", self.ui.papago_secret_key.text()
         )
         self.config.set(
-            "translate", "baidutranslator_appid", self.ui.baidu_appid.text()
+            "translate", "baidu_translator_appid", self.ui.baidu_appid.text()
         )
         self.config.set(
-            "translate", "baidutranslator_secret_key", self.ui.baidu_secret_key.text()
+            "translate", "baidu_translator_secret_key", self.ui.baidu_secret_key.text()
         )
         self.config.set(
-            "translate", "qcritranslator_secret_key", self.ui.qcri_secret_key.text()
+            "translate", "qcri_translator_secret_key", self.ui.qcri_secret_key.text()
         )
 
         (
@@ -600,7 +601,7 @@ class Widget(QWidget):
         else:
             self.config.set("TTS", "save_audio_file", str(False))
 
-        self.config.set("TTS", "voiceid", self.ui.lineEdit_voiceID.text())
+        self.config.set("TTS", "voice_id", self.ui.lineEdit_voiceID.text())
         self.config.set("TTS", "rate", str(self.ui.horizontalSlider_rate.value()))
         self.config.set(
             "TTS", "volume", str(self.ui.horizontalSlider_volume.value())
@@ -623,11 +624,11 @@ class Widget(QWidget):
         else:
             self.config.set("azureTTS", "location", self.ui.lineEdit_region.text())
         if self.ui.listWidget_voiceazure.currentItem() is None:
-            self.config.set("azureTTS", "voiceid", "en-US-JennyNeural")
+            self.config.set("azureTTS", "voice_id", "en-US-JennyNeural")
         else:
             self.config.set(
                 "azureTTS",
-                "voiceid",
+                "voice_id",
                 self.ui.listWidget_voiceazure.currentItem().toolTip(),
             )
 
@@ -641,19 +642,19 @@ class Widget(QWidget):
         else:
             self.config.set("googleTTS", "creds", self.credsFilePath)
         if self.ui.listWidget_voicegoogle.currentItem() is None:
-            self.config.set("googleTTS", "voiceid", "en-US-Wavenet-C")
+            self.config.set("googleTTS", "voice_id", "en-US-Wavenet-C")
         else:
             self.config.set(
                 "googleTTS",
-                "voiceid",
+                "voice_id",
                 self.ui.listWidget_voicegoogle.currentItem().toolTip(),
             )
         if self.ui.listWidget_voicegoogleTrans.currentItem() is None:
-            self.config.set("googleTransTTS", "voiceid", "en-co.uk")
+            self.config.set("googleTransTTS", "voice_id", "en-co.uk")
         else:
             self.config.set(
                 "googleTransTTS",
-                "voiceid",
+                "voice_id",
                 self.ui.listWidget_voicegoogleTrans.currentItem().toolTip(),
             )
 
@@ -669,11 +670,11 @@ class Widget(QWidget):
             else print("")
         )
         if self.ui.onnx_listWidget.currentItem() is None:
-            self.config.set("SherpaOnnxTTS", "voiceid", "eng")
+            self.config.set("SherpaOnnxTTS", "voice_id", "eng")
         else:
             self.config.set(
                 "SherpaOnnxTTS",
-                "voiceid",
+                "voice_id",
                 self.ui.onnx_listWidget.currentItem().toolTip(),
             )
 
@@ -755,7 +756,7 @@ class Widget(QWidget):
                     if os.path.exists(self.config_path):
                         self.ui.mymemory_secret_key.setText(
                             self.config.get(
-                                "translate", "MyMemoryTranslator_secret_key"
+                                "translate", "my_memory_translator_secret_key"
                             )
                         )
                         self.ui.email_mymemory.setText(
@@ -771,7 +772,7 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.LibreTranslate_secret_key.setText(
-                            self.config.get("translate", "LibreTranslator_secret_key")
+                            self.config.get("translate", "libre_translator_secret_key")
                         )
                         self.ui.LibreTranslate_url.setText(
                             self.config.get("translate", "url")
@@ -786,7 +787,7 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.deepl_secret_key.setText(
-                            self.config.get("translate", "DeeplTranslator_secret_key")
+                            self.config.get("translate", "deep_l_translator_secret_key")
                         )
                         self.ui.checkBox_pro.setChecked(
                             self.config.getboolean("translate", "deepl_pro")
@@ -802,7 +803,7 @@ class Widget(QWidget):
                     if os.path.exists(self.config_path):
                         self.ui.microsoft_secret_key.setText(
                             self.config.get(
-                                "translate", "MicrosoftTranslator_secret_key"
+                                "translate", "microsoft_translator_secret_key"
                             )
                         )
                         self.ui.microsoft_region.setText(
@@ -834,10 +835,10 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.papago_secret_key.setText(
-                            self.config.get("translate", "PapagoTranslator_secret_key")
+                            self.config.get("translate", "papago_translator_secret_key")
                         )
                         self.ui.papago_client_id.setText(
-                            self.config.get("translate", "Papagotranslator_client_id")
+                            self.config.get("translate", "papago_translator_client_id")
                         )
                     self.translate_languages = Papago_Translator
                 except Exception as e:
@@ -849,7 +850,7 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.qcri_secret_key.setText(
-                            self.config.get("translate", "QCRITranslator_secret_key")
+                            self.config.get("translate", "qcri_translator_secret_key")
                         )
                     self.translate_languages = Qcri_Translator
                 except Exception as e:
@@ -861,10 +862,10 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.baidu_secret_key.setText(
-                            self.config.get("translate", "BaiduTranslator_secret_key")
+                            self.config.get("translate", "baidu_translator_secret_key")
                         )
                         self.ui.baidu_appid.setText(
-                            self.config.get("translate", "BaiduTranslator_appid")
+                            self.config.get("translate", "baidu_translator_appid")
                         )
                     self.translate_languages = Baidu_Translator
                 except Exception as e:
@@ -876,7 +877,7 @@ class Widget(QWidget):
                 try:
                     if os.path.exists(self.config_path):
                         self.ui.yandex_secret_key.setText(
-                            self.config.get("translate", "YandexTranslator_secret_key")
+                            self.config.get("translate", "yandex_translator_secret_key")
                         )
                     self.translate_languages = Yandex_Translator
                 except Exception as e:
@@ -1064,26 +1065,28 @@ class Widget(QWidget):
 
     def generate_azure_voice_models(self):
         try:
-            self.azure_location = self.ui.lineEdit_region.text()
-            self.azure_key = self.ui.lineEdit_key.text()
-            self.ui.listWidget_voiceazure.currentRowChanged.connect(self.updateRow)
-            self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
-            self.ui.search_language_azure.textChanged.connect(self.searchItem_Azure)
-            self.ui.listWidget_voiceazure.setUniformItemSizes(True)
-            azureThread = VoiceLoader(parent=self, tts="Azure TTS")
-            azureThread.signals.errorDetected.connect(self.handleError)
-            azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
-            azureThread.signals.itemGenerated.connect(self.load_Azure_items)
-            azureThread.signals.thread_completed.connect(
-                lambda: self.load_progress_azure(False)
-            )
-            azureThread.signals.completed.connect(
-                lambda: self.threadList.remove(azureThread)
-            )
-            self.threadList.append(azureThread)
-        except Exception as azureError:
-            print(f"Azure TTS Voice List Error: {azureError}")
-            logging.error(f"Azure TTS Voice List Error: {azureError}")
+            logging.info("Generating Azure voice models...")
+            if not self.key or not self.region:
+                logging.warning("Azure credentials not found. Please check your configuration.")
+                return
+            
+            speech_config = speechsdk.SpeechConfig(subscription=self.key, region=self.region)
+            speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config)
+            
+            # Get the list of voices
+            result = speech_synthesizer.get_voices_async().get()
+            if result.voices:
+                logging.info(f"Found {len(result.voices)} Azure voices")
+                for voice in result.voices:
+                    self.ui.listWidget_voiceazure.addItem(voice.short_name)
+                    self.ui.listWidget_voiceazure.item(
+                        self.ui.listWidget_voiceazure.count() - 1
+                    ).setToolTip(voice.short_name)
+            else:
+                logging.warning("No Azure voices found")
+                
+        except Exception as e:
+            logging.error(f"Error generating Azure voice models: {str(e)}")
 
     def get_azure_voices(self):
         file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
@@ -1140,33 +1143,27 @@ class Widget(QWidget):
 
     def generate_google_voice_models(self):
         try:
-            self.google_credential = self.get_google_credentials(
-                self.ui.credsFilePathEdit.text()
+            logging.info("Generating Google voice models...")
+            if not self.credsFilePath or not os.path.exists(self.credsFilePath):
+                logging.warning("Google credentials file not found. Please check your configuration.")
+                return
+                
+            client = texttospeech.TextToSpeechClient.from_service_account_file(
+                self.credsFilePath
             )
-            # self.google_credential = self.get_google_credentials(google_cred_path)
-            self.default_google_credential = self.get_google_credentials(
-                google_creds_path, True
-            )
-            self.ui.listWidget_voicegoogle.currentRowChanged.connect(self.updateRow)
-            self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
-            self.ui.search_language_google.textChanged.connect(self.searchItem_Google)
-            self.ui.listWidget_voicegoogle.setUniformItemSizes(True)
-            googleThread = VoiceLoader(parent=self, tts="Google TTS")
-            googleThread.signals.errorDetected.connect(self.handleError)
-            googleThread.signals.started.connect(
-                lambda: self.load_progress_google(True)
-            )
-            googleThread.signals.itemGenerated.connect(self.load_Google_items)
-            googleThread.signals.thread_completed.connect(
-                lambda: self.load_progress_google(False)
-            )
-            googleThread.signals.thread_completed.connect(
-                lambda: self.threadList.remove(googleThread)
-            )
-            self.threadList.append(googleThread)
-        except Exception as googleError:
-            print(f"Google TTS Voice List Error: {googleError}")
-            logging.error(f"Google TTS Voice List Error: {googleError}")
+            voices = client.list_voices()
+            if voices:
+                logging.info(f"Found {len(voices.voices)} Google voices")
+                for voice in voices.voices:
+                    self.ui.listWidget_voicegoogle.addItem(voice.name)
+                    self.ui.listWidget_voicegoogle.item(
+                        self.ui.listWidget_voicegoogle.count() - 1
+                    ).setToolTip(voice.name)
+            else:
+                logging.warning("No Google voices found")
+                
+        except Exception as e:
+            logging.error(f"Error generating Google voice models: {str(e)}")
 
     def generate_googleTrans_voice_model(self):
         try:
@@ -1674,33 +1671,68 @@ def setup_logging():
         os.makedirs(log_dir)
     log_file = os.path.join(log_dir, "configure.log")
 
-    logging.basicConfig(
-        filename=log_file,
-        filemode="a",
-        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
-        level=logging.DEBUG,
+    # Create formatters and handlers
+    file_formatter = logging.Formatter(
+        "%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s"
     )
-
+    console_formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s"
+    )
+    
+    # File handler
+    file_handler = logging.FileHandler(log_file, mode='a')
+    file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(logging.DEBUG)
+    
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(console_formatter)
+    console_handler.setLevel(logging.INFO)
+    
+    # Get the root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    
+    # Remove any existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Add our handlers
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
+    
+    # Log startup information
+    logging.info("Starting AACSpeakHelper")
+    logging.info(f"Log file location: {log_file}")
+    logging.info(f"Python version: {sys.version}")
+    logging.info(f"Operating system: {platform.platform()}")
+    
     return log_file
 
 
 if __name__ == "__main__":
     logfile = setup_logging()
     try:
-        config = load_config()
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.dirname(__file__), "..", "settings.cfg"))
         logging.info("Configuration Loaded Successfully.")
-        azure_tts_config = config.get("azureTTS", {})
-        ms_token = azure_tts_config.get("key")
-        ms_region = azure_tts_config.get("location")
-
-        google_tts_config = config.get("googleTTS", {})
-        google_creds_path = google_tts_config.get("creds")
-
-        translate_config = config.get("translate", {})
-        ms_token_trans = translate_config.get("microsofttranslator_secret_key")
+        
+        # These variables need to be global since they're used in class methods
+        global ms_token, ms_region, google_creds_path, ms_token_trans
+        
+        ms_token = config.get("azureTTS", "key", fallback="")
+        ms_region = config.get("azureTTS", "location", fallback="")
+        google_creds_path = config.get("googleTTS", "creds", fallback="")
+        ms_token_trans = config.get("translate", "microsoft_translator_secret_key", fallback="")
+        
     except Exception as e:
         print(f"Error loading configuration: {e}")
-        # You might want to set default values or raise a more specific error here
+        # Set default values for the global variables
+        ms_token = ""
+        ms_region = ""
+        google_creds_path = ""
+        ms_token_trans = ""
+        
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     size = screen.size()
