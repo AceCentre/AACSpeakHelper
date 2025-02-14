@@ -9,7 +9,6 @@ import sys
 import time
 import uuid
 import warnings
-import functools
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
@@ -37,6 +36,7 @@ from tts_wrapper import (
     GoogleClient,
     SherpaOnnxClient,
     GoogleTransClient,
+    ElevenLabsClient
 )
 
 from item import Ui_item
@@ -48,475 +48,353 @@ from language_dictionary import *
 from ui_form import Ui_Widget
 
 
-class TTSError(Exception):
-    pass
+class Widget(QWidget):
+    def __init__(self, size, parent=None):
+        super().__init__(parent)
+        self.default_google_credential = None
+        self.google_credential = None
+        self.threadList = []
+        self.translate_instance = None
+        self.available_language = None
+        self.screenSize = size
+        self.language_azure_list = None
+        self.google_row = None
+        self.google_client = None
+        self.voice_google_list = None
+        self.voice_list = None
+        self.movie = None
+        self.currentButton = None
+        self.temp_config_file = None
+        self.azure_row = None
+        self.cleaning = False
+        self.lock = True
+        self.ui = Ui_Widget()
+        self.ui.setupUi(self)
+        self.ui.onnx_progressBar.setVisible(False)
+        self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
+        self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
+        self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
+        )
+        # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
+        self.installEventFilter(self)
+        self.ui.copyApp.clicked.connect(self.copyAppPath)
+        self.ui.validate_azure.clicked.connect(self.azure_validation)
+        self.ui.validate_google.clicked.connect(self.google_validation)
+        self.providers = []
+        for translator in providers:
+            if "Translator" in translator:
+                self.providers.append(translator)
+        self.ui.comboBox_provider.addItems(self.providers)
+        self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
+        self.ui.tabWidget.setTabText(0, "TTS Engine")
+        self.ui.tabWidget.setTabText(1, "Translate Settings")
+        self.ui.tabWidget.setTabText(2, "Application Settings")
+        self.tts_dict = {}
+        # self.generate_translate_list()
+        self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
+        self.translate_languages = gSpeak_TTS_list
 
-def setup_logging():
-    try:
+        self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
+        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
+
         if getattr(sys, "frozen", False):
-            log_dir = os.path.join(
-                os.path.expanduser("~"),
+            # Get the path to the user's app data folder
+            home_directory = os.path.expanduser("~")
+            self.app_data_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Local",
+                "Programs",
+                "Ace Centre",
+                "AACSpeakHelper",
+            )
+            self.ui.appPath.setText(self.app_data_path)
+            self.config_path = os.path.join(
+                home_directory,
                 "AppData",
                 "Roaming",
                 "Ace Centre",
                 "AACSpeakHelper",
+                "settings.cfg",
             )
-        else:
-            log_dir = os.path.dirname(os.path.abspath(__file__))
-
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
-        log_file = os.path.join(log_dir, "configure.log")
-
-        # Add console handler as well as file handler
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()  # This will print to console
-            ]
-        )
-        
-        logging.info(f"Logging initialized. Log file: {log_file}")
-        return log_file
-    except Exception as e:
-        print(f"Error setting up logging: {e}")
-        raise
-
-def handle_tts_error(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            logging.error(f"TTS Error in {func.__name__}: {str(e)}")
-            raise TTSError(str(e))
-    return wrapper
-
-class TTSConstants:
-    DEFAULT_VOLUME = 100
-    DEFAULT_RATE = 100
-    CACHE_DIR = "models"
-    AUDIO_DIR = "Audio Files"
-    
-    # TTS Engine names
-    AZURE = "Azure TTS"
-    GOOGLE = "Google TTS"
-    ONNX = "Sherpa-ONNX"
-
-class PreviewManager:
-    def __init__(self, parent_widget):
-        self.parent = parent_widget
-        self.current_button = None
-        self.movie = None
-        
-    def preview_voice(self, sender, list_widget):
-        voice_name = self._get_voice_name(sender)
-        row = self._find_voice_row(voice_name, list_widget)
-        if row is not None:
-            list_widget.setCurrentRow(row)
-            self._play_preview(voice_name)
-            
-    def _get_voice_name(self, sender):
-        return sender.parent().findChild(QLabel, "name").text()
-        
-    def _find_voice_row(self, voice_name, list_widget):
-        """Find the row index for the given voice name in the list widget"""
-        for index in range(list_widget.count()):
-            item = list_widget.item(index)
-            if voice_name == item.text():
-                return index
-        return None
-        
-    def _play_preview(self, voice_name):
-        """Play preview for the selected voice"""
-        if self.parent.temp_config_file is None:
-            return
-            
-        pyperclip.copy("Hello World")
-        pool = QThreadPool.globalInstance()
-        runnable = Player(self.parent.temp_config_file)
-        runnable.signals.completed.connect(self.parent.enablePlayButtons)
-        
-        # Show loading animation
-        self.movie = QMovie(":/images/images/loading.gif")
-        self.current_button.setIcon(QIcon())
-        self.current_button.setMovie(self.movie)
-        self.movie.start()
-        
-        pool.start(runnable)
-
-class Widget(QWidget):
-    def __init__(self, size, parent=None):
-        try:
-            logging.info("Initializing Widget...")
-            super().__init__(parent)
-            self.default_google_credential = None
-            self.google_credential = None
-            self.threadList = []
-            self.translate_instance = None
-            self.available_language = None
-            self.screenSize = size
-            self.language_azure_list = None
-            self.google_row = None
-            self.google_client = None
-            self.voice_google_list = None
-            self.voice_list = None
-            self.movie = None
-            self.currentButton = None
-            self.temp_config_file = None
-            self.azure_row = None
-            self.cleaning = False
-            self.lock = True
-            self.ui = Ui_Widget()
-            self.ui.setupUi(self)
-            self.ui.onnx_progressBar.setVisible(False)
-            self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
-                "QScrollBar:vertical { width: 30px; }"
+            self.audio_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "Audio Files",
             )
-            self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet(
-                "QScrollBar:vertical { width: 30px; }"
+            self.onnx_cache_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "models",
             )
-            self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet(
-                "QScrollBar:vertical { width: 30px; }"
+        elif __file__:
+            self.app_data_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), os.pardir)
             )
-            # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
-            self.installEventFilter(self)
-            self.ui.copyApp.clicked.connect(self.copyAppPath)
-            self.ui.validate_azure.clicked.connect(self.azure_validation)
-            self.ui.validate_google.clicked.connect(self.google_validation)
-            self.providers = []
-            for translator in providers:
-                if "Translator" in translator:
-                    self.providers.append(translator)
-            self.ui.comboBox_provider.addItems(self.providers)
-            self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-            self.ui.tabWidget.setTabText(0, "TTS Engine")
-            self.ui.tabWidget.setTabText(1, "Translate Settings")
-            self.ui.tabWidget.setTabText(2, "Application Settings")
-            self.tts_dict = {}
-            # self.generate_translate_list()
-            self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
-            self.translate_languages = gSpeak_TTS_list
-
-            self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-            self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-
-            if getattr(sys, "frozen", False):
-                # Get the path to the user's app data folder
-                home_directory = os.path.expanduser("~")
-                self.app_data_path = os.path.join(
-                    home_directory,
-                    "AppData",
-                    "Local",
-                    "Programs",
-                    "Ace Centre",
-                    "AACSpeakHelper",
-                )
-                self.ui.appPath.setText(self.app_data_path)
-                self.config_path = os.path.join(
-                    home_directory,
-                    "AppData",
-                    "Roaming",
-                    "Ace Centre",
-                    "AACSpeakHelper",
-                    "settings.cfg",
-                )
-                self.audio_path = os.path.join(
-                    home_directory,
-                    "AppData",
-                    "Roaming",
-                    "Ace Centre",
-                    "AACSpeakHelper",
-                    "Audio Files",
-                )
-                self.onnx_cache_path = os.path.join(
-                    home_directory,
-                    "AppData",
-                    "Roaming",
-                    "Ace Centre",
-                    "AACSpeakHelper",
-                    "models",
-                )
-            elif __file__:
-                self.app_data_path = os.path.abspath(
-                    os.path.join(os.path.dirname(__file__), os.pardir)
-                )
-                self.ui.appPath.setText(
-                    os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
-                )
-                self.config_path = os.path.join(self.app_data_path, "settings.cfg")
-                self.audio_path = os.path.join(self.app_data_path, "Audio Files")
-                self.onnx_cache_path = os.path.join(self.app_data_path, "models")
-            if not os.path.isdir(self.onnx_cache_path):
-                os.makedirs(self.onnx_cache_path)
-            self.ui.clear_cache.clicked.connect(self.cache_clear)
-            self.ui.open_cache.clicked.connect(self.cache_open)
-            self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
-            self.config = configparser.ConfigParser()
-            self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
-            # Check if the file already exists
-            if os.path.exists(self.config_path):
-                self.config.read(self.config_path)
-                self.generate_azure_voice_models()
-                self.generate_google_voice_models()
-                self.generate_onnx_voice_model()
-                self.generate_googleTrans_voice_model()
-                self.poolStarter()
-                self.get_microsoft_language()
-                self.notranslate = self.ttsEngine = self.config.getboolean(
-                    "translate", "noTranslate"
-                )
-                self.startLang = self.config.get("translate", "startLang")
-                self.endLang = self.config.get("translate", "endLang")
-                self.overwritePb = self.config.getboolean("translate", "replacepb")
-                self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
-                self.provider = self.config.get("translate", "provider")
-                self.ui.comboBox_provider.setCurrentIndex(
-                    self.ui.comboBox_provider.findText(self.provider)
-                )
-                match self.provider:
-                    case "MyMemoryTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.mymemory)
-                        )
-                    case "LibreTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate)
-                        )
-                    case "DeeplTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.deepl)
-                        )
-                    case "MicrosoftTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.microsoft)
-                        )
-                    case "YandexTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.yandex)
-                        )
-                    case "GoogleTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.google)
-                        )
-                    case "LingueeTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.linguee)
-                        )
-                    case "PonsTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.pons)
-                        )
-                    case "QCRITranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.qcri)
-                        )
-                    case "PapagoTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.papago)
-                        )
-                    case "BaiduTranslator":
-                        self.ui.stackedWidget_provider.setCurrentIndex(
-                            self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
-                        )
-                self.ui.mymemory_secret_key.setText(
-                    self.config.get("translate", "MyMemoryTranslator_secret_key")
-                )
-                self.ui.email_mymemory.setText(self.config.get("translate", "email"))
-                self.ui.LibreTranslate_secret_key.setText(
-                    self.config.get("translate", "LibreTranslator_secret_key")
-                )
-                self.ui.LibreTranslate_url.setText(self.config.get("translate", "url"))
-                self.ui.deepl_secret_key.setText(
-                    self.config.get("translate", "DeeplTranslator_secret_key")
-                )
-                self.ui.checkBox_pro.setChecked(
-                    self.config.getboolean("translate", "deepl_pro")
-                )
-                self.ui.microsoft_secret_key.setText(
-                    self.config.get("translate", "MicrosoftTranslator_secret_key")
-                )
-                self.ui.microsoft_region.setText(self.config.get("translate", "region"))
-                self.ui.yandex_secret_key.setText(
-                    self.config.get("translate", "YandexTranslator_secret_key")
-                )
-                self.ui.qcri_secret_key.setText(
-                    self.config.get("translate", "QCRITranslator_secret_key")
-                )
-                self.ui.papago_secret_key.setText(
-                    self.config.get("translate", "PapagoTranslator_secret_key")
-                )
-                self.ui.papago_client_id.setText(
-                    self.config.get("translate", "papagotranslator_client_id")
-                )
-                # TODO: Add ChatGPT translator
-                self.ttsEngine = self.config.get("TTS", "engine")
-                self.voiceid = self.config.get("TTS", "voiceid")
-                self.rate = self.config.getint("TTS", "rate")
-                self.volume = self.config.getint("TTS", "volume")
-
-                self.key = self.config.get("azureTTS", "key")
-                self.region = self.config.get("azureTTS", "location")
-                self.voiceidAzure = self.config.get("azureTTS", "voiceid")
-                self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
-
-                self.credsFilePath = self.config.get("googleTTS", "creds")
-                self.voiceidGoogle = self.config.get("googleTTS", "voiceid")
-
-                self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voiceid")
-                self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voiceid")
-                match self.ttsEngine:
-                    case "azureTTS":
-                        self.comboBox = "Azure TTS"
-                        self.ui.stackedWidget.setCurrentIndex(0)
-                        self.ui.ttsEngineBox.setCurrentText("Azure TTS")
-                    case "googleTTS":
-                        self.comboBox = "Google TTS"
-                        self.ui.stackedWidget.setCurrentIndex(1)
-                        self.ui.ttsEngineBox.setCurrentText("Google TTS")
-                    case "googleTransTTS":
-                        self.comboBox = "GoogleTranslator TTS"
-                        self.ui.stackedWidget.setCurrentIndex(2)
-                        self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
-                    case "sapi5":
-                        self.comboBox = "Sapi5 (Windows)"
-                        self.ui.stackedWidget.setCurrentIndex(3)
-                        self.ui.ttsEngineBox.setCurrentText("Sapi5 (Windows)")
-                    case "SherpaOnnxTTS":
-                        self.comboBox = "Sherpa-ONNX"
-                        self.ui.stackedWidget.setCurrentIndex(6)
-                        self.ui.ttsEngineBox.setCurrentText("Sherpa-ONNX")
-                    case "espeak":
-                        self.comboBox = "espeak (Unsupported)"
-                        self.ui.stackedWidget.setCurrentIndex(5)
-                        self.ui.ttsEngineBox.setCurrentText("espeak (Unsupported)")
-                    case "nsss":
-                        self.comboBox = "NSS (Mac Only)"
-                        self.ui.stackedWidget.setCurrentIndex(5)
-                        self.ui.ttsEngineBox.setCurrentText("NSS (Mac Only)")
-                    case "coqui":
-                        self.comboBox = "coqui_ai_tts (Unsupported)"
-                        self.ui.stackedWidget.setCurrentIndex(5)
-                        self.ui.ttsEngineBox.setCurrentText("coqui_ai_tts (Unsupported)")
-                    case _:
-                        self.comboBox = "GoogleTranslator TTS"
-                        self.ui.stackedWidget.setCurrentIndex(2)
-                        self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
-                self.set_Translate_dropdown(self.translate_languages)
-
-                self.set_azure_voice(self.voiceidAzure)
-                self.set_google_voice(self.voiceidGoogle)
-                self.set_onnx_voice(self.voiceid_onnx)
-                self.set_googleTrans_voice(self.voiceidGoogleTrans)
-                item = [
-                    key
-                    for key, value in self.voices_sapi_dict.items()
-                    if value == self.voiceid_sapi
-                ]
-
-                if len(item) > 0:
-                    item = self.ui.listWidget_sapi.findItems(
-                        item[0], PySide6.QtCore.Qt.MatchExactly
+            self.ui.appPath.setText(
+                os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
+            )
+            self.config_path = os.path.join(self.app_data_path, "settings.cfg")
+            self.audio_path = os.path.join(self.app_data_path, "Audio Files")
+            self.onnx_cache_path = os.path.join(self.app_data_path, "models")
+        if not os.path.isdir(self.onnx_cache_path):
+            os.makedirs(self.onnx_cache_path)
+        self.ui.clear_cache.clicked.connect(self.cache_clear)
+        self.ui.open_cache.clicked.connect(self.cache_open)
+        self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
+        self.config = configparser.ConfigParser()
+        self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
+        # Check if the file already exists
+        if os.path.exists(self.config_path):
+            self.config.read(self.config_path)
+            self.generate_azure_voice_models()
+            self.generate_google_voice_models()
+            self.generate_onnx_voice_model()
+            self.generate_googleTrans_voice_model()
+            self.poolStarter()
+            self.get_microsoft_language()
+            self.notranslate = self.ttsEngine = self.config.getboolean(
+                "translate", "noTranslate"
+            )
+            self.startLang = self.config.get("translate", "startLang")
+            self.endLang = self.config.get("translate", "endLang")
+            self.overwritePb = self.config.getboolean("translate", "replacepb")
+            self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
+            self.provider = self.config.get("translate", "provider")
+            self.ui.comboBox_provider.setCurrentIndex(
+                self.ui.comboBox_provider.findText(self.provider)
+            )
+            match self.provider:
+                case "MyMemoryTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.mymemory)
                     )
-                    self.ui.listWidget_sapi.setCurrentItem(item[0])
-                elif self.ui.listWidget_sapi.count() > 0:
-                    self.ui.listWidget_sapi.setCurrentRow(0)
-                    self.ui.listWidget_sapi.setCurrentItem(self.ui.listWidget_sapi.item(0))
-
-                self.ui.checkBox_translate.setChecked(not self.notranslate)
-                self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
-                self.ui.bypass_tts_checkBox.setChecked(self.bypassTTS)
-                self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
-
-                self.ui.horizontalSlider_rate.setValue(self.rate)
-                self.ui.horizontalSlider_volume.setValue(self.volume)
-                self.ui.horizontalSlider_rate_sapi.setValue(self.rate)
-                self.ui.horizontalSlider_volume_sapi.setValue(self.volume)
-                self.ui.onnx_cache.setText(self.onnx_cache_path)
-                self.ui.lineEdit_voiceID.setText(self.voiceid)
-                self.ui.lineEdit_key.setText(self.key)
-                self.ui.lineEdit_region.setText(self.region)
-
-                self.ui.checkBox_saveAudio_gTTS.setChecked(self.saveAudio)
-                self.ui.credsFilePathEdit.setText(self.credsFilePath)
-
-                self.ui.checkBox_saveAudio_sapi.setChecked(self.saveAudio)
-                self.ui.onnx_checkBox.setChecked(self.saveAudio)
-
-                self.ui.checkBox_stats.setChecked(
-                    self.config.getboolean("App", "collectstats")
-                )
-                self.ui.spinBox_threshold.setValue(
-                    int(self.config.get("appCache", "threshold"))
-                )
-
-            else:
-                self.generate_azure_voice_models()
-                self.generate_google_voice_models()
-                self.generate_onnx_voice_model()
-                self.generate_googleTrans_voice_model()
-                self.poolStarter()
-                self.get_microsoft_language()
-                # self.ttsEngine = "azureTTS"
-                # self.comboBox = 'Azure TTS'
-                self.ui.onnx_cache.setText(self.onnx_cache_path)
-                self.ttsEngine = "SherpaOnnxTTS"
-                self.comboBox = "Sherpa-ONNX"
-                self.ui.stackedWidget.setCurrentIndex(0)
-
-                self.notranslate = False
-                self.saveAudio_azure = True
-                self.overwritePb = True
-                self.bypassTTS = False
-
-                self.voiceid = None
-                self.voiceidAzure = "en-US-JennyNeural"
-                self.voiceidGoogle = "en-US-Wavenet-C"
-                self.voiceidonnx = "eng"
-                self.voiceidGoogleTrans = "en-co.uk"
-
-                self.rate = None
-                self.volume = None
-
-                self.key = None
-                self.region = None
-                self.startLang = None
-                self.endLang = None
-
-                self.credsFilePath = ""
-                self.saveAudio_google = True
-
-                self.saveAudio_sapi5 = True
-                self.saveAudio_onnx = True
-                self.saveAudio_googleTrans = True
-
-                # self.set_azure_voice(self.voiceidAzure)
-                # self.set_google_voice(self.voiceidGoogle)
-                # self.set_onnx_voice(self.voiceidonnx)
-
-                self.ui.spinBox_threshold.setValue(7)
-
-            self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
-
-            self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
-                lambda: self.OnSavePressed(True)
+                case "LibreTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate)
+                    )
+                case "DeeplTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.deepl)
+                    )
+                case "MicrosoftTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.microsoft)
+                    )
+                case "YandexTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.yandex)
+                    )
+                case "GoogleTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.google)
+                    )
+                case "LingueeTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.linguee)
+                    )
+                case "PonsTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.pons)
+                    )
+                case "QCRITranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.qcri)
+                    )
+                case "PapagoTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.papago)
+                    )
+                case "BaiduTranslator":
+                    self.ui.stackedWidget_provider.setCurrentIndex(
+                        self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
+                    )
+            self.ui.mymemory_secret_key.setText(
+                self.config.get("translate", "MyMemoryTranslator_secret_key")
             )
-            self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
-                self.OnDiscardPressed
+            self.ui.email_mymemory.setText(self.config.get("translate", "email"))
+            self.ui.LibreTranslate_secret_key.setText(
+                self.config.get("translate", "LibreTranslator_secret_key")
+            )
+            self.ui.LibreTranslate_url.setText(self.config.get("translate", "url"))
+            self.ui.deepl_secret_key.setText(
+                self.config.get("translate", "DeeplTranslator_secret_key")
+            )
+            self.ui.checkBox_pro.setChecked(
+                self.config.getboolean("translate", "deepl_pro")
+            )
+            self.ui.microsoft_secret_key.setText(
+                self.config.get("translate", "MicrosoftTranslator_secret_key")
+            )
+            self.ui.microsoft_region.setText(self.config.get("translate", "region"))
+            self.ui.yandex_secret_key.setText(
+                self.config.get("translate", "YandexTranslator_secret_key")
+            )
+            self.ui.qcri_secret_key.setText(
+                self.config.get("translate", "QCRITranslator_secret_key")
+            )
+            self.ui.papago_secret_key.setText(
+                self.config.get("translate", "PapagoTranslator_secret_key")
+            )
+            self.ui.papago_client_id.setText(
+                self.config.get("translate", "papagotranslator_client_id")
+            )
+            self.ui.baidu_secret_key.setText(
+                self.config.get("translate", "BaiduTranslator_secret_key")
+            )
+            self.ui.baidu_appid.setText(
+                self.config.get("translate", "baidutranslator_appid")
+            )
+            # TODO: Add ChatGPT translator
+            self.ttsEngine = self.config.get("TTS", "engine")
+            self.voiceid = self.config.get("TTS", "voiceid")
+            self.rate = self.config.getint("TTS", "rate")
+            self.volume = self.config.getint("TTS", "volume")
+
+            self.key = self.config.get("azureTTS", "key")
+            self.region = self.config.get("azureTTS", "location")
+            self.voiceidAzure = self.config.get("azureTTS", "voiceid")
+            self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
+
+            self.credsFilePath = self.config.get("googleTTS", "creds")
+            self.voiceidGoogle = self.config.get("googleTTS", "voiceid")
+
+            self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voiceid")
+            self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voiceid")
+            match self.ttsEngine:
+                case "azureTTS":
+                    self.comboBox = "Azure TTS"
+                    self.ui.stackedWidget.setCurrentIndex(0)
+                    self.ui.ttsEngineBox.setCurrentText("Azure TTS")
+                case "googleTTS":
+                    self.comboBox = "Google TTS"
+                    self.ui.stackedWidget.setCurrentIndex(1)
+                    self.ui.ttsEngineBox.setCurrentText("Google TTS")
+                case "googleTransTTS":
+                    self.comboBox = "GoogleTranslator TTS"
+                    self.ui.stackedWidget.setCurrentIndex(2)
+                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
+                case "SherpaOnnxTTS":
+                    self.comboBox = "Sherpa-ONNX"
+                    self.ui.stackedWidget.setCurrentIndex(6)
+                    self.ui.ttsEngineBox.setCurrentText("Sherpa-ONNX")
+                case "espeak":
+                    self.comboBox = "espeak (Unsupported)"
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText("espeak (Unsupported)")
+                case "nsss":
+                    self.comboBox = "NSS (Mac Only)"
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText("NSS (Mac Only)")
+                case "coqui":
+                    self.comboBox = "coqui_ai_tts (Unsupported)"
+                    self.ui.stackedWidget.setCurrentIndex(5)
+                    self.ui.ttsEngineBox.setCurrentText("coqui_ai_tts (Unsupported)")
+                case _:
+                    self.comboBox = "GoogleTranslator TTS"
+                    self.ui.stackedWidget.setCurrentIndex(2)
+                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
+            self.set_Translate_dropdown(self.translate_languages)
+
+            self.set_azure_voice(self.voiceidAzure)
+            self.set_google_voice(self.voiceidGoogle)
+            self.set_onnx_voice(self.voiceid_onnx)
+            self.set_googleTrans_voice(self.voiceidGoogleTrans)
+
+            self.ui.checkBox_translate.setChecked(not self.notranslate)
+            self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
+            self.ui.bypass_tts_checkBox.setChecked(self.bypassTTS)
+            self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
+
+            self.ui.horizontalSlider_rate.setValue(self.rate)
+            self.ui.horizontalSlider_volume.setValue(self.volume)
+            self.ui.onnx_cache.setText(self.onnx_cache_path)
+            self.ui.lineEdit_voiceID.setText(self.voiceid)
+            self.ui.lineEdit_key.setText(self.key)
+            self.ui.lineEdit_region.setText(self.region)
+
+            self.ui.checkBox_saveAudio_gTTS.setChecked(self.saveAudio)
+            self.ui.credsFilePathEdit.setText(self.credsFilePath)
+
+            self.ui.onnx_checkBox.setChecked(self.saveAudio)
+
+            self.ui.checkBox_stats.setChecked(
+                self.config.getboolean("App", "collectstats")
+            )
+            self.ui.spinBox_threshold.setValue(
+                int(self.config.get("appCache", "threshold"))
             )
 
-            self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
+        else:
+            self.generate_azure_voice_models()
+            self.generate_google_voice_models()
+            self.generate_onnx_voice_model()
+            self.generate_googleTrans_voice_model()
+            self.poolStarter()
+            self.get_microsoft_language()
+            # self.ttsEngine = "azureTTS"
+            # self.comboBox = 'Azure TTS'
+            self.ui.onnx_cache.setText(self.onnx_cache_path)
+            self.ttsEngine = "SherpaOnnxTTS"
+            self.comboBox = "Sherpa-ONNX"
+            self.ui.stackedWidget.setCurrentIndex(0)
 
-            self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
-            self.onTTSEngineToggled(self.comboBox)
-            self.lock = False
+            self.notranslate = False
+            self.saveAudio_azure = True
+            self.overwritePb = True
+            self.bypassTTS = False
 
-            logging.info("Widget initialization complete")
-        except Exception as e:
-            logging.error(f"Error in Widget initialization: {e}", exc_info=True)
-            raise
+            self.voiceid = None
+            self.voiceidAzure = "en-US-JennyNeural"
+            self.voiceidGoogle = "en-US-Wavenet-C"
+            self.voiceidonnx = "eng"
+            self.voiceidGoogleTrans = "en-co.uk"
+
+            self.rate = None
+            self.volume = None
+
+            self.key = None
+            self.region = None
+            self.startLang = None
+            self.endLang = None
+
+            self.credsFilePath = ""
+            self.saveAudio_google = True
+
+            self.saveAudio_onnx = True
+            self.saveAudio_googleTrans = True
+
+            # self.set_azure_voice(self.voiceidAzure)
+            # self.set_google_voice(self.voiceidGoogle)
+            # self.set_onnx_voice(self.voiceidonnx)
+
+            self.ui.spinBox_threshold.setValue(7)
+
+        self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
+
+        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
+            lambda: self.OnSavePressed(True)
+        )
+        self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
+            self.OnDiscardPressed
+        )
+
+        self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
+
+        self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
+        self.onTTSEngineToggled(self.comboBox)
+        self.lock = False
 
     def eventFilter(self, obj, event):
         self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != "")
@@ -542,10 +420,6 @@ class Widget(QWidget):
                 self.ui.stackedWidget.setCurrentIndex(2)
                 if self.screenSize.height() > 800:
                     self.resize(588, 667)
-            case "Sapi5 (Windows)":
-                self.resize(588, 400)
-                self.ttsEngine = "sapi5"
-                self.ui.stackedWidget.setCurrentIndex(3)
             case "Sherpa-ONNX":
                 self.ttsEngine = "SherpaOnnxTTS"
                 self.ui.stackedWidget.setCurrentIndex(6)
@@ -707,12 +581,6 @@ class Widget(QWidget):
                 )
             else:
                 self.config.set("TTS", "save_audio_file", str(False))
-        elif self.ttsEngine == "sapi5":
-            self.config.set(
-                "TTS",
-                "save_audio_file",
-                str(self.ui.checkBox_saveAudio_sapi.isChecked()),
-            )
         elif self.ttsEngine == "SherpaOnnxTTS":
             if permanent:
                 self.config.set(
@@ -733,18 +601,10 @@ class Widget(QWidget):
             self.config.set("TTS", "save_audio_file", str(False))
 
         self.config.set("TTS", "voiceid", self.ui.lineEdit_voiceID.text())
-        if self.ttsEngine == "sapi5":
-            self.config.set(
-                "TTS", "rate", str(self.ui.horizontalSlider_rate_sapi.value())
-            )
-            self.config.set(
-                "TTS", "volume", str(self.ui.horizontalSlider_volume_sapi.value())
-            )
-        else:
-            self.config.set("TTS", "rate", str(self.ui.horizontalSlider_rate.value()))
-            self.config.set(
-                "TTS", "volume", str(self.ui.horizontalSlider_volume.value())
-            )
+        self.config.set("TTS", "rate", str(self.ui.horizontalSlider_rate.value()))
+        self.config.set(
+            "TTS", "volume", str(self.ui.horizontalSlider_volume.value())
+        )
         self.config.set(
             "TTS", "bypass_tts", str(self.ui.bypass_tts_checkBox.isChecked())
         )
@@ -797,16 +657,6 @@ class Widget(QWidget):
                 self.ui.listWidget_voicegoogleTrans.currentItem().toolTip(),
             )
 
-        (
-            self.config.add_section("sapi5TTS")
-            if not self.config.has_section("sapi5TTS")
-            else print("")
-        )
-        self.config.set(
-            "sapi5TTS",
-            "voiceid",
-            self.voices_sapi_dict[self.ui.listWidget_sapi.currentItem().text()],
-        )
 
         (
             self.config.add_section("SherpaOnnxTTS")
@@ -1066,14 +916,6 @@ class Widget(QWidget):
                         return
             case _:
                 pass
-            # if self.ui.ttsEngineBox.currentText() == 'Sapi5 (Windows)':
-            #     pass
-            # if self.ui.ttsEngineBox.currentText() == 'NSS (Mac Only)':
-            #     pass
-            # if self.ui.ttsEngineBox.currentText() == 'coqui_ai_tts (Unsupported)':
-            #     pass
-            # if self.ui.ttsEngineBox.currentText() == 'espeak (Unsupported)':
-            #     pass
         # # TODO: Iterate targetlang and text to check compatibility
 
     def set_azure_voice(self, text):
@@ -1228,7 +1070,7 @@ class Widget(QWidget):
             self.ui.listWidget_voiceazure.itemClicked.connect(self.print_data)
             self.ui.search_language_azure.textChanged.connect(self.searchItem_Azure)
             self.ui.listWidget_voiceazure.setUniformItemSizes(True)
-            azureThread = VoiceFetcher(parent=self, tts="Azure TTS")
+            azureThread = VoiceLoader(parent=self, tts="Azure TTS")
             azureThread.signals.errorDetected.connect(self.handleError)
             azureThread.signals.started.connect(lambda: self.load_progress_azure(True))
             azureThread.signals.itemGenerated.connect(self.load_Azure_items)
@@ -1309,7 +1151,7 @@ class Widget(QWidget):
             self.ui.listWidget_voicegoogle.itemClicked.connect(self.print_data)
             self.ui.search_language_google.textChanged.connect(self.searchItem_Google)
             self.ui.listWidget_voicegoogle.setUniformItemSizes(True)
-            googleThread = VoiceFetcher(parent=self, tts="Google TTS")
+            googleThread = VoiceLoader(parent=self, tts="Google TTS")
             googleThread.signals.errorDetected.connect(self.handleError)
             googleThread.signals.started.connect(
                 lambda: self.load_progress_google(True)
@@ -1336,7 +1178,7 @@ class Widget(QWidget):
                 self.searchItem_GoogleTrans
             )
             self.ui.listWidget_voicegoogleTrans.setUniformItemSizes(True)
-            googleTransThread = VoiceFetcher(parent=self, tts="GoogleTranslator TTS")
+            googleTransThread = VoiceLoader(parent=self, tts="GoogleTranslator TTS")
             googleTransThread.signals.started.connect(
                 lambda: self.load_progress_googleTrans(True)
             )
@@ -1444,15 +1286,14 @@ class Widget(QWidget):
             self.ui.onnx_listWidget.itemClicked.connect(self.print_data)
             self.ui.search_language.textChanged.connect(self.searchItem_Onnx)
             self.ui.onnx_listWidget.setUniformItemSizes(True)
-            
-            # Use VoiceFetcher instead of VoiceLoader
-            onnxThread = VoiceFetcher(parent=self, tts="Sherpa-ONNX")
+            onnxThread = VoiceLoader(parent=self, tts="Sherpa-ONNX")
             onnxThread.signals.started.connect(lambda: self.load_progress_onnx(True))
             onnxThread.signals.itemGenerated.connect(self.load_Onnx_Items)
             onnxThread.signals.thread_completed.connect(lambda: self.load_progress_onnx(False))
             onnxThread.signals.thread_completed.connect(lambda: self.threadList.remove(onnxThread))
             self.threadList.append(onnxThread)
         except Exception as e:
+            print(f"Sherpa ONNX Voice List Error: {e}")
             logging.error(f"Sherpa ONNX Voice List Error: {e}")
 
     def load_progress_onnx(self, state):
@@ -1461,8 +1302,6 @@ class Widget(QWidget):
         self.ui.onnx_listWidget.setSizePolicy(policy)
         self.ui.onnx_listWidget.setHidden(state)
         self.ui.onnx_progressBar.setVisible(state)
-        self.ui.validate_azure.setDisabled(state)
-        self.ui.checkBox_azure.setDisabled(state)
         if not state:
             self.set_onnx_voice(self.voiceid_onnx)
             self.ui.onnx_voice_models.setTitle(
@@ -1571,20 +1410,64 @@ class Widget(QWidget):
 
     def load_Onnx_Items(self, index, data, count):
         try:
-            loader = VoiceFetcher(self.ui.onnx_listWidget, self.ui.onnx_progressBar)
-            loader.onnx_location = self.onnx_location  # Add this attribute for ONNX models
-            loader.preview_pressed = self.preview_pressed  # Connect the preview handler
-            loader.load_voice_item(data, index, count)
+            self.ui.onnx_progressBar.setValue((index + 1) * 100 / count)
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            item_UI.name.setText(data["name"])
+            font = QFont()
+            font.setBold(False)
+            font.setPointSize(8)
+            item_UI.gender.setFont(font)
+            item_UI.gender.setText(f"{data['gender']} - {data['language_codes'][0]}")
+            item_UI.play.clicked.connect(self.preview_pressed)
+            item_widget.setProperty("language_code", data["language_codes"][0])
+            item_widget.setObjectName(data["name"])
+
+            item = QListWidgetItem()
+            item.setForeground(QColor(0, 0, 0, 0))
+            item.setText(data["name"])
+            item.setToolTip(data["language_codes"][0])
+            item.setSizeHint(item_widget.sizeHint())
+            self.ui.onnx_listWidget.insertItem(index, item)
+            self.ui.onnx_listWidget.setItemWidget(item, item_widget)
+            
+            model_path = os.path.join(self.onnx_location, data["language_codes"][0])
+            if os.path.exists(model_path):
+                item_UI.play.setIcon(self.iconPlayed)
+                item_UI.play.setObjectName("Play")
+            else:
+                item_UI.play.setIcon(self.iconDownload)
+                item_UI.play.setObjectName("Download")
         except Exception as onnxError:
+            print(str(onnxError))
             logging.error(f"Error loading ONNX item: {onnxError}")
 
     def load_Azure_items(self, index, data, count):
         try:
-            loader = VoiceFetcher(self.ui.listWidget_voiceazure, self.ui.azure_progressBar)
-            loader.preview_pressed = self.preview_pressed
-            loader.load_voice_item(data, index, count)
+            self.ui.azure_progressBar.setValue((index + 1) * 100 / count)
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            item_UI.name.setText(data["name"])
+            font = QFont()
+            font.setBold(False)
+            font.setPointSize(8)
+            item_UI.gender.setFont(font)
+            item_UI.gender.setText(data["gender"])
+            item_UI.play.clicked.connect(self.preview_pressed)
+            item_widget.setObjectName(data["name"])
+
+            item = QListWidgetItem()
+            item.setForeground(QColor(0, 0, 0, 0))
+            item.setText(data["name"])
+            # item.setToolTip(data['language_codes'][0])
+            item.setToolTip(data["id"])
+            item.setSizeHint(item_widget.sizeHint())
+            self.ui.listWidget_voiceazure.insertItem(index, item)
+            self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
         except Exception as azureError:
-            logging.error(f"Error loading Azure item: {azureError}")
+            print(str(azureError))
 
     def load_Google_items(self, index, data, count):
         self.ui.gTTS_progressBar.setValue((index + 1) * 100 / count)
@@ -1632,45 +1515,57 @@ class Widget(QWidget):
 
 
 class Signals(QObject):
-    """Signal class for thread communication"""
     started = Signal()
     completed = Signal()
     thread_completed = Signal(object)
-    voicesFetched = Signal(list)
     itemGenerated = Signal(int, dict, int)
+    voicesFetched = Signal(list)
     errorDetected = Signal(str, str)
 
 
 class Player(QRunnable):
-    """Handles audio playback in a separate thread"""
-    def __init__(self, config_file):
+
+    def __init__(self, file):
         super().__init__()
-        self.config_file = config_file
+        self.temp_config_file = file
         self.signals = Signals()
 
     def run(self):
-        try:
-            # Create a temporary config file for the player
-            temp_dir = tempfile.gettempdir()
-            temp_config = os.path.join(temp_dir, f"temp_config_{uuid.uuid4()}.cfg")
-            
-            # Copy the config file to temp location
-            with open(self.config_file, 'r') as source:
-                with open(temp_config, 'w') as target:
-                    target.write(source.read())
-
-            # Run the player process
-            subprocess.run(["python", "-m", "tts_wrapper", "--config", temp_config])
-            
-            # Clean up
-            if os.path.exists(temp_config):
-                os.remove(temp_config)
-                
-            self.signals.completed.emit()
-            
-        except Exception as e:
-            logging.error(f"Player Error: {e}")
-            self.signals.completed.emit()  # Still emit completed to unblock UI
+        if getattr(sys, "frozen", False):
+            application_path = os.path.dirname(sys.executable)
+            exe_name = ""
+            for root, dirs, files in os.walk(application_path):
+                for file in files:
+                    if "client.exe" in file:
+                        exe_name = file
+            GUI_path = os.path.join(application_path, exe_name)
+            # Use subprocess.Popen to run the executable
+            cache_location = os.path.join(
+                os.path.dirname(self.temp_config_file.name), "Audio Files"
+            )
+            process = subprocess.Popen(
+                [GUI_path, "--config", self.temp_config_file.name, "--preview"]
+            )
+            process.wait()
+        elif __file__:
+            application_path = os.path.dirname(os.path.dirname(__file__))
+            # TODO: GUI_script_path get the upper directory where translatepb.py is located
+            GUI_script_path = os.path.join(application_path, "client.py")
+            print(GUI_script_path)
+            cache_location = os.path.join(
+                os.path.dirname(self.temp_config_file.name), "Audio Files"
+            )
+            process = subprocess.Popen(
+                [
+                    f"{application_path}/venv/Scripts/python.exe",
+                    GUI_script_path,
+                    "--config",
+                    self.temp_config_file.name,
+                    "--preview",
+                ]
+            )
+            process.wait()
+        self.signals.completed.emit()
 
 
 class Cleaner(QRunnable):
@@ -1694,8 +1589,8 @@ class Cleaner(QRunnable):
         self.signals.completed.emit()
 
 
-class VoiceFetcher(QRunnable):
-    """Handles async fetching of voice data from TTS services"""
+class VoiceLoader(QRunnable):
+
     def __init__(self, parent, tts=None):
         super().__init__()
         self.tts = tts
@@ -1703,7 +1598,7 @@ class VoiceFetcher(QRunnable):
         self.parent = parent
 
     def __del__(self):
-        print('VoiceFetcher is deleted')
+        print('QRunnable is deleted')
 
     def run(self):
         try:
@@ -1711,123 +1606,104 @@ class VoiceFetcher(QRunnable):
             start = time.perf_counter()
             voices = []
             generate = True
-            
-            # Fetch voices based on TTS type
             if self.tts == "Azure TTS":
-                voices = self._fetch_azure_voices()
                 generate = self.parent.ui.checkBox_azure.isChecked()
+                if self.parent.azure_location != "" and self.parent.azure_key != "":
+                    client = MicrosoftClient(
+                        (self.parent.azure_key, self.parent.azure_location)
+                    )
+                else:
+                    client = MicrosoftClient((ms_token, ms_region))
+                try:
+                    voices = client.get_available_voices()
+                except Exception as getVoicesError:
+                    logging.error(f"Azure TTS Error: {getVoicesError}")
+                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
+                    client = MicrosoftClient((ms_token, ms_region))
+                    voices = client.get_available_voices()
             elif self.tts == "Google TTS":
-                voices = self._fetch_google_voices()
                 generate = self.parent.ui.checkBox_google.isChecked()
+                client = GoogleClient(credentials=self.parent.google_credential)
+                try:
+                    voices = client.get_voices()
+                except Exception as getVoicesError:
+                    logging.error(f"Google TTS Error: {getVoicesError}")
+                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
+                    client = GoogleClient(credentials=self.parent.default_google_credential)
+                    voices = client.get_voices()
             elif self.tts == "Sherpa-ONNX":
-                voices = self._fetch_onnx_voices()
+                client = SherpaOnnxClient()
+                try:
+                    voices = client.get_voices()
+                except Exception as getVoicesError:
+                    logging.error(f"Sherpa-Onnx Error: {getVoicesError}")
             elif self.tts == "GoogleTranslator TTS":
-                voices = self._fetch_gtranslator_voices()
-
+                client = GoogleTransClient()
+                try:
+                    voices = client.get_voices()
+                except Exception as getVoicesError:
+                    logging.error(f"GoogleTranslator TTS Error: {getVoicesError}")
             self.signals.voicesFetched.emit(voices)
             count = len(voices)
             print(f"Voice fetch time for {self.tts}: {time.perf_counter() - start}")
-            
             if generate:
                 for index, x in enumerate(voices):
                     time.sleep(0.001)
                     self.signals.itemGenerated.emit(index, x, count)
             self.signals.thread_completed.emit(self)
-            
         except Exception as e:
+            print(e)
             logging.error(f"Voice List Error: {e}")
 
-    def _fetch_azure_voices(self):
-        if self.parent.azure_location != "" and self.parent.azure_key != "":
-            client = MicrosoftClient((self.parent.azure_key, self.parent.azure_location))
-        else:
-            client = MicrosoftClient((ms_token, ms_region))
-        try:
-            return client.get_available_voices()
-        except Exception as error:
-            logging.error(f"Azure TTS Error: {error}")
-            self.signals.errorDetected.emit(str(error), self.tts)
-            client = MicrosoftClient((ms_token, ms_region))
-            return client.get_available_voices()
 
-    def _fetch_google_voices(self):
-        client = GoogleClient(credentials=self.parent.google_credential)
-        try:
-            return client.get_voices()
-        except Exception as error:
-            logging.error(f"Google TTS Error: {error}")
-            self.signals.errorDetected.emit(str(error), self.tts)
-            client = GoogleClient(credentials=self.parent.default_google_credential)
-            return client.get_voices()
+def setup_logging():
+    if getattr(sys, "frozen", False):
+        # If the application is run as a bundle, use the AppData directory
+        log_dir = os.path.join(
+            os.path.expanduser("~"),
+            "AppData",
+            "Roaming",
+            "Ace Centre",
+            "AACSpeakHelper",
+        )
+    else:
+        # If run from a Python environment, use the current directory
+        log_dir = os.path.dirname(os.path.abspath(__file__))
 
-    def _fetch_onnx_voices(self):
-        client = SherpaOnnxClient()
-        try:
-            return client.get_voices()
-        except Exception as error:
-            logging.error(f"Sherpa-Onnx Error: {error}")
-            return []
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_file = os.path.join(log_dir, "configure.log")
 
-    def _fetch_gtranslator_voices(self):
-        client = GoogleTransClient()
-        try:
-            return client.get_voices()
-        except Exception as error:
-            logging.error(f"GoogleTranslator TTS Error: {error}")
-            return []
+    logging.basicConfig(
+        filename=log_file,
+        filemode="a",
+        format="%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s",
+        level=logging.DEBUG,
+    )
 
-
-class ConfigManager:
-    def __init__(self, config_path):
-        self.config_path = config_path
-        self.config = configparser.ConfigParser()
-        
-    def load_config(self):
-        if os.path.exists(self.config_path):
-            self.config.read(self.config_path)
-            return self.config
-        return None
-            
-    def save_config(self):
-        """Save the current configuration to file"""
-        with open(self.config_path, 'w') as configfile:
-            self.config.write(configfile)
-        
-    def get_tts_settings(self, engine):
-        """Get TTS settings for the specified engine"""
-        if engine not in self.config:
-            return {}
-        return dict(self.config[engine])
+    return log_file
 
 
 if __name__ == "__main__":
     logfile = setup_logging()
-    logging.info("Starting Configure TranslateAndTTS application")
-    
     try:
-        logging.info("Loading configuration...")
         config = load_config()
         logging.info("Configuration Loaded Successfully.")
-        
-        logging.info("Initializing tokens...")
-        ms_token = config.get("azureTTS", "key")
-        ms_region = config.get("azureTTS", "location")
-        google_creds_path = config.get("googleTTS", "creds")
-        ms_token_trans = config.get("translate", "microsofttranslator_secret_key")
-        logging.info("Tokens initialized successfully")
-        
-        logging.info("Creating QApplication...")
-        app = QApplication(sys.argv)
-        screen = app.primaryScreen()
-        size = screen.size()
-        logging.info(f"Screen size: {size.width()}x{size.height()}")
-        
-        logging.info("Creating main widget...")
-        widget = Widget(size)
-        widget.show()
-        logging.info("Application window shown, starting event loop...")
-        
-        sys.exit(app.exec())
-    except Exception as error:
-        logging.error(f"Fatal error in main: {error}", exc_info=True)
-        sys.exit(1)
+        azure_tts_config = config.get("azureTTS", {})
+        ms_token = azure_tts_config.get("key")
+        ms_region = azure_tts_config.get("location")
+
+        google_tts_config = config.get("googleTTS", {})
+        google_creds_path = google_tts_config.get("creds")
+
+        translate_config = config.get("translate", {})
+        ms_token_trans = translate_config.get("microsofttranslator_secret_key")
+    except Exception as e:
+        print(f"Error loading configuration: {e}")
+        # You might want to set default values or raise a more specific error here
+    app = QApplication(sys.argv)
+    screen = app.primaryScreen()
+    size = screen.size()
+    widget = Widget(size)
+    widget.show()
+    sys.exit(app.exec())

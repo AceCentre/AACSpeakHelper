@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.8.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -30,7 +30,7 @@ class Ui_Widget(object):
             Widget.setObjectName(u"Widget")
         Widget.resize(705, 427)
         icon = QIcon()
-        icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/images/images/configure.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Widget.setWindowIcon(icon)
         self.gridLayout = QGridLayout(Widget)
         self.gridLayout.setSpacing(2)
@@ -59,27 +59,23 @@ class Ui_Widget(object):
         self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.ttsEngineBox = QComboBox(self.TextToSpeechSetting)
         icon1 = QIcon()
-        icon1.addFile(u":/images/images/downloaded.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u":/images/images/downloaded.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.ttsEngineBox.addItem(icon1, "")
         self.ttsEngineBox.addItem(icon1, "")
         self.ttsEngineBox.addItem(icon1, "")
         self.ttsEngineBox.addItem(icon1, "")
-        icon2 = QIcon()
-        icon2.addFile(u":/images/images/unavailable.ico", QSize(), QIcon.Normal, QIcon.Off)
-        self.ttsEngineBox.addItem(icon2, "")
-        self.ttsEngineBox.addItem(icon2, "")
         self.ttsEngineBox.setObjectName(u"ttsEngineBox")
         self.ttsEngineBox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         self.gridLayout_12.addWidget(self.ttsEngineBox, 0, 0, 1, 1)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_12.addItem(self.horizontalSpacer, 0, 1, 1, 1)
 
         self.stackedWidget = QStackedWidget(self.TextToSpeechSetting)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
@@ -121,7 +117,7 @@ class Ui_Widget(object):
 
         self.listWidget_voiceazure = QListWidget(self.azure_voice_models)
         self.listWidget_voiceazure.setObjectName(u"listWidget_voiceazure")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.listWidget_voiceazure.sizePolicy().hasHeightForWidth())
@@ -224,7 +220,7 @@ class Ui_Widget(object):
         self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.browseButton = QPushButton(self.gridWidget_2)
         self.browseButton.setObjectName(u"browseButton")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.browseButton.sizePolicy().hasHeightForWidth())
@@ -409,7 +405,7 @@ class Ui_Widget(object):
 
         self.verticalLayout_10.addLayout(self.gridLayout_8)
 
-        self.verticalSpacer = QSpacerItem(20, 61, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer = QSpacerItem(20, 61, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_10.addItem(self.verticalSpacer)
 
@@ -441,7 +437,7 @@ class Ui_Widget(object):
 
         self.verticalLayout_12.addLayout(self.gridLayout_7)
 
-        self.verticalSpacer_3 = QSpacerItem(20, 269, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_3 = QSpacerItem(20, 269, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_12.addItem(self.verticalSpacer_3)
 
@@ -491,7 +487,7 @@ class Ui_Widget(object):
 
         self.verticalLayout_13.addLayout(self.gridLayout_5)
 
-        self.verticalSpacer_4 = QSpacerItem(20, 256, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_4 = QSpacerItem(20, 256, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_13.addItem(self.verticalSpacer_4)
 
@@ -579,7 +575,7 @@ class Ui_Widget(object):
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
         self.checkBox_translate = QCheckBox(self.TranslationSettings)
         self.checkBox_translate.setObjectName(u"checkBox_translate")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.checkBox_translate.sizePolicy().hasHeightForWidth())
@@ -602,7 +598,7 @@ class Ui_Widget(object):
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.label_2 = QLabel(self.groupBox_translate)
         self.label_2.setObjectName(u"label_2")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
         sizePolicy4.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
@@ -814,7 +810,7 @@ class Ui_Widget(object):
 
         self.verticalLayout_15.addWidget(self.groupBox_translate)
 
-        self.verticalSpacer_6 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_6 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_15.addItem(self.verticalSpacer_6)
 
@@ -829,7 +825,7 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addWidget(self.label_15, 1, 0, 1, 1)
 
-        self.horizontalSpacer_5 = QSpacerItem(30, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_5 = QSpacerItem(30, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_5, 1, 4, 1, 1)
 
@@ -842,7 +838,7 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addWidget(self.spinBox_threshold, 1, 1, 1, 1)
 
-        self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.gridLayout_9.addItem(self.verticalSpacer_5, 6, 1, 1, 1)
 
@@ -862,7 +858,7 @@ class Ui_Widget(object):
 
         self.horizontalLayout.addWidget(self.open_cache)
 
-        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_4)
 
@@ -876,21 +872,21 @@ class Ui_Widget(object):
 
         self.gridLayout_9.addWidget(self.checkBox_stats, 0, 0, 1, 1)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_2, 1, 2, 1, 1)
 
-        self.horizontalSpacer_3 = QSpacerItem(30, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.horizontalSpacer_3 = QSpacerItem(30, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_3, 3, 4, 1, 1)
 
-        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_9.addItem(self.horizontalSpacer_7, 1, 3, 1, 1)
 
         self.frame_2 = QFrame(self.ApplicationSettings)
         self.frame_2.setObjectName(u"frame_2")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         sizePolicy5.setHorizontalStretch(0)
         sizePolicy5.setVerticalStretch(0)
         sizePolicy5.setHeightForWidth(self.frame_2.sizePolicy().hasHeightForWidth())
@@ -908,7 +904,7 @@ class Ui_Widget(object):
 
         self.appPath = QLineEdit(self.frame_2)
         self.appPath.setObjectName(u"appPath")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
         sizePolicy6.setHeightForWidth(self.appPath.sizePolicy().hasHeightForWidth())
@@ -920,7 +916,7 @@ class Ui_Widget(object):
 
         self.copyApp = QPushButton(self.frame_2)
         self.copyApp.setObjectName(u"copyApp")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy7.setHorizontalStretch(0)
         sizePolicy7.setVerticalStretch(0)
         sizePolicy7.setHeightForWidth(self.copyApp.sizePolicy().hasHeightForWidth())
@@ -928,7 +924,7 @@ class Ui_Widget(object):
 
         self.horizontalLayout_2.addWidget(self.copyApp)
 
-        self.horizontalSpacer_6 = QSpacerItem(20, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer_6 = QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_2.addItem(self.horizontalSpacer_6)
 
@@ -958,8 +954,6 @@ class Ui_Widget(object):
         self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Azure TTS", None))
         self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"Google TTS", None))
         self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GoogleTranslator TTS", None))
-        self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"Sapi5 (Windows)", None))
-        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"espeak (Unsupported)", None))
 
         self.azure_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
         self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))

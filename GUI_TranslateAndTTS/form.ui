@@ -110,24 +110,6 @@
             <normaloff>:/images/images/downloaded.ico</normaloff>:/images/images/downloaded.ico</iconset>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>Sapi5 (Windows)</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>:/images/images/unavailable.ico</normaloff>:/images/images/unavailable.ico</iconset>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>espeak (Unsupported)</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>:/images/images/unavailable.ico</normaloff>:/images/images/unavailable.ico</iconset>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="0" column="1">
