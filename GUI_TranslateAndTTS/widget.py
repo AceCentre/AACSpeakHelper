@@ -1,111 +1,198 @@
 # This Python file uses the following encoding: utf-8
-import configparser
+import os
+import sys
 import json
 import logging
-import os
-import subprocess
-import tempfile
-import sys
-import time
-import uuid
-import warnings
-import platform
+import configparser
+import pyperclip
+from pathlib import Path
+from threading import Thread
+from PySide6.QtCore import Qt, QSize, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent, QMetaObject, Slot
 
+# Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
-from configure_enc_utils import load_config, load_credentials
 
-warnings.filterwarnings("ignore")
-import PySide6.QtCore
-import pyperclip
-from PySide6.QtCore import (
-    Qt,
-    QObject,
-    Signal,
-    QRunnable,
-    QThreadPool,
-    QFile,
-    QIODevice,
-    QTextStream,
-    QEvent,
+from PySide6.QtWidgets import (
+    QWidget, QListWidgetItem, QMessageBox, QApplication,
+    QPushButton, QLabel, QHBoxLayout, QListWidget,
+    QDialogButtonBox, QFileDialog, QVBoxLayout
 )
-from PySide6.QtGui import QFont, QIcon, QMovie, QColor
-from PySide6.QtWidgets import *
-from deep_translator import __all__ as providers
-from tts_wrapper import (
-    MicrosoftClient,
-    GoogleClient,
-    SherpaOnnxClient,
-    GoogleTransClient,
-    ElevenLabsClient
-)
-
+from PySide6.QtGui import QIcon, QMovie, QColor, QFont
+from ui_form import Ui_Widget  # Import from current directory
 from item import Ui_item
+from tts_wrapper import (
+    SherpaOnnxTTS, SherpaOnnxClient,
+    MicrosoftTTS, MicrosoftClient,
+    GoogleTransTTS, GoogleTransClient
+)
 from language_dictionary import *
+
+# Language codes mapping
+LANGUAGE_CODES = {
+    'en': 'English',
+    'es': 'Spanish',
+    'fr': 'French',
+    'de': 'German',
+    'it': 'Italian',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'zh': 'Chinese (Simplified)',
+    'ar': 'Arabic',
+    'hi': 'Hindi',
+    'tr': 'Turkish',
+    'nl': 'Dutch',
+    'pl': 'Polish',
+    'vi': 'Vietnamese',
+    'th': 'Thai',
+    'cs': 'Czech',
+    'da': 'Danish',
+    'fi': 'Finnish'
+}
+
+# TTS providers configuration
+PROVIDERS = {
+    'onnx': {
+        'name': 'ONNX',
+        'enabled': True,
+        'client_class': SherpaOnnxClient,
+        'tts_class': SherpaOnnxTTS,
+    },
+    'azure': {
+        'name': 'Azure',
+        'enabled': True,
+        'client_class': MicrosoftClient,
+        'tts_class': MicrosoftTTS,
+    },
+    'google': {
+        'name': 'Google Translate',
+        'enabled': True,
+        'client_class': GoogleTransClient,
+        'tts_class': GoogleTransTTS,
+    }
+}
 
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
-from ui_form import Ui_Widget
+
+class SherpaOnnxManager:
+    MODELS_INFO_URL = "https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html"
+    DEFAULT_CACHE_DIR = Path.home() / ".cache" / "sherpa-onnx"
+
+    def __init__(self, cache_dir=None):
+        self.cache_dir = Path(cache_dir) if cache_dir else self.DEFAULT_CACHE_DIR
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.models = self._get_available_models()
+
+    def _get_available_models(self):
+        """Fetch available models from Sherpa-ONNX repository."""
+        try:
+            response = requests.get(self.MODELS_INFO_URL)
+            response.raise_for_status()
+            # Parse the HTML to extract model information
+            # This is a simplified version - in practice you'd want to properly parse the HTML
+            models = []
+            # Add model information (this would be parsed from the HTML)
+            models.append({
+                "name": "English TTS (vits)",
+                "url": "https://huggingface.co/csukuangfj/sherpa-onnx-vits-vctk",
+                "description": "English TTS model based on VITS",
+                "size": "150MB"
+            })
+            return models
+        except Exception as e:
+            logging.error(f"Failed to fetch Sherpa-ONNX models: {e}")
+            return []
+
+    def download_model(self, model_name, progress_callback=None):
+        """Download a specific model."""
+        model = next((m for m in self.models if m["name"] == model_name), None)
+        if not model:
+            raise ValueError(f"Model {model_name} not found")
+
+        target_dir = self.cache_dir / model_name.lower().replace(" ", "_")
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # Download model files
+            response = requests.get(model["url"], stream=True)
+            response.raise_for_status()
+            total_size = int(response.headers.get("content-length", 0))
+            block_size = 8192
+            downloaded = 0
+
+            target_file = target_dir / "model.onnx"
+            with open(target_file, "wb") as f:
+                for data in response.iter_content(block_size):
+                    downloaded += len(data)
+                    f.write(data)
+                    if progress_callback:
+                        progress = (downloaded / total_size) * 100
+                        progress_callback(progress)
+
+            return str(target_file)
+        except Exception as e:
+            logging.error(f"Failed to download model {model_name}: {e}")
+            raise
+
+    def get_installed_models(self):
+        """Get list of installed models."""
+        installed = []
+        for model_dir in self.cache_dir.iterdir():
+            if model_dir.is_dir() and (model_dir / "model.onnx").exists():
+                installed.append(model_dir.name)
+        return installed
 
 
 class Widget(QWidget):
-    def __init__(self, size, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.default_google_credential = None
-        self.google_credential = None
-        self.threadList = []
-        self.translate_instance = None
-        self.available_language = None
-        self.screenSize = size
-        self.language_azure_list = None
-        self.google_row = None
-        self.google_client = None
-        self.voice_google_list = None
-        self.voice_list = None
-        self.movie = None
-        self.currentButton = None
-        self.temp_config_file = None
-        self.azure_row = None
-        self.cleaning = False
-        self.lock = True
+        
+        # Initialize UI
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-        self.ui.onnx_progressBar.setVisible(False)
-        self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
-            "QScrollBar:vertical { width: 30px; }"
+        
+        # Set up logging with more detail
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(levelname)s - %(message)s'
         )
-        self.ui.listWidget_voiceazure.verticalScrollBar().setStyleSheet(
-            "QScrollBar:vertical { width: 30px; }"
-        )
-        self.ui.listWidget_voicegoogle.verticalScrollBar().setStyleSheet(
-            "QScrollBar:vertical { width: 30px; }"
-        )
-        # self.ui.textBrowser.setStyleSheet("background-color: transparent; border: none;")
-        self.installEventFilter(self)
-        self.ui.copyApp.clicked.connect(self.copyAppPath)
-        self.ui.validate_azure.clicked.connect(self.azure_validation)
-        self.ui.validate_google.clicked.connect(self.google_validation)
-        self.providers = []
-        for translator in providers:
-            if "Translator" in translator:
-                self.providers.append(translator)
-        self.ui.comboBox_provider.addItems(self.providers)
-        self.ui.comboBox_provider.currentTextChanged.connect(self.setParameter)
-        self.ui.tabWidget.setTabText(0, "TTS Engine")
-        self.ui.tabWidget.setTabText(1, "Translate Settings")
-        self.ui.tabWidget.setTabText(2, "Application Settings")
-        self.tts_dict = {}
-        # self.generate_translate_list()
-        self.ui.comboBox_targetLang.currentTextChanged.connect(self.updateLanguage)
-        self.translate_languages = gSpeak_TTS_list
-
-        self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
-        self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-
+        logging.debug("Widget initialized")
+        
+        # Initialize icons
+        self.iconDownload = QIcon(":/images/images/download.ico")
+        self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
+        self.iconTick = QIcon(":/images/images/downloaded.ico")  # Use downloaded.ico as tick
+        
+        # Create loading spinner movie
+        self.spinner = QMovie(":/images/images/loading.gif")  # Use existing loading.gif
+        self.spinner.setScaledSize(QSize(16, 16))
+        self.active_downloads = {}  # Track active downloads
+        
+        # Initialize providers dictionary
+        self.providers = {
+            "azure": True,
+            "google": True,
+            "google_trans": True,
+            "onnx": True
+        }
+        
+        # Set tab titles
+        self.ui.tabWidget.setTabText(0, "Speech Engine")
+        self.ui.tabWidget.setTabText(1, "Translation")
+        self.ui.tabWidget.setTabText(2, "Options")
+        
+        # Get screen size
+        screen = QApplication.primaryScreen()
+        self.screenSize = screen.size() if screen else None
+        
+        # Initialize paths based on frozen state
+        home_directory = os.path.expanduser("~")
         if getattr(sys, "frozen", False):
             # Get the path to the user's app data folder
-            home_directory = os.path.expanduser("~")
             self.app_data_path = os.path.join(
                 home_directory,
                 "AppData",
@@ -114,7 +201,6 @@ class Widget(QWidget):
                 "Ace Centre",
                 "AACSpeakHelper",
             )
-            self.ui.appPath.setText(self.app_data_path)
             self.config_path = os.path.join(
                 home_directory,
                 "AppData",
@@ -139,307 +225,260 @@ class Widget(QWidget):
                 "AACSpeakHelper",
                 "models",
             )
+            self.ui.appPath.setText(self.app_data_path)
         elif __file__:
             self.app_data_path = os.path.abspath(
                 os.path.join(os.path.dirname(__file__), os.pardir)
             )
-            self.ui.appPath.setText(
-                os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
-            )
             self.config_path = os.path.join(self.app_data_path, "settings.cfg")
             self.audio_path = os.path.join(self.app_data_path, "Audio Files")
             self.onnx_cache_path = os.path.join(self.app_data_path, "models")
-        if not os.path.isdir(self.onnx_cache_path):
-            os.makedirs(self.onnx_cache_path)
+            self.ui.appPath.setText(
+                os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
+            )
+        
+        # Create necessary directories
+        for path in [self.audio_path, self.onnx_cache_path]:
+            if not os.path.exists(path):
+                os.makedirs(path)
+        
+        # Initialize state
+        self.temp_config_file = None
+        self.threadList = []
+        self.lock = True
+        self.comboBox = "Sherpa-ONNX"  # Default value
+        self.ttsEngine = "SherpaOnnxTTS"
+        
+        # Set up UI elements
+        self.ui.onnx_cache.setText(self.onnx_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
-        self.ui.open_cache.clicked.connect(self.cache_open)
         self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
-        self.config = configparser.ConfigParser()
-        self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
-        # Check if the file already exists
-        if os.path.exists(self.config_path):
-            self.config.read(self.config_path)
-            self.generate_azure_voice_models()
-            self.generate_google_voice_models()
-            self.generate_onnx_voice_model()
-            self.generate_googleTrans_voice_model()
-            self.poolStarter()
-            self.get_microsoft_language()
-            self.notranslate = self.ttsEngine = self.config.getboolean(
-                "translate", "no_translate"
-            )
-            self.startLang = self.config.get("translate", "start_lang")
-            self.endLang = self.config.get("translate", "end_lang")
-            self.overwritePb = self.config.getboolean("translate", "replace_pb")
-            self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
-            self.provider = self.config.get("translate", "provider")
-            self.ui.comboBox_provider.setCurrentIndex(
-                self.ui.comboBox_provider.findText(self.provider)
-            )
-            match self.provider:
-                case "MyMemoryTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.mymemory)
-                    )
-                case "LibreTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.libretranslate)
-                    )
-                case "DeeplTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.deepl)
-                    )
-                case "MicrosoftTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.microsoft)
-                    )
-                case "YandexTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.yandex)
-                    )
-                case "GoogleTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.google)
-                    )
-                case "LingueeTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.linguee)
-                    )
-                case "PonsTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.pons)
-                    )
-                case "QCRITranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.qcri)
-                    )
-                case "PapagoTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.papago)
-                    )
-                case "BaiduTranslator":
-                    self.ui.stackedWidget_provider.setCurrentIndex(
-                        self.ui.stackedWidget_provider.indexOf(self.ui.baidu)
-                    )
-            self.ui.mymemory_secret_key.setText(
-                self.config.get("translate", "my_memory_translator_secret_key")
-            )
-            self.ui.email_mymemory.setText(self.config.get("translate", "email"))
-            self.ui.LibreTranslate_secret_key.setText(
-                self.config.get("translate", "libre_translator_secret_key")
-            )
-            self.ui.LibreTranslate_url.setText(self.config.get("translate", "url"))
-            self.ui.deepl_secret_key.setText(
-                self.config.get("translate", "deep_l_translator_secret_key")
-            )
-            self.ui.checkBox_pro.setChecked(
-                self.config.getboolean("translate", "deepl_pro")
-            )
-            self.ui.microsoft_secret_key.setText(
-                self.config.get("translate", "microsoft_translator_secret_key")
-            )
-            self.ui.microsoft_region.setText(self.config.get("translate", "region"))
-            self.ui.yandex_secret_key.setText(
-                self.config.get("translate", "yandex_translator_secret_key")
-            )
-            self.ui.qcri_secret_key.setText(
-                self.config.get("translate", "qcri_translator_secret_key")
-            )
-            self.ui.papago_secret_key.setText(
-                self.config.get("translate", "papago_translator_secret_key")
-            )
-            self.ui.papago_client_id.setText(
-                self.config.get("translate", "papago_translator_client_id")
-            )
-            self.ui.baidu_secret_key.setText(
-                self.config.get("translate", "baidu_translator_secret_key")
-            )
-            self.ui.baidu_appid.setText(
-                self.config.get("translate", "baidu_translator_appid")
-            )
-            # TODO: Add ChatGPT translator
-            self.ttsEngine = self.config.get("TTS", "engine")
-            self.voiceid = self.config.get("TTS", "voice_id")
-            self.rate = self.config.getint("TTS", "rate")
-            self.volume = self.config.getint("TTS", "volume")
-
-            self.key = self.config.get("azureTTS", "key")
-            self.region = self.config.get("azureTTS", "location")
-            self.voiceidAzure = self.config.get("azureTTS", "voice_id")
-            self.saveAudio = self.config.getboolean("TTS", "save_audio_file")
-
-            self.credsFilePath = self.config.get("googleTTS", "creds")
-            self.voiceidGoogle = self.config.get("googleTTS", "voice_id")
-
-            self.voiceid_onnx = self.config.get("SherpaOnnxTTS", "voice_id")
-            self.voiceidGoogleTrans = self.config.get("googleTransTTS", "voice_id")
-            match self.ttsEngine:
-                case "azureTTS":
-                    self.comboBox = "Azure TTS"
-                    self.ui.stackedWidget.setCurrentIndex(0)
-                    self.ui.ttsEngineBox.setCurrentText("Azure TTS")
-                case "googleTTS":
-                    self.comboBox = "Google TTS"
-                    self.ui.stackedWidget.setCurrentIndex(1)
-                    self.ui.ttsEngineBox.setCurrentText("Google TTS")
-                case "googleTransTTS":
-                    self.comboBox = "GoogleTranslator TTS"
-                    self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
-                case "SherpaOnnxTTS":
-                    self.comboBox = "Sherpa-ONNX"
-                    self.ui.stackedWidget.setCurrentIndex(6)
-                    self.ui.ttsEngineBox.setCurrentText("Sherpa-ONNX")
-                case "espeak":
-                    self.comboBox = "espeak (Unsupported)"
-                    self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText("espeak (Unsupported)")
-                case "nsss":
-                    self.comboBox = "NSS (Mac Only)"
-                    self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText("NSS (Mac Only)")
-                case "coqui":
-                    self.comboBox = "coqui_ai_tts (Unsupported)"
-                    self.ui.stackedWidget.setCurrentIndex(5)
-                    self.ui.ttsEngineBox.setCurrentText("coqui_ai_tts (Unsupported)")
-                case _:
-                    self.comboBox = "GoogleTranslator TTS"
-                    self.ui.stackedWidget.setCurrentIndex(2)
-                    self.ui.ttsEngineBox.setCurrentText("GoogleTranslator TTS")
-            self.set_Translate_dropdown(self.translate_languages)
-
-            self.set_azure_voice(self.voiceidAzure)
-            self.set_google_voice(self.voiceidGoogle)
-            self.set_onnx_voice(self.voiceid_onnx)
-            self.set_googleTrans_voice(self.voiceidGoogleTrans)
-
-            self.ui.checkBox_translate.setChecked(not self.notranslate)
-            self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
-            self.ui.bypass_tts_checkBox.setChecked(self.bypassTTS)
-            self.ui.checkBox_saveAudio.setChecked(self.saveAudio)
-
-            self.ui.horizontalSlider_rate.setValue(self.rate)
-            self.ui.horizontalSlider_volume.setValue(self.volume)
-            self.ui.onnx_cache.setText(self.onnx_cache_path)
-            self.ui.lineEdit_voiceID.setText(self.voiceid)
-            self.ui.lineEdit_key.setText(self.key)
-            self.ui.lineEdit_region.setText(self.region)
-
-            self.ui.checkBox_saveAudio_gTTS.setChecked(self.saveAudio)
-            self.ui.credsFilePathEdit.setText(self.credsFilePath)
-
-            self.ui.onnx_checkBox.setChecked(self.saveAudio)
-
-            self.ui.checkBox_stats.setChecked(
-                self.config.getboolean("App", "collectstats")
-            )
-            self.ui.spinBox_threshold.setValue(
-                int(self.config.get("appCache", "threshold"))
-            )
-
-        else:
-            self.generate_azure_voice_models()
-            self.generate_google_voice_models()
-            self.generate_onnx_voice_model()
-            self.generate_googleTrans_voice_model()
-            self.poolStarter()
-            self.get_microsoft_language()
-            # self.ttsEngine = "azureTTS"
-            # self.comboBox = 'Azure TTS'
-            self.ui.onnx_cache.setText(self.onnx_cache_path)
-            self.ttsEngine = "SherpaOnnxTTS"
-            self.comboBox = "Sherpa-ONNX"
-            self.ui.stackedWidget.setCurrentIndex(0)
-
-            self.notranslate = False
-            self.saveAudio_azure = True
-            self.overwritePb = True
-            self.bypassTTS = False
-
-            self.voiceid = None
-            self.voiceidAzure = "en-US-JennyNeural"
-            self.voiceidGoogle = "en-US-Wavenet-C"
-            self.voiceidonnx = "eng"
-            self.voiceidGoogleTrans = "en-co.uk"
-
-            self.rate = None
-            self.volume = None
-
-            self.key = None
-            self.region = None
-            self.startLang = None
-            self.endLang = None
-
-            self.credsFilePath = ""
-            self.saveAudio_google = True
-
-            self.saveAudio_onnx = True
-            self.saveAudio_googleTrans = True
-
-            # self.set_azure_voice(self.voiceidAzure)
-            # self.set_google_voice(self.voiceidGoogle)
-            # self.set_onnx_voice(self.voiceidonnx)
-
-            self.ui.spinBox_threshold.setValue(7)
-
-        self.ui.ttsEngineBox.currentTextChanged.connect(self.onTTSEngineToggled)
-
+        
+        # Connect signals
+        self.ui.ttsEngineBox.currentTextChanged.connect(self.on_tts_engine_toggled)
         self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
-            lambda: self.OnSavePressed(True)
+            lambda: self.on_save_pressed(True)
         )
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
-            self.OnDiscardPressed
+            self.on_discard_pressed
         )
-
-        self.ui.browseButton.clicked.connect(self.OnBrowseButtonPressed)
-
-        self.ui.credsFilePathEdit.textChanged.connect(self.OnCredsFilePathChanged)
-        self.onTTSEngineToggled(self.comboBox)
+        self.ui.browseButton.clicked.connect(self.on_browse_button_pressed)
+        self.ui.credsFilePathEdit.textChanged.connect(self.on_creds_file_path_changed)
+        
+        # Load configuration
+        self.config = configparser.ConfigParser()
+        self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
+        
+        # Initialize default values
+        self.notranslate = False
+        self.saveAudio_azure = True
+        self.overwritePb = True
+        self.bypassTTS = False
+        
+        if os.path.exists(self.config_path):
+            self.load_existing_config()
+        else:
+            self.initialize_default_config()
+            
+        # Generate voice models
+        self.generate_onnx_voice_models()
+        self.generate_azure_voice_models()
+        self.generate_google_voice_models()
+        self.generate_google_trans_voice_models()
+        
+        # Set initial engine
+        self.on_tts_engine_toggled(self.comboBox)
         self.lock = False
-
-    def eventFilter(self, obj, event):
-        self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != "")
-        self.ui.validate_azure.setVisible(
-            self.ui.lineEdit_key.text() != "" and self.ui.lineEdit_region.text() != ""
+        
+        # Set list widget styling
+        list_style = """
+            QListWidget {
+                background-color: white;
+                border: 1px solid #cccccc;
+                border-radius: 4px;
+            }
+            QListWidget::item {
+                border-bottom: 1px solid #eeeeee;
+                padding: 5px;
+            }
+            QListWidget::item:selected {
+                background-color: #e6f3ff;
+                color: black;
+            }
+            QListWidget::item:hover {
+                background-color: #f5f5f5;
+            }
+        """
+        self.ui.onnx_listWidget.setStyleSheet(list_style)
+        self.ui.listWidget_voiceazure.setStyleSheet(list_style)
+        self.ui.listWidget_voicegoogle.setStyleSheet(list_style)
+        self.ui.listWidget_voicegoogleTrans.setStyleSheet(list_style)
+        
+        # Set scrollbar styling
+        self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
+            "QScrollBar:vertical { width: 30px; }"
         )
-        return super().eventFilter(obj, event)
 
-    def onTTSEngineToggled(self, text):
-        match text:
-            case "Azure TTS":
-                self.ttsEngine = "azureTTS"
-                self.ui.stackedWidget.setCurrentIndex(0)
-                if self.screenSize.height() > 800:
-                    self.resize(588, 667)
-            case "Google TTS":
-                self.ttsEngine = "googleTTS"
-                self.ui.stackedWidget.setCurrentIndex(1)
-                if self.screenSize.height() > 800:
-                    self.resize(588, 667)
-            case "GoogleTranslator TTS":
-                self.ttsEngine = "googleTransTTS"
-                self.ui.stackedWidget.setCurrentIndex(2)
-                if self.screenSize.height() > 800:
-                    self.resize(588, 667)
-            case "Sherpa-ONNX":
-                self.ttsEngine = "SherpaOnnxTTS"
-                self.ui.stackedWidget.setCurrentIndex(6)
-                if self.screenSize.height() > 800:
-                    self.resize(588, 667)
-            case _:
-                self.resize(588, 400)
-                self.ui.stackedWidget.setCurrentIndex(5)
-                if text == "espeak (Unsupported)":
-                    self.ttsEngine = "espeak"
-                elif text == "NSS (Mac Only)":
-                    self.ttsEngine = "nsss"
-                elif text == "coqui_ai_tts (Unsupported)":
-                    self.ttsEngine = "coqui"
-                else:
-                    self.ttsEngine = "azureTTS"
-        self.setParameter(self.ui.comboBox_provider.currentText())
+        # Set larger font for search boxes
+        search_font = QFont()
+        search_font.setPointSize(14)
+        
+        # Debug print search box objects
+        logging.debug(f"Azure search box: {self.ui.search_language_azure}")
+        logging.debug(f"Google search box: {self.ui.search_language_google}")
+        logging.debug(f"ONNX search box: {self.ui.search_language}")
+        logging.debug(f"Google Trans search box: {self.ui.search_language_googleTrans}")
+        
+        self.ui.search_language_azure.setFont(search_font)
+        self.ui.search_language_google.setFont(search_font)
+        self.ui.search_language.setFont(search_font)  
+        self.ui.search_language_googleTrans.setFont(search_font)
+        
+        # Connect search boxes to filter functions with debug
+        logging.debug("Connecting search box signals...")
+        
+        def debug_text_changed(text, provider):
+            print(f"Text changed in {provider} search box: '{text}'")  # Print for immediate feedback
+            logging.debug(f"Text changed in {provider} search box: '{text}'")
+            self.on_search_changed(text, provider)
+            
+        def debug_return_pressed(provider):
+            print(f"Return pressed in {provider} search box")  # Print for immediate feedback
+            logging.debug(f"Return pressed in {provider} search box")
+            self.on_search_return(provider)
+        
+        # Connect with debug wrappers
+        self.ui.search_language_azure.textChanged.connect(
+            lambda text: debug_text_changed(text, "azure"))
+        self.ui.search_language_google.textChanged.connect(
+            lambda text: debug_text_changed(text, "google"))
+        self.ui.search_language.textChanged.connect(
+            lambda text: debug_text_changed(text, "onnx"))
+        self.ui.search_language_googleTrans.textChanged.connect(
+            lambda text: debug_text_changed(text, "google_trans"))
+        
+        self.ui.search_language_azure.returnPressed.connect(
+            lambda: debug_return_pressed("azure"))
+        self.ui.search_language_google.returnPressed.connect(
+            lambda: debug_return_pressed("google"))
+        self.ui.search_language.returnPressed.connect(
+            lambda: debug_return_pressed("onnx"))
+        self.ui.search_language_googleTrans.returnPressed.connect(
+            lambda: debug_return_pressed("google_trans"))
+        
+        logging.debug("Search box signals connected")
+        
+        # Set placeholder text for search boxes
+        self.ui.search_language_azure.setPlaceholderText("Search Azure voices...")
+        self.ui.search_language_google.setPlaceholderText("Search Google voices...")
+        self.ui.search_language.setPlaceholderText("Search ONNX voices...")
+        self.ui.search_language_googleTrans.setPlaceholderText("Search Google Trans voices...")
+        
+    def load_existing_config(self):
+        """Load configuration from existing config file."""
+        try:
+            config = configparser.ConfigParser()
+            config_path = os.path.join(os.path.dirname(__file__), "config.ini")
+            if os.path.exists(config_path):
+                config.read(config_path)
+                
+                if "Providers" in config:
+                    for provider in self.providers:
+                        if provider in config["Providers"]:
+                            self.providers[provider] = config["Providers"].getboolean(provider)
+                
+                if "Settings" in config:
+                    settings = config["Settings"]
+                    if "language" in settings:
+                        self.current_language = settings["language"]
+                    if "voice" in settings:
+                        self.current_voice = settings["voice"]
+                    if "provider" in settings:
+                        self.current_provider = settings["provider"]
+                
+                self.generate_azure_voice_models()
+                self.generate_google_voice_models()
+                self.generate_onnx_voice_models()
+                self.generate_google_trans_voice_models()
+                self.pool_starter()
+                self.get_microsoft_language()
+                
+                # Load configuration values
+                self.notranslate = self.ttsEngine = self.config.getboolean(
+                    "translate", "no_translate"
+                )
+                self.startLang = self.config.get("translate", "start_lang")
+                self.endLang = self.config.get("translate", "end_lang")
+                self.overwritePb = self.config.getboolean("translate", "replace_pb")
+                self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
+                self.provider = self.config.get("translate", "provider")
+                
+                # Update UI with loaded values
+                self.ui.comboBox_provider.setCurrentIndex(
+                    self.ui.comboBox_provider.findText(self.provider)
+                )
+                self.ui.checkBox_translate.setChecked(not self.notranslate)
+                self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
+                self.ui.checkBox_bypass.setChecked(self.bypassTTS)
+                self.ui.spinBox_threshold.setValue(
+                    int(self.config.get("appCache", "threshold"))
+                )
+        except Exception as e:
+            logging.error(f"Error loading configuration: {e}")
+            self.initialize_default_config()
 
-    def OnSavePressed(self, permanent=True):
+    def initialize_default_config(self):
+        """Initialize default configuration."""
+        try:
+            self.generate_onnx_voice_models()
+            self.generate_azure_voice_models()
+            self.generate_google_voice_models()
+            
+            # Load language codes
+            self.ui.comboBox_writeLang.addItems(LANGUAGE_CODES.values())
+            self.ui.comboBox_targetLang.addItems(LANGUAGE_CODES.values())
+            
+            # Set default values
+            self.ui.comboBox_writeLang.setCurrentText("English")
+            self.ui.comboBox_targetLang.setCurrentText("Chinese (Simplified)")
+            self.ui.comboBox_provider.addItems(["google", "azure", "google_trans", "onnx"])
+            self.ui.comboBox_provider.setCurrentText("google")
+            
+            # Set default paths
+            self.ui.appPath.setText(os.path.dirname(__file__))
+            
+        except Exception as e:
+            logging.error(f"Error initializing default config: {e}")
+
+    def event_filter(self, obj, event):
+        """Filter events for the widget."""
+        if event.type() == QEvent.Type.Timer:
+            self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != "")
+            self.ui.validate_azure.setVisible(
+                self.ui.lineEdit_key.text() != "" and self.ui.lineEdit_region.text() != ""
+            )
+        return super().event_filter(obj, event)
+
+    def on_tts_engine_toggled(self, text):
+        """Handle TTS engine selection changes."""
+        if text == "Azure TTS":
+            self.ui.stackedWidget.setCurrentIndex(0)
+            if self.screenSize and self.screenSize.height() > 800:
+                self.ui.listWidget_voiceazure.setFixedHeight(400)
+        elif text == "Google TTS":
+            self.ui.stackedWidget.setCurrentIndex(1)
+            if self.screenSize and self.screenSize.height() > 800:
+                self.ui.listWidget_voicegoogle.setFixedHeight(400)
+        elif text == "GoogleTranslator TTS":
+            self.ui.stackedWidget.setCurrentIndex(2)
+        elif text == "Sherpa-ONNX":
+            self.ui.stackedWidget.setCurrentIndex(6)
+            if self.screenSize and self.screenSize.height() > 800:
+                self.ui.onnx_listWidget.setFixedHeight(400)
+        else:
+            self.ui.stackedWidget.setCurrentIndex(5)
+
+    def on_save_pressed(self, permanent=True):
         self.ui.statusBar.clear()
         if (
             self.ui.listWidget_voiceazure.currentItem() is None
@@ -521,16 +560,18 @@ class Widget(QWidget):
         )
         self.config.set("translate", "email", self.ui.email_mymemory.text())
         self.config.set(
-            "translate",
-            "libre_translator_secret_key",
-            self.ui.LibreTranslate_secret_key.text(),
+            "translate", "libre_translator_secret_key", self.ui.LibreTranslate_secret_key.text()
         )
         self.config.set("translate", "url", self.ui.LibreTranslate_url.text())
         self.config.set(
-            "translate", "deep_l_translator_secret_key", self.ui.deepl_secret_key.text()
+            "translate",
+            "deep_l_translator_secret_key",
+            self.ui.deepl_secret_key.text(),
         )
         self.config.set(
-            "translate", "deepl_pro", str(self.ui.checkBox_pro.isChecked()).lower()
+            "translate",
+            "deepl_pro",
+            str(self.ui.checkBox_pro.isChecked()).lower()
         )
         # Add default microsofttranslator_secret_key if not permanent.
         self.config.set(
@@ -704,10 +745,10 @@ class Widget(QWidget):
                     )
                 )
 
-    def OnDiscardPressed(self):
+    def on_discard_pressed(self):
         self.close()
 
-    def OnBrowseButtonPressed(self):
+    def on_browse_button_pressed(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         self.credsFilePath, _ = QFileDialog.getOpenFileName(
@@ -719,7 +760,7 @@ class Widget(QWidget):
         )
         self.ui.credsFilePathEdit.setText(self.credsFilePath)
 
-    def OnCredsFilePathChanged(self):
+    def on_creds_file_path_changed(self):
         self.credsFilePath = self.ui.credsFilePathEdit.text()
 
     def get_uuid(self):
@@ -739,7 +780,7 @@ class Widget(QWidget):
             )
         return identifier
 
-    def setParameter(self, string):
+    def set_parameter(self, string):
         self.ui.comboBox_writeLang.clear()
         self.ui.comboBox_targetLang.clear()
         match string:
@@ -887,9 +928,9 @@ class Widget(QWidget):
                 )
         self.ui.comboBox_writeLang.addItems(sorted(self.translate_languages.keys()))
         self.ui.comboBox_targetLang.addItems(sorted(self.translate_languages.keys()))
-        self.set_Translate_dropdown(self.translate_languages)
+        self.set_translate_dropdown(self.translate_languages)
 
-    def updateLanguage(self, language_input):
+    def update_language(self, language_input):
         self.ui.statusBar.setText("")
         if self.lock:
             return
@@ -965,27 +1006,27 @@ class Widget(QWidget):
                     self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
                     self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
                     break
-        self.OnSavePressed(False)
+        self.on_save_pressed(False)
         if self.temp_config_file is None:
             return
         pyperclip.copy("Hello World")
         pool = QThreadPool.globalInstance()
         runnable = Player(self.temp_config_file)
-        runnable.signals.completed.connect(self.enablePlayButtons)
+        runnable.signals.completed.connect(self.enable_play_buttons)
         buttons = parentWidget.findChildren(QPushButton)
         self.movie = QMovie(":/images/images/loading.gif")
-        self.movie.updated.connect(self.update_Buttons)
+        self.movie.updated.connect(self.update_buttons)
         self.movie.start()
         self.ui.ttsEngineBox.setEnabled(False)
         for button in buttons:
             button.setEnabled(False)
         pool.start(runnable)
 
-    def update_Buttons(self):
+    def update_buttons(self):
         loading_icon = QIcon(self.movie.currentPixmap())
         self.currentButton.setIcon(loading_icon)
 
-    def enablePlayButtons(self):
+    def enable_play_buttons(self):
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             buttons = self.ui.listWidget_voiceazure.findChildren(QPushButton)
         elif self.ui.stackedWidget.currentWidget() == self.ui.gTTS_page:
@@ -1019,7 +1060,7 @@ class Widget(QWidget):
         except Exception as error:
             pass
 
-    def updateRow(self, row):
+    def update_row(self, row):
         try:
             # Set the row when index become zero (no selected item)
             if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
@@ -1063,39 +1104,149 @@ class Widget(QWidget):
         except Exception as error:
             logging.error(f"Voice Model Error: {error}")
 
-    def generate_azure_voice_models(self):
-        try:
-            logging.info("Generating Azure voice models...")
-            if not self.key or not self.region:
-                logging.warning("Azure credentials not found. Please check your configuration.")
-                return
+    def filter_voices(self, provider: str, search_text: str):
+        """Filter voices in the list widget based on search text."""
+        logging.debug(f"Search changed handler called - Provider: {provider}, Text: '{search_text}'")
+        
+        # Get the appropriate list widget based on provider
+        list_widget = None
+        if provider == "azure":
+            list_widget = self.ui.listWidget_voiceazure
+        elif provider == "google":
+            list_widget = self.ui.listWidget_voicegoogle
+        elif provider == "onnx":
+            list_widget = self.ui.onnx_listWidget
+        elif provider == "google_trans":
+            list_widget = self.ui.listWidget_voicegoogleTrans
+        
+        if not list_widget:
+            return
             
-            speech_config = speechsdk.SpeechConfig(subscription=self.key, region=self.region)
-            speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config)
+        logging.debug(f"Filtering voices with: '{search_text}'")
+        
+        # Get total items in list widget
+        total_items = list_widget.count()
+        logging.debug(f"List widget has {total_items} items")
+        
+        if total_items == 0:
+            logging.debug("No voices found in list widget")
+            return
             
-            # Get the list of voices
-            result = speech_synthesizer.get_voices_async().get()
-            if result.voices:
-                logging.info(f"Found {len(result.voices)} Azure voices")
-                for voice in result.voices:
-                    self.ui.listWidget_voiceazure.addItem(voice.short_name)
-                    self.ui.listWidget_voiceazure.item(
-                        self.ui.listWidget_voiceazure.count() - 1
-                    ).setToolTip(voice.short_name)
-            else:
-                logging.warning("No Azure voices found")
+        # Iterate through all items
+        for i in range(total_items):
+            item = list_widget.item(i)
+            if not item:
+                continue
                 
+            # Get voice data
+            voice_data = item.data(Qt.UserRole)
+            if not voice_data:
+                continue
+                
+            # Get searchable text - combine name and ID
+            name = voice_data.get('name', '').lower()
+            voice_id = voice_data.get('id', '').lower()
+            language = voice_data.get('language', '').lower()
+            searchable_text = f"{name} {voice_id} {language}"
+            
+            # Show/hide based on search
+            should_show = not search_text or search_text.lower() in searchable_text
+            item.setHidden(not should_show)
+            
+        logging.debug(f"Finished filtering voices for {provider}")
+
+    def filter_azure_voices(self):
+        self.filter_voices("azure", self.ui.search_language_azure.text())
+
+    def filter_google_voices(self):
+        self.filter_voices("google", self.ui.search_language_google.text())
+
+    def filter_onnx_voices(self):
+        self.filter_voices("onnx", self.ui.search_language.text())
+
+    def filter_google_trans_voices(self):
+        self.filter_voices("google_trans", self.ui.search_language_googleTrans.text())
+
+    def generate_azure_voice_models(self):
+        """Generate Azure voice models."""
+        try:
+            if not self.lock:
+                return
+            logging.info("Generating Azure voice models...")
+            
+            # Run in main thread since we're accessing Qt widgets
+            self.ui.listWidget_voiceazure.clear()
+            if hasattr(self.ui, 'azure_progressBar'):
+                self.ui.azure_progressBar.setVisible(True)
+            
+            # Create voice models
+            voices = self.get_azure_voices()
+            if voices:
+                for i, voice in enumerate(voices):
+                    try:
+                        # Create list widget item
+                        item = QListWidgetItem()
+                        item.setSizeHint(QSize(0, 80))
+                        
+                        # Create custom widget
+                        widget = QWidget()
+                        layout = QHBoxLayout(widget)
+                        
+                        # Add voice name label
+                        name = voice.get('name', 'Unknown')
+                        name_label = QLabel(name)
+                        name_label.setStyleSheet("font-weight: bold;")
+                        layout.addWidget(name_label)
+                        
+                        # Add spacer
+                        layout.addStretch()
+                        
+                        # Add preview button
+                        preview_btn = QPushButton("Preview")
+                        preview_btn.setIcon(self.iconPlayed)
+                        preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                        layout.addWidget(preview_btn)
+                        
+                        # Set item widget and tooltip
+                        self.ui.listWidget_voiceazure.addItem(item)
+                        self.ui.listWidget_voiceazure.setItemWidget(item, widget)
+                        item.setToolTip(voice.get('id', ''))
+                        
+                        # Store voice data
+                        item.setData(Qt.UserRole, voice)
+                        
+                        # Update progress
+                        if hasattr(self.ui, 'azure_progressBar'):
+                            progress = int((i + 1) / len(voices) * 100)
+                            self.ui.azure_progressBar.setValue(progress)
+                    except Exception as e:
+                        logging.error(f"Error loading Azure voice item: {e}")
+                        continue
+            
+            if hasattr(self.ui, 'azure_progressBar'):
+                self.ui.azure_progressBar.setVisible(False)
+            
         except Exception as e:
-            logging.error(f"Error generating Azure voice models: {str(e)}")
+            logging.error(f"Error loading Azure voice models: {e}")
+            if hasattr(self.ui, 'azure_progressBar'):
+                self.ui.azure_progressBar.setVisible(False)
 
     def get_azure_voices(self):
-        file = PySide6.QtCore.QFile(":/binary/azure_voices.json")
-        if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
-            text = PySide6.QtCore.QTextStream(file).readAll()
-            self.voice_list = json.loads(text.encode())
-            logging.info("Azure voice list fetched from Resource file.")
-            file.close()
-        return self.voice_list
+        """Get list of available Azure voices."""
+        try:
+            key = os.environ.get('MICROSOFT_TOKEN', '')
+            region = os.environ.get('MICROSOFT_REGION', '')
+            if not key or not region:
+                logging.warning("Azure TTS credentials not found in environment variables")
+                return []
+                
+            client = MicrosoftClient(credentials=(key, region))
+            tts = MicrosoftTTS(client)
+            voices = tts.get_voices()  
+            return [{'id': voice.id, 'name': voice.name} for voice in voices]
+        except Exception as e:
+            logging.error(f"Error getting Azure voices: {e}")
+            return []
 
     def get_google_voices(self):
         file = PySide6.QtCore.QFile(":/binary/google_voices.json")
@@ -1106,7 +1257,7 @@ class Widget(QWidget):
             file.close()
         return self.voice_google_list
 
-    def poolStarter(self):
+    def pool_starter(self):
         try:
             pool = QThreadPool.globalInstance()
             for thread in self.threadList:
@@ -1115,7 +1266,7 @@ class Widget(QWidget):
             print(f"ThreadPool Error: {threadError}")
             logging.error(f"ThreadPool Error: {threadError}")
 
-    def handleError(self, string, tts):
+    def handle_error(self, string, tts):
         if tts == "Azure TTS":
             self.ui.lineEdit_key.clear()
             self.ui.lineEdit_region.clear()
@@ -1142,56 +1293,461 @@ class Widget(QWidget):
             return google_creds_path
 
     def generate_google_voice_models(self):
+        """Generate Google voice models."""
         try:
+            if not self.lock:
+                return
             logging.info("Generating Google voice models...")
-            if not self.credsFilePath or not os.path.exists(self.credsFilePath):
-                logging.warning("Google credentials file not found. Please check your configuration.")
+            
+            # Clear list and show progress
+            self.ui.listWidget_voicegoogle.clear()
+            
+            # Create custom widget for each voice
+            voices = self.get_google_trans_voices()
+            if voices:
+                for i, voice in enumerate(voices):
+                    # Create list widget item
+                    item = QListWidgetItem()
+                    item.setSizeHint(QSize(0, 80))  
+                    
+                    # Create custom widget
+                    widget = QWidget()
+                    layout = QHBoxLayout(widget)
+                    
+                    # Add voice name label
+                    name = voice.get('name', 'Unknown')
+                    name_label = QLabel(name)
+                    name_label.setStyleSheet("font-weight: bold;")
+                    layout.addWidget(name_label)
+                    
+                    # Add spacer
+                    layout.addStretch()
+                    
+                    # Add preview button
+                    preview_btn = QPushButton("Preview")
+                    preview_btn.setIcon(self.iconPlayed)
+                    preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                    layout.addWidget(preview_btn)
+                    
+                    # Set item widget
+                    self.ui.listWidget_voicegoogle.addItem(item)
+                    self.ui.listWidget_voicegoogle.setItemWidget(item, widget)
+                    
+                    # Store voice data
+                    item.setData(Qt.UserRole, voice)
+                    
+                    # Update progress
+                    if hasattr(self.ui, 'google_progressBar'):
+                        progress = int((i + 1) / len(voices) * 100)
+                        self.ui.google_progressBar.setValue(progress)
+            
+            if hasattr(self.ui, 'google_progressBar'):
+                self.ui.google_progressBar.setVisible(False)
+            
+        except Exception as e:
+            logging.error(f"Error loading Google voice models: {e}")
+            if hasattr(self.ui, 'google_progressBar'):
+                self.ui.google_progressBar.setVisible(False)
+
+    def generate_onnx_voice_models(self):
+        """Generate ONNX voice models."""
+        try:
+            if not self.lock:
+                return
+            logging.info("Generating ONNX voice models...")
+            
+            # Clear list and show progress
+            self.ui.onnx_listWidget.clear()
+            if hasattr(self.ui, 'onnx_progressBar'):
+                self.ui.onnx_progressBar.setVisible(True)
+                self.ui.onnx_progressBar.setValue(0)
+            
+            # Try to get voices from ONNX client
+            try:
+                client = SherpaOnnxClient(model_path=self.onnx_cache_path, tokens_path=None)
+                tts = SherpaOnnxTTS(client)
+                onnx_voices = tts.get_voices()  
+                if onnx_voices:
+                    voices = onnx_voices
+                else:
+                    voices = []
+                    logging.warning("No voices returned from ONNX client")
+            except Exception as e:
+                voices = []
+                logging.error(f"Error getting voices from ONNX client: {e}")
+            
+            # Add voices to list widget
+            for i, voice in enumerate(voices):
+                try:
+                    # Create list widget item
+                    item = QListWidgetItem()
+                    item.setSizeHint(QSize(0, 100))  # Increased height for more details
+                    
+                    # Create custom widget
+                    widget = QWidget()
+                    layout = QVBoxLayout(widget)  # Changed to vertical layout
+                    
+                    # Top row with name and buttons
+                    top_row = QHBoxLayout()
+                    
+                    # Add voice details
+                    details_widget = QWidget()
+                    details_layout = QVBoxLayout(details_widget)
+                    
+                    # Create horizontal layout for name and status icon
+                    name_layout = QHBoxLayout()
+                    
+                    # Name and language
+                    name = voice.get('name', 'Unknown')
+                    language = voice.get('language', '')
+                    name_label = QLabel(f"<b>{name}</b>")
+                    name_layout.addWidget(name_label)
+                    
+                    # Add status icon (tick if downloaded)
+                    status_label = QLabel()
+                    model_path = os.path.join(self.onnx_cache_path, f"{voice.get('id', '')}.onnx")
+                    if os.path.exists(model_path):
+                        status_label.setPixmap(self.iconTick.pixmap(16, 16))
+                    name_layout.addWidget(status_label)
+                    name_layout.addStretch()
+                    
+                    details_layout.addLayout(name_layout)
+                    
+                    # Additional details
+                    details = []
+                    if voice.get('gender'):
+                        details.append(f"Gender: {voice.get('gender')}")
+                    if voice.get('script'):
+                        details.append(f"Script: {voice.get('script')}")
+                    if voice.get('locale'):
+                        details.append(f"Locale: {voice.get('locale')}")
+                    if voice.get('style'):
+                        details.append(f"Style: {voice.get('style')}")
+                    
+                    if details:
+                        details_label = QLabel(" | ".join(details))
+                        details_label.setStyleSheet("color: #666;")
+                        details_layout.addWidget(details_label)
+                    
+                    top_row.addWidget(details_widget)
+                    top_row.addStretch()
+                    
+                    # Add buttons
+                    buttons_widget = QWidget()
+                    buttons_layout = QHBoxLayout(buttons_widget)
+                    buttons_layout.setContentsMargins(0, 0, 0, 0)
+                    
+                    # Preview button
+                    preview_btn = QPushButton("Preview")
+                    preview_btn.setIcon(self.iconPlayed)
+                    preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
+                    buttons_layout.addWidget(preview_btn)
+                    
+                    # Download button or spinner - only show if model not downloaded
+                    if not os.path.exists(model_path):
+                        download_container = QWidget()
+                        download_layout = QHBoxLayout(download_container)
+                        download_layout.setContentsMargins(0, 0, 0, 0)
+                        
+                        download_btn = QPushButton("Download")
+                        download_btn.setIcon(self.iconDownload)
+                        download_btn.clicked.connect(lambda checked, v=voice, b=download_btn, c=download_container: 
+                                                  self.start_download(v.get('id'), b, c))
+                        download_layout.addWidget(download_btn)
+                        
+                        # Create spinner label (hidden by default)
+                        spinner_label = QLabel()
+                        spinner_label.setMovie(self.spinner)
+                        spinner_label.hide()
+                        download_layout.addWidget(spinner_label)
+                        
+                        buttons_layout.addWidget(download_container)
+                        
+                        # Store references for later
+                        voice['_download_btn'] = download_btn
+                        voice['_spinner_label'] = spinner_label
+                        voice['_status_label'] = status_label
+                    
+                    top_row.addWidget(buttons_widget)
+                    layout.addLayout(top_row)
+                    
+                    # Set item widget and tooltip
+                    self.ui.onnx_listWidget.addItem(item)
+                    self.ui.onnx_listWidget.setItemWidget(item, widget)
+                    
+                    # Set tooltip with all voice details
+                    tooltip_details = [
+                        f"ID: {voice.get('id', 'Unknown')}",
+                        f"Language: {voice.get('language', 'Unknown')}",
+                    ]
+                    if voice.get('gender'):
+                        tooltip_details.append(f"Gender: {voice.get('gender')}")
+                    if voice.get('script'):
+                        tooltip_details.append(f"Script: {voice.get('script')}")
+                    if voice.get('locale'):
+                        tooltip_details.append(f"Locale: {voice.get('locale')}")
+                    if voice.get('style'):
+                        tooltip_details.append(f"Style: {voice.get('style')}")
+                    
+                    item.setToolTip("\n".join(tooltip_details))
+                    
+                    # Store voice data
+                    item.setData(Qt.UserRole, voice)
+                    
+                    # Update progress
+                    if hasattr(self.ui, 'onnx_progressBar'):
+                        progress = int((i + 1) / len(voices) * 100)
+                        self.ui.onnx_progressBar.setValue(progress)
+                        
+                    logging.debug(f"Added voice to list: {name}")
+                    
+                except Exception as e:
+                    logging.error(f"Error loading ONNX voice item: {e}")
+                    continue
+            
+            if hasattr(self.ui, 'onnx_progressBar'):
+                self.ui.onnx_progressBar.setVisible(False)
+            
+            logging.info(f"Added {self.ui.onnx_listWidget.count()} voices to ONNX list widget")
+            
+        except Exception as e:
+            logging.error(f"Error loading ONNX voice models: {e}")
+            if hasattr(self.ui, 'onnx_progressBar'):
+                self.ui.onnx_progressBar.setVisible(False)
+
+    def download_voice(self, voice_id):
+        """Download a voice model using SherpaOnnxClient's check_and_download_model."""
+        try:
+            if not voice_id:
                 return
                 
-            client = texttospeech.TextToSpeechClient.from_service_account_file(
-                self.credsFilePath
-            )
-            voices = client.list_voices()
-            if voices:
-                logging.info(f"Found {len(voices.voices)} Google voices")
-                for voice in voices.voices:
-                    self.ui.listWidget_voicegoogle.addItem(voice.name)
-                    self.ui.listWidget_voicegoogle.item(
-                        self.ui.listWidget_voicegoogle.count() - 1
-                    ).setToolTip(voice.name)
-            else:
-                logging.warning("No Google voices found")
+            # Initialize client
+            client = SherpaOnnxClient(model_path=self.onnx_cache_path, tokens_path=None)
+            
+            try:
+                # Use check_and_download_model which will handle downloading if needed
+                result = client.check_and_download_model(voice_id)
+                
+                # Handle different return values (some versions return 2 values, others 4)
+                if isinstance(result, tuple) and len(result) == 4:
+                    model_path, tokens_path, lexicon_path, dict_dir = result
+                else:
+                    model_path, tokens_path = result
+                    lexicon_path = ""
+                    dict_dir = ""
+                
+                message = f"Voice model {voice_id} is ready to use.\nModel path: {model_path}"
+                if tokens_path:
+                    message += f"\nTokens path: {tokens_path}"
+                if lexicon_path:
+                    message += f"\nLexicon path: {lexicon_path}"
+                if dict_dir:
+                    message += f"\nDictionary directory: {dict_dir}"
+                
+                QMessageBox.information(
+                    self,
+                    "Download Complete",
+                    message
+                )
+                
+                # Refresh the voice list to update UI
+                self.generate_onnx_voice_models()
+                
+            except Exception as download_error:
+                logging.error(f"Error during model download: {download_error}")
+                QMessageBox.warning(
+                    self,
+                    "Download Failed",
+                    f"Failed to download/prepare voice model {voice_id}.\nError: {str(download_error)}"
+                )
                 
         except Exception as e:
-            logging.error(f"Error generating Google voice models: {str(e)}")
+            logging.error(f"Error initializing client for voice {voice_id}: {e}")
+            QMessageBox.critical(
+                self,
+                "Download Error",
+                f"Error setting up download for voice model {voice_id}: {str(e)}"
+            )
 
-    def generate_googleTrans_voice_model(self):
+    def generate_google_trans_voice_models(self):
+        """Generate Google Translate voice models."""
         try:
-            self.ui.listWidget_voicegoogleTrans.currentRowChanged.connect(
-                self.updateRow
-            )
-            self.ui.listWidget_voicegoogleTrans.itemClicked.connect(self.print_data)
-            self.ui.search_language_googleTrans.textChanged.connect(
-                self.searchItem_GoogleTrans
-            )
-            self.ui.listWidget_voicegoogleTrans.setUniformItemSizes(True)
-            googleTransThread = VoiceLoader(parent=self, tts="GoogleTranslator TTS")
-            googleTransThread.signals.started.connect(
-                lambda: self.load_progress_googleTrans(True)
-            )
-            googleTransThread.signals.itemGenerated.connect(self.load_GoogleTrans_items)
-            googleTransThread.signals.thread_completed.connect(
-                lambda: self.load_progress_googleTrans(False)
-            )
-            googleTransThread.signals.thread_completed.connect(
-                lambda: self.threadList.remove(googleTransThread)
-            )
-            self.threadList.append(googleTransThread)
-        except Exception as googleTransError:
-            print(f"GoogleTrans TTS Voice List Error: {googleTransError}")
-            logging.error(f"GoogleTrans TTS Voice List Error: {googleTransError}")
+            if not self.lock:
+                return
+            logging.info("Generating Google Translate voice models...")
+            
+            # Clear list and show progress
+            self.ui.listWidget_voicegoogleTrans.clear()
+            
+            # Create custom widget for each voice
+            voices = self.get_google_trans_voices()
+            if voices:
+                for i, voice in enumerate(voices):
+                    # Create list widget item
+                    item = QListWidgetItem()
+                    item.setSizeHint(QSize(0, 80))  
+                    
+                    # Create custom widget
+                    widget = QWidget()
+                    layout = QHBoxLayout(widget)
+                    
+                    # Add voice name label
+                    name = voice.get('name', 'Unknown')
+                    name_label = QLabel(name)
+                    name_label.setStyleSheet("font-weight: bold;")
+                    layout.addWidget(name_label)
+                    
+                    # Add spacer
+                    layout.addStretch()
+                    
+                    # Add preview button
+                    preview_btn = QPushButton("Preview")
+                    preview_btn.setIcon(self.iconPlayed)
+                    preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                    layout.addWidget(preview_btn)
+                    
+                    # Set item widget
+                    self.ui.listWidget_voicegoogleTrans.addItem(item)
+                    self.ui.listWidget_voicegoogleTrans.setItemWidget(item, widget)
+                    
+                    # Store voice data
+                    item.setData(Qt.UserRole, voice)
+                    
+                    # Update progress
+                    if hasattr(self.ui, 'googleTransTTS_progressBar'):
+                        progress = int((i + 1) / len(voices) * 100)
+                        self.ui.googleTransTTS_progressBar.setValue(progress)
+            
+            if hasattr(self.ui, 'googleTransTTS_progressBar'):
+                self.ui.googleTransTTS_progressBar.setVisible(False)
+            
+        except Exception as e:
+            logging.error(f"Error loading Google Translate voice models: {e}")
+            if hasattr(self.ui, 'googleTransTTS_progressBar'):
+                self.ui.googleTransTTS_progressBar.setVisible(False)
+
+    def load_progress_onnx(self, value):
+        """Show/hide progress bar during voice loading."""
+        if value == 100:
+            self.ui.onnx_progressBar.hide()
+        else:
+            self.ui.onnx_progressBar.show()
+            self.ui.onnx_progressBar.setValue(value)
+
+    def load_onnx_items(self, index, voice, count):
+        """Load Sherpa-ONNX voice items into the list widget."""
+        try:
+            item = QListWidgetItem(voice)
+            item.setToolTip(voice)
+            self.ui.onnx_listWidget.addItem(item)
+            self.load_progress_onnx(int((index + 1) / count * 100))
+        except Exception as e:
+            logging.error(f"Error loading ONNX items: {str(e)}")
+
+    def load_google_trans_items(self, index, data, count):
+        """Load GoogleTranslator voice items into the list widget."""
+        try:
+            item = QListWidgetItem(data)
+            item.setToolTip(data)
+            self.ui.listWidget_voicegoogleTrans.addItem(item)
+            self.load_progress_onnx(int((index + 1) / count * 100))
+        except Exception as e:
+            logging.error(f"Error loading Google Translate items: {str(e)}")
+
+    def get_onnx_voices(self):
+        """Get list of available ONNX voices."""
+        try:
+            client = SherpaOnnxClient()
+            tts = SherpaOnnxTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                    'gender': voice.get('gender', ''),
+                    'downloaded': voice.get('is_downloaded', False)
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting ONNX voices: {e}")
+            return []
+
+    def get_azure_voices(self):
+        """Get list of available Azure voices."""
+        try:
+            key = os.environ.get('MICROSOFT_TOKEN', '')
+            region = os.environ.get('MICROSOFT_REGION', '')
+            if not key or not region:
+                logging.warning("Azure TTS credentials not found in environment variables")
+                return []
+                
+            client = MicrosoftClient(credentials=(key, region))
+            tts = MicrosoftTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                    'gender': voice.get('gender', '')
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting Azure voices: {e}")
+            return []
+
+    def get_google_trans_voices(self):
+        """Get list of available Google Translate voices."""
+        try:
+            client = GoogleTransClient()
+            tts = GoogleTransTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                    'gender': voice.get('gender', '')
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting Google Translate voices: {e}")
+            return []
+
+    def preview_voice(self, voice_id):
+        """Preview a voice by speaking a sample text."""
+        try:
+            sample_text = "This is a preview of the selected voice."
+            if voice_id.startswith('onnx_'):
+                client = SherpaOnnxClient()
+                tts = SherpaOnnxTTS(client)
+                tts.speak(sample_text, voice_id)
+            elif voice_id.startswith('azure_'):
+                key = os.environ.get('MICROSOFT_TOKEN', '')
+                region = os.environ.get('MICROSOFT_REGION', '')
+                if not key or not region:
+                    raise ValueError("Azure TTS credentials not found")
+                client = MicrosoftClient(credentials=(key, region))
+                tts = MicrosoftTTS(client)
+                tts.speak(sample_text, voice_id)
+            elif voice_id.startswith('google_'):
+                client = GoogleTransClient()
+                tts = GoogleTransTTS(client)
+                tts.speak(sample_text, voice_id)
+        except Exception as e:
+            logging.error(f"Error previewing voice {voice_id}: {e}")
+            QMessageBox.warning(self, "Preview Error", f"Failed to preview voice: {str(e)}")
+
+    def copy_app_path(self):
+        """Copy the application path to clipboard."""
+        pyperclip.copy(self.ui.appPath.text())
 
     def set_google_voice(self, text):
+        """Set the selected Google voice."""
         if text == "":
             text = "en-US-Wavenet-C"
         for index in range(self.ui.listWidget_voicegoogle.count()):
@@ -1202,6 +1758,7 @@ class Widget(QWidget):
                 break
 
     def cache_open(self):
+        """Open the audio cache directory."""
         if os.path.isdir(self.audio_path):
             self.ui.statusBar.setText(f"Opened {self.audio_path}")
             os.startfile(self.audio_path)
@@ -1211,7 +1768,7 @@ class Widget(QWidget):
             )
 
     def open_onnx_cache(self):
-        print(len(self.threadList))
+        """Open the ONNX cache directory."""
         if os.path.isdir(self.onnx_cache_path):
             self.ui.statusBar.setText(f"Opened {self.onnx_cache_path}")
             os.startfile(self.onnx_cache_path)
@@ -1223,16 +1780,19 @@ class Widget(QWidget):
             )
 
     def cache_clear(self):
+        """Clear the audio cache."""
         pool = QThreadPool.globalInstance()
         runnable = Cleaner(self.audio_path)
-        runnable.signals.completed.connect(self.enableClearCache)
+        runnable.signals.completed.connect(self.enable_clear_cache)
         self.ui.clear_cache.setEnabled(False)
         pool.start(runnable)
 
-    def enableClearCache(self):
+    def enable_clear_cache(self):
+        """Enable the clear cache button."""
         self.ui.clear_cache.setEnabled(True)
 
     def get_microsoft_language(self):
+        """Get the list of Microsoft languages."""
         try:
             file = PySide6.QtCore.QFile(":/binary/azure_translation.json")
             if file.open(PySide6.QtCore.QIODevice.ReadOnly | PySide6.QtCore.QFile.Text):
@@ -1247,7 +1807,8 @@ class Widget(QWidget):
             self.language_azure_list[language_azure_list[value]["name"]] = value
         return self.language_azure_list
 
-    def set_Translate_dropdown(self, source):
+    def set_translate_dropdown(self, source):
+        """Set the translation dropdown values."""
         try:
             lang = [key for key, value in source.items() if value == self.startLang]
             if len(lang) > 0:
@@ -1261,186 +1822,83 @@ class Widget(QWidget):
         except Exception as error:
             logging.error(f"Error setting current text; {error}", exc_info=False)
 
-    def copyAppPath(self):
-        pyperclip.copy(self.ui.appPath.text())
-
     def azure_validation(self):
+        """Validate Azure credentials and generate voice models."""
         self.threadList.clear()
         self.generate_azure_voice_models()
-        self.poolStarter()
+        self.pool_starter()
 
     def google_validation(self):
+        """Validate Google credentials and generate voice models."""
         self.threadList.clear()
         self.generate_google_voice_models()
-        self.poolStarter()
+        self.pool_starter()
 
-    def generate_onnx_voice_model(self):
+    def load_voices(self):
+        """Load voice models."""
         try:
-            self.iconDownload = QIcon(":/images/images/download.ico")
-            self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
-            self.onnx_location = self.onnx_cache_path
-            self.ui.onnx_listWidget.currentRowChanged.connect(self.updateRow)
-            self.ui.onnx_listWidget.itemClicked.connect(self.print_data)
-            self.ui.search_language.textChanged.connect(self.searchItem_Onnx)
-            self.ui.onnx_listWidget.setUniformItemSizes(True)
-            onnxThread = VoiceLoader(parent=self, tts="Sherpa-ONNX")
-            onnxThread.signals.started.connect(lambda: self.load_progress_onnx(True))
-            onnxThread.signals.itemGenerated.connect(self.load_Onnx_Items)
-            onnxThread.signals.thread_completed.connect(lambda: self.load_progress_onnx(False))
-            onnxThread.signals.thread_completed.connect(lambda: self.threadList.remove(onnxThread))
-            self.threadList.append(onnxThread)
+            # Load Azure voices
+            key = os.environ.get('MICROSOFT_TOKEN', '')
+            region = os.environ.get('MICROSOFT_REGION', '')
+            if key and region:
+                client = MicrosoftClient(credentials=(key, region))
+                tts = MicrosoftTTS(client)
+                voices = tts.get_voices()  
+                for voice in voices:
+                    self.load_azure_items(voices.index(voice), voice, len(voices))
+
+            # Load Google voices
+            google_creds_json = os.environ.get('GOOGLE_CREDS_JSON')
+            if google_creds_json:
+                temp_creds = tempfile.NamedTemporaryFile(delete=False, suffix='.json')
+                temp_creds.write(base64.b64decode(google_creds_json))
+                temp_creds.close()
+                client = GoogleTransClient()
+                tts = GoogleTransTTS(client)
+                voices = tts.get_voices()  
+                for voice in voices:
+                    self.load_google_items(voices.index(voice), voice, len(voices))
+
+            # Load Sherpa-ONNX voices
+            sherpa_manager = SherpaOnnxManager()
+            available_models = sherpa_manager.models
+            installed_models = sherpa_manager.get_installed_models()
+            for i, model in enumerate(available_models):
+                voice = {
+                    "name": model["name"],
+                    "description": model["description"],
+                    "size": model["size"],
+                    "installed": model["name"].lower().replace(" ", "_") in installed_models,
+                    "toolTip": model["name"].lower().replace(" ", "_"),
+                    "text": model["name"],
+                    "gender": "neutral",  
+                    "id": model["name"].lower().replace(" ", "_"),
+                    "locale": "en-US"
+                }
+                self.load_onnx_items(i, voice, len(available_models))
+
+            # Load Google Translate voices
+            # Since GoogleTransClient doesn't have list_voices, we'll use a predefined list
+            voices = [
+                {"name": "en", "text": "English", "gender": "neutral", "id": "en", "locale": "en-US"},
+                {"name": "es", "text": "Spanish", "gender": "neutral", "id": "es", "locale": "es-ES"},
+                {"name": "fr", "text": "French", "gender": "neutral", "id": "fr", "locale": "fr-FR"},
+                {"name": "de", "text": "German", "gender": "neutral", "id": "de", "locale": "de-DE"},
+                {"name": "it", "text": "Italian", "gender": "neutral", "id": "it", "locale": "it-IT"},
+                {"name": "pt", "text": "Portuguese", "gender": "neutral", "id": "pt", "locale": "pt-PT"},
+                {"name": "ru", "text": "Russian", "gender": "neutral", "id": "ru", "locale": "ru-RU"},
+                {"name": "ja", "text": "Japanese", "gender": "neutral", "id": "ja", "locale": "ja-JP"},
+                {"name": "ko", "text": "Korean", "gender": "neutral", "id": "ko", "locale": "ko-KR"},
+                {"name": "zh", "text": "Chinese", "gender": "neutral", "id": "zh", "locale": "zh-CN"}
+            ]
+            for i, voice in enumerate(voices):
+                self.load_google_trans_items(i, voice, len(voices))
+
         except Exception as e:
-            print(f"Sherpa ONNX Voice List Error: {e}")
-            logging.error(f"Sherpa ONNX Voice List Error: {e}")
+            logging.error(f"Error loading voices: {e}")
 
-    def load_progress_onnx(self, state):
-        policy = self.ui.onnx_listWidget.sizePolicy()
-        policy.setRetainSizeWhenHidden(True)
-        self.ui.onnx_listWidget.setSizePolicy(policy)
-        self.ui.onnx_listWidget.setHidden(state)
-        self.ui.onnx_progressBar.setVisible(state)
-        if not state:
-            self.set_onnx_voice(self.voiceid_onnx)
-            self.ui.onnx_voice_models.setTitle(
-                f"Current Voice Model: {self.ui.onnx_listWidget.currentItem().text()} - {self.ui.onnx_listWidget.currentItem().toolTip()}"
-            )
 
-    def load_progress_azure(self, state):
-        policy = self.ui.listWidget_voiceazure.sizePolicy()
-        policy.setRetainSizeWhenHidden(True)
-        self.ui.listWidget_voiceazure.setSizePolicy(policy)
-        self.ui.listWidget_voiceazure.setHidden(state)
-        self.ui.azure_progressBar.setVisible(state)
-        self.ui.validate_azure.setDisabled(state)
-        self.ui.checkBox_azure.setDisabled(state)
-        if not state:
-            self.set_azure_voice(self.voiceidAzure)
-            self.ui.azure_voice_models.setTitle(
-                f"Current Voice Model: {self.ui.listWidget_voiceazure.currentItem().text()}"
-            )
-
-    def load_progress_google(self, state):
-        policy = self.ui.listWidget_voicegoogle.sizePolicy()
-        policy.setRetainSizeWhenHidden(True)
-        self.ui.listWidget_voicegoogle.setSizePolicy(policy)
-        self.ui.listWidget_voicegoogle.setHidden(state)
-        self.ui.gTTS_progressBar.setVisible(state)
-        self.ui.validate_google.setDisabled(state)
-        self.ui.checkBox_google.setDisabled(state)
-        if not state:
-            self.set_google_voice(self.voiceidGoogle)
-            self.ui.google_voice_models.setTitle(
-                f"Current Voice Model: {self.ui.listWidget_voicegoogle.currentItem().text()}"
-            )
-
-    def load_progress_googleTrans(self, state):
-        policy = self.ui.listWidget_voicegoogleTrans.sizePolicy()
-        policy.setRetainSizeWhenHidden(True)
-        self.ui.listWidget_voicegoogleTrans.setSizePolicy(policy)
-        self.ui.listWidget_voicegoogleTrans.setHidden(state)
-        self.ui.googleTransTTS_progressBar.setVisible(state)
-        if not state:
-            self.set_googleTrans_voice(self.voiceidGoogleTrans)
-            self.ui.gspeak_voice_models.setTitle(
-                f"Current Voice Model: {self.ui.listWidget_voicegoogleTrans.currentItem().text()}"
-            )
-
-    def set_googleTrans_voice(self, text):
-        if text == "":
-            text = "en-co.uk"
-        for index in range(self.ui.listWidget_voicegoogleTrans.count()):
-            item = self.ui.listWidget_voicegoogleTrans.item(index)
-            if text == item.toolTip():
-                self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
-                self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
-                break
-
-    def printItem(self, item):
-        self.ui.onnx_listWidget.setCurrentItem(item)
-
-    def action_pressed(self):
-        widget = self.sender().parent().parent().parent()
-        name = widget.objectName()
-        items = self.ui.onnx_listWidget.findItems(name, Qt.MatchContains)
-        for item in items:
-            self.ui.onnx_listWidget.setCurrentItem(item)
-        if self.sender().objectName() == "Play":
-            pass
-        else:
-            pass
-
-    def searchItem_Azure(self, text):
-        match_items = self.ui.listWidget_voiceazure.findItems(text, Qt.MatchContains)
-        for i in range(self.ui.listWidget_voiceazure.count()):
-            it = self.ui.listWidget_voiceazure.item(i)
-            it.setHidden(it not in match_items)
-
-    def searchItem_Google(self, text):
-        match_items = self.ui.listWidget_voicegoogle.findItems(text, Qt.MatchContains)
-        for i in range(self.ui.listWidget_voicegoogle.count()):
-            it = self.ui.listWidget_voicegoogle.item(i)
-            it.setHidden(it not in match_items)
-
-    def searchItem_GoogleTrans(self, text):
-        match_items = self.ui.listWidget_voicegoogleTrans.findItems(
-            text, Qt.MatchContains
-        )
-        for i in range(self.ui.listWidget_voicegoogleTrans.count()):
-            it = self.ui.listWidget_voicegoogleTrans.item(i)
-            it.setHidden(it not in match_items)
-
-    def searchItem_Onnx(self, text):
-        match_items = self.ui.onnx_listWidget.findItems(text, Qt.MatchContains)
-        for i in range(self.ui.onnx_listWidget.count()):
-            it = self.ui.onnx_listWidget.item(i)
-            it.setHidden(it not in match_items)
-
-    def set_onnx_voice(self, text):
-        if text == "":
-            text = "eng"
-        for index in range(self.ui.onnx_listWidget.count()):
-            item = self.ui.onnx_listWidget.item(index)
-            if text == item.toolTip():
-                self.onnx_row = self.ui.onnx_listWidget.row(item)
-                self.ui.onnx_listWidget.setCurrentRow(self.onnx_row)
-                break
-
-    def load_Onnx_Items(self, index, data, count):
-        try:
-            self.ui.onnx_progressBar.setValue((index + 1) * 100 / count)
-            item_widget = QWidget()
-            item_UI = Ui_item()
-            item_UI.setupUi(item_widget)
-            item_UI.name.setText(data["name"])
-            font = QFont()
-            font.setBold(False)
-            font.setPointSize(8)
-            item_UI.gender.setFont(font)
-            item_UI.gender.setText(f"{data['gender']} - {data['language_codes'][0]}")
-            item_UI.play.clicked.connect(self.preview_pressed)
-            item_widget.setProperty("language_code", data["language_codes"][0])
-            item_widget.setObjectName(data["name"])
-
-            item = QListWidgetItem()
-            item.setForeground(QColor(0, 0, 0, 0))
-            item.setText(data["name"])
-            item.setToolTip(data["language_codes"][0])
-            item.setSizeHint(item_widget.sizeHint())
-            self.ui.onnx_listWidget.insertItem(index, item)
-            self.ui.onnx_listWidget.setItemWidget(item, item_widget)
-            
-            model_path = os.path.join(self.onnx_location, data["language_codes"][0])
-            if os.path.exists(model_path):
-                item_UI.play.setIcon(self.iconPlayed)
-                item_UI.play.setObjectName("Play")
-            else:
-                item_UI.play.setIcon(self.iconDownload)
-                item_UI.play.setObjectName("Download")
-        except Exception as onnxError:
-            print(str(onnxError))
-            logging.error(f"Error loading ONNX item: {onnxError}")
-
-    def load_Azure_items(self, index, data, count):
+    def load_azure_items(self, index, data, count):
         try:
             self.ui.azure_progressBar.setValue((index + 1) * 100 / count)
             item_widget = QWidget()
@@ -1448,67 +1906,176 @@ class Widget(QWidget):
             item_UI.setupUi(item_widget)
             item_UI.name.setText(data["name"])
             font = QFont()
-            font.setBold(False)
-            font.setPointSize(8)
-            item_UI.gender.setFont(font)
-            item_UI.gender.setText(data["gender"])
-            item_UI.play.clicked.connect(self.preview_pressed)
-            item_widget.setObjectName(data["name"])
-
+            font.setPointSize(14)  
+            item_UI.name.setFont(font)
+            item_UI.play.clicked.connect(self.preview_pressed)  
             item = QListWidgetItem()
-            item.setForeground(QColor(0, 0, 0, 0))
-            item.setText(data["name"])
-            # item.setToolTip(data['language_codes'][0])
-            item.setToolTip(data["id"])
             item.setSizeHint(item_widget.sizeHint())
-            self.ui.listWidget_voiceazure.insertItem(index, item)
+            item.setToolTip(data["id"])
+            self.ui.listWidget_voiceazure.addItem(item)
             self.ui.listWidget_voiceazure.setItemWidget(item, item_widget)
-        except Exception as azureError:
-            print(str(azureError))
+        except Exception as e:
+            logging.error(f"Error loading Azure item: {e}")
 
-    def load_Google_items(self, index, data, count):
-        self.ui.gTTS_progressBar.setValue((index + 1) * 100 / count)
-        item_widget = QWidget()
-        item_UI = Ui_item()
-        item_UI.setupUi(item_widget)
-        item_UI.name.setText(data["name"])
-        font = QFont()
-        font.setBold(False)
-        font.setPointSize(8)
-        item_UI.gender.setFont(font)
-        item_UI.gender.setText(data["gender"])
-        item_UI.play.clicked.connect(self.preview_pressed)
-        item_widget.setObjectName(data["name"])
+    def load_google_items(self, index, data, count):
+        try:
+            self.ui.gTTS_progressBar.setValue((index + 1) * 100 / count)
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            item_UI.name.setText(data["name"])
+            font = QFont()
+            font.setPointSize(14)  
+            item_UI.name.setFont(font)
+            item_UI.play.clicked.connect(self.preview_pressed)  
+            item = QListWidgetItem()
+            item.setSizeHint(item_widget.sizeHint())
+            item.setToolTip(data["id"])
+            self.ui.listWidget_voicegoogle.addItem(item)
+            self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+        except Exception as e:
+            logging.error(f"Error loading Google item: {e}")
 
-        item = QListWidgetItem()
-        item.setForeground(QColor(0, 0, 0, 0))
-        item.setText(data["name"])
-        item.setToolTip(data["id"])
-        item.setSizeHint(item_widget.sizeHint())
-        self.ui.listWidget_voicegoogle.insertItem(index, item)
-        self.ui.listWidget_voicegoogle.setItemWidget(item, item_widget)
+    def load_onnx_items(self, index, data, count):
+        try:
+            self.ui.onnx_progressBar.setValue((index + 1) * 100 / count)
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            item_UI.name.setText(data["name"])
+            font = QFont()
+            font.setPointSize(14)  
+            item_UI.name.setFont(font)
+            if data.get("downloaded", False):
+                item_UI.play.setIcon(self.iconPlayed)  
+                item_UI.play.clicked.connect(self.preview_pressed)
+            else:
+                item_UI.play.setIcon(self.iconDownload)  
+                item_UI.play.clicked.connect(self.preview_pressed)
+            item = QListWidgetItem()
+            item.setSizeHint(item_widget.sizeHint())
+            item.setToolTip(data["id"])
+            self.ui.onnx_listWidget.addItem(item)
+            self.ui.onnx_listWidget.setItemWidget(item, item_widget)
+        except Exception as e:
+            logging.error(f"Error loading ONNX item: {e}")
 
-    def load_GoogleTrans_items(self, index, data, count):
-        self.ui.googleTransTTS_progressBar.setValue((index + 1) * 100 / count)
-        item_widget = QWidget()
-        item_UI = Ui_item()
-        item_UI.setupUi(item_widget)
-        item_UI.name.setText(data["name"])
-        font = QFont()
-        font.setBold(False)
-        font.setPointSize(8)
-        item_UI.gender.setFont(font)
-        item_UI.gender.setText(data["gender"])
-        item_UI.play.clicked.connect(self.preview_pressed)
-        item_widget.setObjectName(data["name"])
+    def load_google_trans_items(self, index, data, count):
+        try:
+            self.ui.googleTransTTS_progressBar.setValue((index + 1) * 100 / count)
+            item_widget = QWidget()
+            item_UI = Ui_item()
+            item_UI.setupUi(item_widget)
+            item_UI.name.setText(data["name"])
+            font = QFont()
+            font.setPointSize(14)  
+            item_UI.name.setFont(font)
+            item_UI.play.clicked.connect(self.preview_pressed)  
+            item = QListWidgetItem()
+            item.setSizeHint(item_widget.sizeHint())
+            item.setToolTip(data["id"])
+            self.ui.listWidget_voicegoogleTrans.addItem(item)
+            self.ui.listWidget_voicegoogleTrans.setItemWidget(item, item_widget)
+        except Exception as e:
+            logging.error(f"Error loading Google Translate item: {e}")
 
-        item = QListWidgetItem()
-        item.setForeground(QColor(0, 0, 0, 0))
-        item.setText(data["name"])
-        item.setToolTip(data["id"])
-        item.setSizeHint(item_widget.sizeHint())
-        self.ui.listWidget_voicegoogleTrans.insertItem(index, item)
-        self.ui.listWidget_voicegoogleTrans.setItemWidget(item, item_widget)
+    def on_search_changed(self, text, provider):
+        """Handler for search box text changes"""
+        print(f"Search changed handler called - Provider: {provider}, Text: '{text}'")  # Immediate feedback
+        logging.debug(f"Search changed handler called - Provider: {provider}, Text: '{text}'")
+        if provider == "azure":
+            self.filter_azure_voices()
+        elif provider == "google":
+            self.filter_google_voices()
+        elif provider == "onnx":
+            self.filter_onnx_voices()
+        elif provider == "google_trans":
+            self.filter_google_trans_voices()
+
+    def on_search_return(self, provider):
+        """Handler for search box return pressed"""
+        print(f"Search return pressed for {provider}")  # Immediate feedback
+        logging.debug(f"Search return pressed for {provider}")
+        if provider == "azure":
+            self.filter_azure_voices()
+        elif provider == "google":
+            self.filter_google_voices()
+        elif provider == "onnx":
+            self.filter_onnx_voices()
+        elif provider == "google_trans":
+            self.filter_google_trans_voices()
+
+    def start_download(self, voice_id, button, container_widget):
+        """Start voice download process with visual feedback"""
+        if voice_id in self.active_downloads:
+            return  # Download already in progress
+            
+        # Hide download button and show spinner
+        button.setVisible(False)
+        spinner_label = QLabel()
+        spinner_label.setMovie(self.spinner)
+        container_widget.layout().addWidget(spinner_label)
+        self.spinner.start()
+        
+        # Track this download
+        self.active_downloads[voice_id] = {
+            'button': button,
+            'spinner': spinner_label,
+            'container': container_widget
+        }
+        
+        # Start download in background thread
+        download_thread = Thread(target=self.download_voice_thread, args=(voice_id,))
+        download_thread.daemon = True
+        download_thread.start()
+        
+    def download_voice_thread(self, voice_id):
+        """Handle voice download in background thread"""
+        try:
+            # Perform download
+            success = self.check_and_download_model(voice_id)
+            
+            # Update UI in main thread
+            QMetaObject.invokeMethod(self, "download_complete", 
+                Qt.ConnectionType.QueuedConnection,
+                Q_ARG(str, voice_id),
+                Q_ARG(bool, success))
+                
+        except Exception as e:
+            logging.error(f"Error downloading voice {voice_id}: {e}")
+            # Update UI in main thread to show error
+            QMetaObject.invokeMethod(self, "download_complete", 
+                Qt.ConnectionType.QueuedConnection,
+                Q_ARG(str, voice_id),
+                Q_ARG(bool, False))
+
+    @Slot(str, bool)
+    def download_complete(self, voice_id, success):
+        """Handle download completion in main thread"""
+        if voice_id not in self.active_downloads:
+            return
+            
+        download_info = self.active_downloads[voice_id]
+        button = download_info['button']
+        spinner = download_info['spinner']
+        container = download_info['container']
+        
+        # Remove spinner
+        self.spinner.stop()
+        spinner.setParent(None)
+        spinner.deleteLater()
+        
+        if success:
+            # Add tick icon
+            tick_label = QLabel()
+            tick_label.setPixmap(self.iconTick.pixmap(16, 16))
+            container.layout().addWidget(tick_label)
+        else:
+            # Show download button again on failure
+            button.setVisible(True)
+            
+        # Clean up tracking
+        del self.active_downloads[voice_id]
 
 
 class Signals(QObject):
@@ -1518,6 +2085,7 @@ class Signals(QObject):
     itemGenerated = Signal(int, dict, int)
     voicesFetched = Signal(list)
     errorDetected = Signal(str, str)
+    download_progress = Signal(str, float)  
 
 
 class Player(QRunnable):
@@ -1587,70 +2155,18 @@ class Cleaner(QRunnable):
 
 
 class VoiceLoader(QRunnable):
-
-    def __init__(self, parent, tts=None):
+    """A class to load voice models asynchronously."""
+    def __init__(self, widget, tts=None):
         super().__init__()
+        self.widget = widget
         self.tts = tts
-        self.signals = Signals()
-        self.parent = parent
-
-    def __del__(self):
-        print('QRunnable is deleted')
 
     def run(self):
+        """Run the voice loading process."""
         try:
-            self.signals.started.emit()
-            start = time.perf_counter()
-            voices = []
-            generate = True
-            if self.tts == "Azure TTS":
-                generate = self.parent.ui.checkBox_azure.isChecked()
-                if self.parent.azure_location != "" and self.parent.azure_key != "":
-                    client = MicrosoftClient(
-                        (self.parent.azure_key, self.parent.azure_location)
-                    )
-                else:
-                    client = MicrosoftClient((ms_token, ms_region))
-                try:
-                    voices = client.get_available_voices()
-                except Exception as getVoicesError:
-                    logging.error(f"Azure TTS Error: {getVoicesError}")
-                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = MicrosoftClient((ms_token, ms_region))
-                    voices = client.get_available_voices()
-            elif self.tts == "Google TTS":
-                generate = self.parent.ui.checkBox_google.isChecked()
-                client = GoogleClient(credentials=self.parent.google_credential)
-                try:
-                    voices = client.get_voices()
-                except Exception as getVoicesError:
-                    logging.error(f"Google TTS Error: {getVoicesError}")
-                    self.signals.errorDetected.emit(str(getVoicesError), self.tts)
-                    client = GoogleClient(credentials=self.parent.default_google_credential)
-                    voices = client.get_voices()
-            elif self.tts == "Sherpa-ONNX":
-                client = SherpaOnnxClient()
-                try:
-                    voices = client.get_voices()
-                except Exception as getVoicesError:
-                    logging.error(f"Sherpa-Onnx Error: {getVoicesError}")
-            elif self.tts == "GoogleTranslator TTS":
-                client = GoogleTransClient()
-                try:
-                    voices = client.get_voices()
-                except Exception as getVoicesError:
-                    logging.error(f"GoogleTranslator TTS Error: {getVoicesError}")
-            self.signals.voicesFetched.emit(voices)
-            count = len(voices)
-            print(f"Voice fetch time for {self.tts}: {time.perf_counter() - start}")
-            if generate:
-                for index, x in enumerate(voices):
-                    time.sleep(0.001)
-                    self.signals.itemGenerated.emit(index, x, count)
-            self.signals.thread_completed.emit(self)
+            self.widget.load_voices()
         except Exception as e:
-            print(e)
-            logging.error(f"Voice List Error: {e}")
+            logging.error(f"Voice loading error: {e}")
 
 
 def setup_logging():
@@ -1711,31 +2227,11 @@ def setup_logging():
 
 
 if __name__ == "__main__":
-    logfile = setup_logging()
     try:
-        config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.dirname(__file__), "..", "settings.cfg"))
-        logging.info("Configuration Loaded Successfully.")
-        
-        # These variables need to be global since they're used in class methods
-        global ms_token, ms_region, google_creds_path, ms_token_trans
-        
-        ms_token = config.get("azureTTS", "key", fallback="")
-        ms_region = config.get("azureTTS", "location", fallback="")
-        google_creds_path = config.get("googleTTS", "creds", fallback="")
-        ms_token_trans = config.get("translate", "microsoft_translator_secret_key", fallback="")
-        
+        app = QApplication(sys.argv)
+        widget = Widget()
+        widget.show()
+        sys.exit(app.exec())
     except Exception as e:
-        print(f"Error loading configuration: {e}")
-        # Set default values for the global variables
-        ms_token = ""
-        ms_region = ""
-        google_creds_path = ""
-        ms_token_trans = ""
-        
-    app = QApplication(sys.argv)
-    screen = app.primaryScreen()
-    size = screen.size()
-    widget = Widget(size)
-    widget.show()
-    sys.exit(app.exec())
+        logging.error(f"Application error: {e}")
+        raise

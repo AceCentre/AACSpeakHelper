@@ -52,7 +52,7 @@ print(Fernet.generate_key().decode())
 2. Once this is all filled up run the following command to encrypt the config file
 
 ```sh
-poetry run python prepare_config_enc.py
+uv run python prepare_config_enc.py
 ```
 
 It will now have a config.enc file created. Our code will use that. If keys are in settings.cfg that overrides these keys

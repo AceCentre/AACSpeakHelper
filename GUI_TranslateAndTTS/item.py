@@ -113,6 +113,24 @@ class Ui_item(object):
 
         self.verticalLayout.addWidget(self.stackedWidget)
 
+        # Set button styling
+        button_style = """
+            QPushButton {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 6px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+                border-color: #dee2e6;
+            }
+            QPushButton:pressed {
+                background-color: #dee2e6;
+            }
+        """
+        self.play.setStyleSheet(button_style)
 
         self.retranslateUi(item)
 
@@ -130,4 +148,3 @@ class Ui_item(object):
         self.gender.setText(QCoreApplication.translate("item", u"Gender", None))
         self.data.setText("")
     # retranslateUi
-
