@@ -7,7 +7,7 @@ import configparser
 import pyperclip
 from pathlib import Path
 from threading import Thread
-from PySide6.QtCore import Qt, QSize, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent, QMetaObject, Slot
+from PySide6.QtCore import Qt, QSize, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent, QMetaObject, Slot, Q_ARG
 
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -248,6 +248,14 @@ class Widget(QWidget):
         self.lock = True
         self.comboBox = "Sherpa-ONNX"  # Default value
         self.ttsEngine = "SherpaOnnxTTS"
+        
+        # Initialize Sherpa client
+        self.sherpa_client = None
+        try:
+            from .sherpa_integration import SherpaOnnxTTS
+            self.sherpa_client = SherpaOnnxTTS()
+        except Exception as e:
+            logging.error(f"Sherpa initialization failed: {e}")
         
         # Set up UI elements
         self.ui.onnx_cache.setText(self.onnx_cache_path)
@@ -2032,8 +2040,12 @@ class Widget(QWidget):
     def download_voice_thread(self, voice_id):
         """Handle voice download in background thread"""
         try:
-            # Perform download
-            success = self.check_and_download_model(voice_id)
+            # Verify client is initialized
+            if not self.sherpa_client:
+                raise Exception("Sherpa TTS client not initialized")
+            
+            # Use client's method
+            success = self.sherpa_client.check_and_download_model(voice_id)
             
             # Update UI in main thread
             QMetaObject.invokeMethod(self, "download_complete", 
@@ -2235,3 +2247,55 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"Application error: {e}")
         raise
+
+class SherpaOnnxTTS(TTS):
+    def __init__(self, model_dir=None, data_dir=None, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.model_dir = Path(model_dir or "./sherpa_models")
+        self.data_dir = Path(data_dir or "~/AACSpeakHelper/sherpa_tts").expanduser()
+        
+        self._verify_model_files()
+        self.client = self._create_client()
+
+    def _verify_model_files(self):
+        required_files = {'model.onnx', 'tokens.txt', 'lexicon.txt'}
+        existing_files = {f.name for f in self.model_dir.glob('*')}
+        
+        if missing := required_files - existing_files:
+            logging.warning(f"Missing model files: {missing}. Attempting download...")
+            self._download_base_model()
+            
+    def _download_base_model(self):
+        try:
+            from sherpa_onnx import download_model
+            download_model(
+                model='sherpa_onnx_tts_model',
+                repo_id='AACSpeakHelper/sherpa-models',
+                dest_dir=str(self.model_dir)
+            )
+            logging.info("Base model downloaded successfully")
+        except Exception as e:
+            logging.error(f"Model download failed: {e}")
+            raise TTSInitializationError("Failed to download required model files")
+            
+    def _create_client(self):
+        from sherpa_onnx import SherpaOnnxOfflineTts
+        return SherpaOnnxOfflineTts(
+            model=str(self.model_dir),
+            data_dir=str(self.data_dir),
+            debug=self.debug
+        )
+
+    def get_available_voices(self):
+        return self.client.list_voices()
+
+    def download_voice(self, voice_id, progress_callback=None):
+        if not self.client:
+            raise TTSNotInitializedError()
+            
+        return self.client.download_model(
+            voice_id=voice_id,
+            progress_handler=progress_callback,
+            tts_model_dir=self.data_dir
+        )
