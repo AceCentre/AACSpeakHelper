@@ -5,28 +5,43 @@ import json
 import logging
 import configparser
 import pyperclip
+import uuid
+import tempfile
+import subprocess
+import platform
+import base64
 from pathlib import Path
 from threading import Thread
-from PySide6.QtCore import Qt, QSize, QObject, Signal, QRunnable, QThreadPool, QFile, QIODevice, QTextStream, QEvent, QMetaObject, Slot, Q_ARG
+from PySide6.QtCore import (
+    Qt, QSize, QObject, Signal, QRunnable, QThreadPool, 
+    QMetaObject, Slot, Q_ARG
+)
+from PySide6.QtWidgets import (
+    QWidget, QListWidgetItem, QMessageBox, QApplication,
+    QPushButton, QLabel, QHBoxLayout, QDialogButtonBox, 
+    QFileDialog, QVBoxLayout, QAbstractItemView  # Add this import
+)
+from PySide6.QtGui import QIcon, QMovie, QFont
 
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
 
-from PySide6.QtWidgets import (
-    QWidget, QListWidgetItem, QMessageBox, QApplication,
-    QPushButton, QLabel, QHBoxLayout, QListWidget,
-    QDialogButtonBox, QFileDialog, QVBoxLayout
-)
-from PySide6.QtGui import QIcon, QMovie, QColor, QFont
-from ui_form import Ui_Widget  # Import from current directory
+from ui_form import Ui_Widget
 from item import Ui_item
 from tts_wrapper import (
     SherpaOnnxTTS, SherpaOnnxClient,
     MicrosoftTTS, MicrosoftClient,
     GoogleTransTTS, GoogleTransClient
 )
-from language_dictionary import *
+from language_dictionary import (
+    Google_Translator, MyMemory_Translator, Libre_Translator,
+    DeepL_Translator, Microsoft_Translator, Pons_Translator,
+    Linguee_Translator, Papago_Translator, Qcri_Translator,
+    Baidu_Translator, Yandex_Translator, azure_tts_list,
+    google_TTS_list, gSpeak_TTS_list
+)
+from configure_enc_utils import load_credentials
 
 # Language codes mapping
 LANGUAGE_CODES = {
@@ -79,64 +94,12 @@ PROVIDERS = {
 #     pyside2-uic form.ui -o ui_form.py
 
 class SherpaOnnxManager:
-    MODELS_INFO_URL = "https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html"
     DEFAULT_CACHE_DIR = Path.home() / ".cache" / "sherpa-onnx"
 
     def __init__(self, cache_dir=None):
         self.cache_dir = Path(cache_dir) if cache_dir else self.DEFAULT_CACHE_DIR
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.models = self._get_available_models()
-
-    def _get_available_models(self):
-        """Fetch available models from Sherpa-ONNX repository."""
-        try:
-            response = requests.get(self.MODELS_INFO_URL)
-            response.raise_for_status()
-            # Parse the HTML to extract model information
-            # This is a simplified version - in practice you'd want to properly parse the HTML
-            models = []
-            # Add model information (this would be parsed from the HTML)
-            models.append({
-                "name": "English TTS (vits)",
-                "url": "https://huggingface.co/csukuangfj/sherpa-onnx-vits-vctk",
-                "description": "English TTS model based on VITS",
-                "size": "150MB"
-            })
-            return models
-        except Exception as e:
-            logging.error(f"Failed to fetch Sherpa-ONNX models: {e}")
-            return []
-
-    def download_model(self, model_name, progress_callback=None):
-        """Download a specific model."""
-        model = next((m for m in self.models if m["name"] == model_name), None)
-        if not model:
-            raise ValueError(f"Model {model_name} not found")
-
-        target_dir = self.cache_dir / model_name.lower().replace(" ", "_")
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        try:
-            # Download model files
-            response = requests.get(model["url"], stream=True)
-            response.raise_for_status()
-            total_size = int(response.headers.get("content-length", 0))
-            block_size = 8192
-            downloaded = 0
-
-            target_file = target_dir / "model.onnx"
-            with open(target_file, "wb") as f:
-                for data in response.iter_content(block_size):
-                    downloaded += len(data)
-                    f.write(data)
-                    if progress_callback:
-                        progress = (downloaded / total_size) * 100
-                        progress_callback(progress)
-
-            return str(target_file)
-        except Exception as e:
-            logging.error(f"Failed to download model {model_name}: {e}")
-            raise
 
     def get_installed_models(self):
         """Get list of installed models."""
@@ -252,8 +215,8 @@ class Widget(QWidget):
         # Initialize Sherpa client
         self.sherpa_client = None
         try:
-            from .sherpa_integration import SherpaOnnxTTS
-            self.sherpa_client = SherpaOnnxTTS()
+            self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
+            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
         except Exception as e:
             logging.error(f"Sherpa initialization failed: {e}")
         
@@ -381,6 +344,20 @@ class Widget(QWidget):
         self.ui.search_language_google.setPlaceholderText("Search Google voices...")
         self.ui.search_language.setPlaceholderText("Search ONNX voices...")
         self.ui.search_language_googleTrans.setPlaceholderText("Search Google Trans voices...")
+        
+        # Disable selection highlighting in the list widget
+        self.ui.onnx_listWidget.setSelectionMode(QAbstractItemView.NoSelection)
+        self.ui.onnx_listWidget.setAlternatingRowColors(False)  # Disable alternating colors
+        
+        # Set stylesheet for consistent background
+        self.ui.onnx_listWidget.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+            }
+            QListWidget::item {
+                background-color: white;
+            }
+        """)
         
     def load_existing_config(self):
         """Load configuration from existing config file."""
@@ -1170,7 +1147,84 @@ class Widget(QWidget):
         self.filter_voices("google", self.ui.search_language_google.text())
 
     def filter_onnx_voices(self):
-        self.filter_voices("onnx", self.ui.search_language.text())
+        """Filter ONNX voices based on search text."""
+        try:
+            search_text = self.ui.search_language.text().lower()
+            logging.debug(f"Filtering voices with: '{search_text}'")
+            
+            # Get all voices again
+            client = SherpaOnnxClient(model_path=self.onnx_cache_path)
+            tts = SherpaOnnxTTS(client)
+            voices = tts.get_voices()
+            
+            # Clear current list
+            self.ui.onnx_listWidget.clear()
+            
+            # Add matching voices
+            for voice in voices:
+                # Check if search text matches name or any other relevant fields
+                name = voice.get('name', '').lower()
+                if search_text in name:
+                    # Create widget for this voice
+                    item_widget = QWidget()
+                    layout = QHBoxLayout()
+                    item_widget.setLayout(layout)
+                    
+                    # Name and info layout
+                    name_layout = QHBoxLayout()
+                    name_label = QLabel(f"<b>{voice.get('name')}</b>")
+                    name_layout.addWidget(name_label)
+                    
+                    # Check if model is downloaded
+                    voice_id = voice.get('id', '')
+                    model_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "model.onnx")
+                    tokens_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "tokens.txt")
+                    is_downloaded = os.path.exists(model_path) and os.path.exists(tokens_path)
+                    
+                    layout.addLayout(name_layout)
+                    
+                    # Buttons layout
+                    buttons_layout = QHBoxLayout()
+                    
+                    # Preview button
+                    preview_btn = QPushButton("Preview")
+                    preview_btn.setIcon(self.iconPlayed)
+                    preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
+                    buttons_layout.addWidget(preview_btn)
+                    
+                    # Download button or tick container
+                    download_container = QWidget()
+                    download_layout = QHBoxLayout()
+                    download_container.setLayout(download_layout)
+                    
+                    if is_downloaded:
+                        # Show tick if already downloaded
+                        tick_label = QLabel()
+                        tick_label.setPixmap(self.iconTick.pixmap(16, 16))
+                        download_layout.addWidget(tick_label)
+                    else:
+                        # Show download button if not downloaded
+                        download_btn = QPushButton("Download")
+                        download_btn.setIcon(self.iconDownload)
+                        download_btn.clicked.connect(
+                            lambda checked, v=voice, b=download_btn, c=download_container: 
+                            self.start_download(v.get('id'), b, c)
+                        )
+                        download_layout.addWidget(download_btn)
+                    
+                    buttons_layout.addWidget(download_container)
+                    layout.addLayout(buttons_layout)
+                    
+                    # Create and set list item
+                    list_item = QListWidgetItem()
+                    list_item.setSizeHint(item_widget.sizeHint())
+                    self.ui.onnx_listWidget.addItem(list_item)
+                    self.ui.onnx_listWidget.setItemWidget(list_item, item_widget)
+            
+            logging.debug(f"Finished filtering voices for onnx")
+            
+        except Exception as e:
+            logging.error(f"Error filtering ONNX voices: {e}")
 
     def filter_google_trans_voices(self):
         self.filter_voices("google_trans", self.ui.search_language_googleTrans.text())
@@ -1360,15 +1414,7 @@ class Widget(QWidget):
     def generate_onnx_voice_models(self):
         """Generate ONNX voice models."""
         try:
-            if not self.lock:
-                return
-            logging.info("Generating ONNX voice models...")
-            
-            # Clear list and show progress
             self.ui.onnx_listWidget.clear()
-            if hasattr(self.ui, 'onnx_progressBar'):
-                self.ui.onnx_progressBar.setVisible(True)
-                self.ui.onnx_progressBar.setValue(0)
             
             # Try to get voices from ONNX client
             try:
@@ -1376,152 +1422,74 @@ class Widget(QWidget):
                 tts = SherpaOnnxTTS(client)
                 onnx_voices = tts.get_voices()  
                 if onnx_voices:
-                    voices = onnx_voices
-                else:
-                    voices = []
-                    logging.warning("No voices returned from ONNX client")
-            except Exception as e:
-                voices = []
-                logging.error(f"Error getting voices from ONNX client: {e}")
-            
-            # Add voices to list widget
-            for i, voice in enumerate(voices):
-                try:
-                    # Create list widget item
-                    item = QListWidgetItem()
-                    item.setSizeHint(QSize(0, 100))  # Increased height for more details
-                    
-                    # Create custom widget
-                    widget = QWidget()
-                    layout = QVBoxLayout(widget)  # Changed to vertical layout
-                    
-                    # Top row with name and buttons
-                    top_row = QHBoxLayout()
-                    
-                    # Add voice details
-                    details_widget = QWidget()
-                    details_layout = QVBoxLayout(details_widget)
-                    
-                    # Create horizontal layout for name and status icon
-                    name_layout = QHBoxLayout()
-                    
-                    # Name and language
-                    name = voice.get('name', 'Unknown')
-                    language = voice.get('language', '')
-                    name_label = QLabel(f"<b>{name}</b>")
-                    name_layout.addWidget(name_label)
-                    
-                    # Add status icon (tick if downloaded)
-                    status_label = QLabel()
-                    model_path = os.path.join(self.onnx_cache_path, f"{voice.get('id', '')}.onnx")
-                    if os.path.exists(model_path):
-                        status_label.setPixmap(self.iconTick.pixmap(16, 16))
-                    name_layout.addWidget(status_label)
-                    name_layout.addStretch()
-                    
-                    details_layout.addLayout(name_layout)
-                    
-                    # Additional details
-                    details = []
-                    if voice.get('gender'):
-                        details.append(f"Gender: {voice.get('gender')}")
-                    if voice.get('script'):
-                        details.append(f"Script: {voice.get('script')}")
-                    if voice.get('locale'):
-                        details.append(f"Locale: {voice.get('locale')}")
-                    if voice.get('style'):
-                        details.append(f"Style: {voice.get('style')}")
-                    
-                    if details:
-                        details_label = QLabel(" | ".join(details))
-                        details_label.setStyleSheet("color: #666;")
-                        details_layout.addWidget(details_label)
-                    
-                    top_row.addWidget(details_widget)
-                    top_row.addStretch()
-                    
-                    # Add buttons
-                    buttons_widget = QWidget()
-                    buttons_layout = QHBoxLayout(buttons_widget)
-                    buttons_layout.setContentsMargins(0, 0, 0, 0)
-                    
-                    # Preview button
-                    preview_btn = QPushButton("Preview")
-                    preview_btn.setIcon(self.iconPlayed)
-                    preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
-                    buttons_layout.addWidget(preview_btn)
-                    
-                    # Download button or spinner - only show if model not downloaded
-                    if not os.path.exists(model_path):
+                    for i, voice in enumerate(onnx_voices):
+                        # Create widget for this voice
+                        item_widget = QWidget()
+                        layout = QHBoxLayout()
+                        item_widget.setLayout(layout)
+                        
+                        # Name and info layout
+                        name_layout = QHBoxLayout()
+                        
+                        # Name and language
+                        name = voice.get('name', 'Unknown')
+                        name_label = QLabel(f"<b>{name}</b>")
+                        name_layout.addWidget(name_label)
+                        
+                        # Check if model is downloaded
+                        voice_id = voice.get('id', '')
+                        model_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "model.onnx")
+                        tokens_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "tokens.txt")
+                        is_downloaded = os.path.exists(model_path) and os.path.exists(tokens_path)
+                        
+                        layout.addLayout(name_layout)
+                        
+                        # Buttons layout
+                        buttons_layout = QHBoxLayout()
+                        
+                        # Preview button
+                        preview_btn = QPushButton("Preview")
+                        preview_btn.setIcon(self.iconPlayed)
+                        preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
+                        buttons_layout.addWidget(preview_btn)
+                        
+                        # Download button or tick container
                         download_container = QWidget()
-                        download_layout = QHBoxLayout(download_container)
-                        download_layout.setContentsMargins(0, 0, 0, 0)
+                        download_layout = QHBoxLayout()
+                        download_container.setLayout(download_layout)
                         
-                        download_btn = QPushButton("Download")
-                        download_btn.setIcon(self.iconDownload)
-                        download_btn.clicked.connect(lambda checked, v=voice, b=download_btn, c=download_container: 
-                                                  self.start_download(v.get('id'), b, c))
-                        download_layout.addWidget(download_btn)
-                        
-                        # Create spinner label (hidden by default)
-                        spinner_label = QLabel()
-                        spinner_label.setMovie(self.spinner)
-                        spinner_label.hide()
-                        download_layout.addWidget(spinner_label)
+                        if is_downloaded:
+                            # Show tick if already downloaded
+                            tick_label = QLabel()
+                            tick_label.setPixmap(self.iconTick.pixmap(16, 16))
+                            download_layout.addWidget(tick_label)
+                        else:
+                            # Show download button if not downloaded
+                            download_btn = QPushButton("Download")
+                            download_btn.setIcon(self.iconDownload)
+                            download_btn.clicked.connect(
+                                lambda checked, v=voice, b=download_btn, c=download_container: 
+                                self.start_download(v.get('id'), b, c)
+                            )
+                            download_layout.addWidget(download_btn)
                         
                         buttons_layout.addWidget(download_container)
+                        layout.addLayout(buttons_layout)
                         
-                        # Store references for later
-                        voice['_download_btn'] = download_btn
-                        voice['_spinner_label'] = spinner_label
-                        voice['_status_label'] = status_label
-                    
-                    top_row.addWidget(buttons_widget)
-                    layout.addLayout(top_row)
-                    
-                    # Set item widget and tooltip
-                    self.ui.onnx_listWidget.addItem(item)
-                    self.ui.onnx_listWidget.setItemWidget(item, widget)
-                    
-                    # Set tooltip with all voice details
-                    tooltip_details = [
-                        f"ID: {voice.get('id', 'Unknown')}",
-                        f"Language: {voice.get('language', 'Unknown')}",
-                    ]
-                    if voice.get('gender'):
-                        tooltip_details.append(f"Gender: {voice.get('gender')}")
-                    if voice.get('script'):
-                        tooltip_details.append(f"Script: {voice.get('script')}")
-                    if voice.get('locale'):
-                        tooltip_details.append(f"Locale: {voice.get('locale')}")
-                    if voice.get('style'):
-                        tooltip_details.append(f"Style: {voice.get('style')}")
-                    
-                    item.setToolTip("\n".join(tooltip_details))
-                    
-                    # Store voice data
-                    item.setData(Qt.UserRole, voice)
-                    
-                    # Update progress
-                    if hasattr(self.ui, 'onnx_progressBar'):
-                        progress = int((i + 1) / len(voices) * 100)
-                        self.ui.onnx_progressBar.setValue(progress)
+                        # Create and set list item
+                        list_item = QListWidgetItem()
+                        list_item.setSizeHint(item_widget.sizeHint())
+                        self.ui.onnx_listWidget.addItem(list_item)
+                        self.ui.onnx_listWidget.setItemWidget(list_item, item_widget)
                         
-                    logging.debug(f"Added voice to list: {name}")
+                        # Update progress
+                        self.ui.onnx_progressBar.setValue((i + 1) * 100 / len(onnx_voices))
                     
-                except Exception as e:
-                    logging.error(f"Error loading ONNX voice item: {e}")
-                    continue
-            
-            if hasattr(self.ui, 'onnx_progressBar'):
-                self.ui.onnx_progressBar.setVisible(False)
-            
-            logging.info(f"Added {self.ui.onnx_listWidget.count()} voices to ONNX list widget")
-            
+            except Exception as e:
+                logging.error(f"Error getting ONNX voices: {e}")
+                
         except Exception as e:
             logging.error(f"Error loading ONNX voice models: {e}")
-            if hasattr(self.ui, 'onnx_progressBar'):
-                self.ui.onnx_progressBar.setVisible(False)
 
     def download_voice(self, voice_id):
         """Download a voice model using SherpaOnnxClient's check_and_download_model."""
@@ -1727,28 +1695,30 @@ class Widget(QWidget):
             return []
 
     def preview_voice(self, voice_id):
-        """Preview a voice by speaking a sample text."""
+        """Preview a voice by speaking a test phrase"""
         try:
-            sample_text = "This is a preview of the selected voice."
-            if voice_id.startswith('onnx_'):
-                client = SherpaOnnxClient()
-                tts = SherpaOnnxTTS(client)
-                tts.speak(sample_text, voice_id)
-            elif voice_id.startswith('azure_'):
-                key = os.environ.get('MICROSOFT_TOKEN', '')
-                region = os.environ.get('MICROSOFT_REGION', '')
-                if not key or not region:
-                    raise ValueError("Azure TTS credentials not found")
-                client = MicrosoftClient(credentials=(key, region))
-                tts = MicrosoftTTS(client)
-                tts.speak(sample_text, voice_id)
-            elif voice_id.startswith('google_'):
-                client = GoogleTransClient()
-                tts = GoogleTransTTS(client)
-                tts.speak(sample_text, voice_id)
+            if not self.sherpa_client:
+                raise Exception("Sherpa client not initialized")
+                
+            # Initialize TTS with the client
+            tts = SherpaOnnxTTS(self.sherpa_client)
+            
+            # Set the voice
+            tts.set_voice(voice_id)
+            
+            # Speak test phrase
+            test_text = "Hello, this is a test of the text to speech system."
+            tts.speak(test_text)
+            
+            logging.info(f"Successfully previewed voice: {voice_id}")
+            
         except Exception as e:
             logging.error(f"Error previewing voice {voice_id}: {e}")
-            QMessageBox.warning(self, "Preview Error", f"Failed to preview voice: {str(e)}")
+            QMessageBox.warning(
+                self, 
+                "Preview Error", 
+                f"Failed to preview voice: {str(e)}"
+            )
 
     def copy_app_path(self):
         """Copy the application path to clipboard."""
@@ -2013,53 +1983,67 @@ class Widget(QWidget):
         elif provider == "google_trans":
             self.filter_google_trans_voices()
 
-    def start_download(self, voice_id, button, container_widget):
-        """Start voice download process with visual feedback"""
-        if voice_id in self.active_downloads:
-            return  # Download already in progress
+    def start_download(self, voice_id, button, container):
+        """Start voice model download."""
+        try:
+            if not self.sherpa_client:
+                raise Exception("Sherpa client not initialized")
+                
+            # Hide download button
+            button.setVisible(False)
             
-        # Hide download button and show spinner
-        button.setVisible(False)
-        spinner_label = QLabel()
-        spinner_label.setMovie(self.spinner)
-        container_widget.layout().addWidget(spinner_label)
-        self.spinner.start()
-        
-        # Track this download
-        self.active_downloads[voice_id] = {
-            'button': button,
-            'spinner': spinner_label,
-            'container': container_widget
-        }
-        
-        # Start download in background thread
-        download_thread = Thread(target=self.download_voice_thread, args=(voice_id,))
-        download_thread.daemon = True
-        download_thread.start()
-        
+            # Show spinner
+            spinner_label = QLabel()
+            spinner_label.setMovie(self.spinner)
+            container.layout().addWidget(spinner_label)
+            self.spinner.start()
+            
+            # Track this download
+            self.active_downloads[voice_id] = {
+                'button': button,
+                'spinner': spinner_label,
+                'container': container
+            }
+            
+            # Start download in background thread
+            download_thread = Thread(target=self.download_voice_thread, args=(voice_id,))
+            download_thread.start()
+            
+        except Exception as e:
+            logging.error(f"Error starting download for voice {voice_id}: {e}")
+            button.setVisible(True)
+            QMessageBox.warning(self, "Download Error", str(e))
+
     def download_voice_thread(self, voice_id):
         """Handle voice download in background thread"""
         try:
-            # Verify client is initialized
-            if not self.sherpa_client:
-                raise Exception("Sherpa TTS client not initialized")
-            
-            # Use client's method
-            success = self.sherpa_client.check_and_download_model(voice_id)
+            # Check if model already exists
+            model_path = os.path.join(self.onnx_cache_path, f"{voice_id}.onnx")
+            if os.path.exists(model_path):
+                logging.info(f"Model already exists for {voice_id}")
+                success = True
+            else:
+                # Use the client's check_and_download_model method
+                success = self.sherpa_client.check_and_download_model(voice_id)
             
             # Update UI in main thread
-            QMetaObject.invokeMethod(self, "download_complete", 
+            QMetaObject.invokeMethod(
+                self, 
+                "download_complete",
                 Qt.ConnectionType.QueuedConnection,
                 Q_ARG(str, voice_id),
-                Q_ARG(bool, success))
+                Q_ARG(bool, success)
+            )
                 
         except Exception as e:
             logging.error(f"Error downloading voice {voice_id}: {e}")
-            # Update UI in main thread to show error
-            QMetaObject.invokeMethod(self, "download_complete", 
+            QMetaObject.invokeMethod(
+                self,
+                "download_complete", 
                 Qt.ConnectionType.QueuedConnection,
                 Q_ARG(str, voice_id),
-                Q_ARG(bool, False))
+                Q_ARG(bool, False)
+            )
 
     @Slot(str, bool)
     def download_complete(self, voice_id, success):
@@ -2078,14 +2062,23 @@ class Widget(QWidget):
         spinner.deleteLater()
         
         if success:
+            # Remove download button
+            button.setParent(None)
+            button.deleteLater()
+            
             # Add tick icon
             tick_label = QLabel()
             tick_label.setPixmap(self.iconTick.pixmap(16, 16))
             container.layout().addWidget(tick_label)
+            
+            # Refresh the voice list to show updated status
+            self.generate_onnx_voice_models()
+            logging.info(f"Successfully downloaded voice model: {voice_id}")
         else:
             # Show download button again on failure
             button.setVisible(True)
-            
+            logging.error(f"Failed to download voice model: {voice_id}")
+        
         # Clean up tracking
         del self.active_downloads[voice_id]
 
@@ -2247,55 +2240,3 @@ if __name__ == "__main__":
     except Exception as e:
         logging.error(f"Application error: {e}")
         raise
-
-class SherpaOnnxTTS(TTS):
-    def __init__(self, model_dir=None, data_dir=None, **kwargs):
-        super().__init__(**kwargs)
-        
-        self.model_dir = Path(model_dir or "./sherpa_models")
-        self.data_dir = Path(data_dir or "~/AACSpeakHelper/sherpa_tts").expanduser()
-        
-        self._verify_model_files()
-        self.client = self._create_client()
-
-    def _verify_model_files(self):
-        required_files = {'model.onnx', 'tokens.txt', 'lexicon.txt'}
-        existing_files = {f.name for f in self.model_dir.glob('*')}
-        
-        if missing := required_files - existing_files:
-            logging.warning(f"Missing model files: {missing}. Attempting download...")
-            self._download_base_model()
-            
-    def _download_base_model(self):
-        try:
-            from sherpa_onnx import download_model
-            download_model(
-                model='sherpa_onnx_tts_model',
-                repo_id='AACSpeakHelper/sherpa-models',
-                dest_dir=str(self.model_dir)
-            )
-            logging.info("Base model downloaded successfully")
-        except Exception as e:
-            logging.error(f"Model download failed: {e}")
-            raise TTSInitializationError("Failed to download required model files")
-            
-    def _create_client(self):
-        from sherpa_onnx import SherpaOnnxOfflineTts
-        return SherpaOnnxOfflineTts(
-            model=str(self.model_dir),
-            data_dir=str(self.data_dir),
-            debug=self.debug
-        )
-
-    def get_available_voices(self):
-        return self.client.list_voices()
-
-    def download_voice(self, voice_id, progress_callback=None):
-        if not self.client:
-            raise TTSNotInitializedError()
-            
-        return self.client.download_model(
-            voice_id=voice_id,
-            progress_handler=progress_callback,
-            tts_model_dir=self.data_dir
-        )
