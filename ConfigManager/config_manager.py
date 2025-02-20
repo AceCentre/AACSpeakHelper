@@ -4,8 +4,9 @@ import dearpygui.dearpygui as dpg
 from encryption import EncryptionManager
 from credential_manager import CredentialManager
 from tts_manager import TTSManager
-from ui_components import create_voice_table
+from ui_components import create_voice_table, create_translation_tab, create_settings_tab
 import os
+from translation_manager import TranslationManager
 
 class ConfigManager:
     def __init__(self):
@@ -13,6 +14,7 @@ class ConfigManager:
         self.encryption = EncryptionManager()
         self.cred_mgr = CredentialManager(self.encryption)
         self.tts_mgr = TTSManager()
+        self.translation_mgr = TranslationManager()
         self.window_tag = "main_window"  # Add tag for the window
 
     def create_main_window(self):
@@ -64,6 +66,7 @@ class ConfigManager:
             with dpg.tab_bar():
                 self._create_tts_tab()
                 self._create_translation_tab()
+                self._create_settings_tab()
 
     def _create_tts_tab(self):
         with dpg.tab(label="TTS Engines"):
@@ -156,5 +159,8 @@ class ConfigManager:
 
     def _create_translation_tab(self):
         with dpg.tab(label="Translation"):
-            # Translation tab implementation
-            pass
+            create_translation_tab(self.translation_mgr)
+
+    def _create_settings_tab(self):
+        with dpg.tab(label="Application Settings"):
+            create_settings_tab()
