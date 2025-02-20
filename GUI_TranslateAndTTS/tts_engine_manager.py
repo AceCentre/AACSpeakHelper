@@ -135,8 +135,11 @@ class TTSEngineHandler:
         try:
             # Special cases for engines that don't use credentials
             if self.config.engine_id in ["SherpaOnnxTTS", "GoogleTransTTS"]:
-                model_path = ui_credentials.get('model_path', '') if ui_credentials else ''
-                self.client = self.config.client_class(model_path=model_path)
+                if self.config.engine_id == "SherpaOnnxTTS":
+                    model_path = ui_credentials.get('model_path', '') if ui_credentials else ''
+                    self.client = self.config.client_class(model_path=model_path)
+                else:  # GoogleTransTTS
+                    self.client = self.config.client_class()  # No credentials needed
                 self.tts = self.config.tts_class(self.client)
                 self.load_voices()
                 return True

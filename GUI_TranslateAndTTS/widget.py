@@ -500,20 +500,22 @@ class Widget(QWidget):
         self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
 
     def setup_initial_state(self):
-        # Initialize Sherpa client
+        """Initialize basic state and load models once"""
         try:
+            # Initialize Sherpa client once
             self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
             logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
-        except Exception as e:
-            logging.error(f"Sherpa initialization failed: {e}")
-
-        # Generate voice models
+            
+            # Load voice models once
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
-        self.generate_google_trans_voice_models()
-        
-        # Load saved credentials and voices
-        self.load_config()
+            self.generate_google_trans_voice_models()
+            
+            # Load saved credentials and voices
+            self.load_config()
+            
+        except Exception as e:
+            logging.error(f"Error in setup_initial_state: {e}")
 
     def load_initial_data(self):
         """Load all initial data in background"""
