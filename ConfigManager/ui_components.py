@@ -461,7 +461,6 @@ def create_settings_tab() -> None:
     # Stats collection
     dpg.add_checkbox(
         label="Allow The Application to Collecting Stats",
-        callback=lambda s, a: save_setting('App', 'collectstats', str(a)),
         default_value=get_setting('App', 'collectstats', True),
         tag="collect_stats"
     )
@@ -474,7 +473,6 @@ def create_settings_tab() -> None:
         dpg.add_input_int(
             width=100,
             default_value=get_setting('appCache', 'threshold', 7),
-            callback=lambda s, a: save_setting('appCache', 'threshold', str(a)),
             tag="cache_threshold"
         )
         dpg.add_text("day(s)")

@@ -63,10 +63,38 @@ class ConfigManager:
 
             dpg.bind_theme(global_theme)
 
-            with dpg.tab_bar():
-                self._create_tts_tab()
-                self._create_translation_tab()
-                self._create_settings_tab()
+            # Create horizontal group for tabs and buttons
+            with dpg.group(horizontal=True):
+                # Tab bar with width to leave space for buttons
+                with dpg.child_window(width=-200, border=False):
+                    with dpg.tab_bar():
+                        self._create_tts_tab()
+                        self._create_translation_tab()
+                        self._create_settings_tab()
+                
+                # Buttons on the right
+                with dpg.group():
+                    dpg.add_button(
+                        label="Save Changes",  # More descriptive label
+                        callback=self._save_all_settings,
+                        width=150,
+                        height=35
+                    )
+                    dpg.add_spacer(height=5)
+                    dpg.add_button(
+                        label="Revert Changes",  # More descriptive than "Discard"
+                        callback=self._discard_changes,
+                        width=150,
+                        height=35
+                    )
+
+                    # Add some styling to make Save more prominent
+                    with dpg.theme() as save_theme:
+                        with dpg.theme_component(dpg.mvButton):
+                            dpg.add_theme_color(dpg.mvThemeCol_Button, (0, 120, 255))
+                            dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (65, 155, 255))
+                            dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (0, 95, 200))
+                    dpg.bind_item_theme(dpg.last_item(), save_theme)
 
     def _create_tts_tab(self):
         with dpg.tab(label="TTS Engines"):
@@ -164,3 +192,59 @@ class ConfigManager:
     def _create_settings_tab(self):
         with dpg.tab(label="Application Settings"):
             create_settings_tab()
+
+    def _save_all_settings(self):
+        """Save all settings to config file"""
+        try:
+            # Get values from UI
+            settings = {
+                'App': {
+                    'collectstats': str(dpg.get_value("collect_stats"))
+                },
+                'appCache': {
+                    'threshold': str(dpg.get_value("cache_threshold"))
+                },
+                'translate': {
+                    'no_translate': str(not dpg.get_value("translate_enabled")),
+                    'overwrite_pasteboard': str(dpg.get_value("overwrite_pasteboard")),
+                    'bypass_tts': str(dpg.get_value("bypass_tts"))
+                }
+            }
+
+            # Save to config file
+            import configparser
+            config = configparser.ConfigParser()
+            
+            # Read existing config to preserve other settings
+            config.read('settings.cfg')
+            
+            # Update with new values
+            for section, values in settings.items():
+                if not config.has_section(section):
+                    config.add_section(section)
+                for key, value in values.items():
+                    config.set(section, key, value)
+            
+            # Write to file
+            with open('settings.cfg', 'w') as f:
+                config.write(f)
+            
+            show_success_dialog("Settings saved successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to save settings: {e}")
+            show_error_dialog(f"Failed to save settings: {str(e)}")
+
+    def _discard_changes(self):
+        """Reload settings from config file"""
+        try:
+            # Reload values from config
+            dpg.set_value("collect_stats", get_setting('App', 'collectstats', True))
+            dpg.set_value("cache_threshold", get_setting('appCache', 'threshold', 7))
+            dpg.set_value("translate_enabled", get_translate_setting())
+            
+            show_info_dialog("Changes discarded")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to discard changes: {e}")
+            show_error_dialog(f"Failed to reload settings: {str(e)}")
