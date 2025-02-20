@@ -36,7 +36,7 @@ requires-dist = [
     { name = "deep-translator", extras = ["ai"] },
     { name = "langcodes" },
     { name = "mypy", marker = "extra == 'dev'" },
-    { name = "py3-tts-wrapper", extras = ["google", "googletrans", "microsoft", "elevenlabs", "playht", "sherpaonnx"] },
+    { name = "py3-tts-wrapper", extras = ["google", "googletrans", "microsoft", "elevenlabs", "playht", "sherpaonnx"], specifier = "==0.9.26" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'dev'" },
 ]
@@ -1112,7 +1112,7 @@ wheels = [
 
 [[package]]
 name = "py3-tts-wrapper"
-version = "0.9.24"
+version = "0.9.26"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -1121,9 +1121,9 @@ dependencies = [
     { name = "sounddevice" },
     { name = "soundfile" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/63/39/a309997dd802cfe08c521ccd5df51c69affe52cbc74dafd0eb8645353b8a/py3_tts_wrapper-0.9.24.tar.gz", hash = "sha256:a7f42bf421c01c0e180a7bce0d5aaee6d2a1220fd72704301d54479e6e244b1f", size = 6966292 }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/4c/29d47486cd58f726703fee22caba4d3ff815d3d88c824978ade3dab6b99b/py3_tts_wrapper-0.9.26.tar.gz", hash = "sha256:9c3fae48ea1180de5094fab5d730e5ec44d6f3992c952e22cb5db53902cb14e4", size = 6965960 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/64/49bcc847943048698548bdd1f587c13002455e4817d7cae20e9b3e04865f/py3_tts_wrapper-0.9.24-py3-none-any.whl", hash = "sha256:7c93689f8ca811846d55d85de7b9d6f4118e11fdc99010d35daafc9ddbffb7d6", size = 848138 },
+    { url = "https://files.pythonhosted.org/packages/ce/07/d78b258183157485c5ffe42f789c5e4b5812a115784b29609fab0f08a57a/py3_tts_wrapper-0.9.26-py3-none-any.whl", hash = "sha256:26530a0078c19eb23e88752145eaf904d0fc4b5afbdb83d24a34bbcd77dc2a40", size = 847478 },
 ]
 
 [package.optional-dependencies]

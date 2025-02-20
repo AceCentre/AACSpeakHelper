@@ -1,29 +1,32 @@
 # File: tts_manager.py
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 import logging
 from dataclasses import dataclass
-from tts_wrapper import MicrosoftTTS, MicrosoftClient  # type: ignore
-from tts_wrapper import GoogleTTS, GoogleClient  # type: ignore
-from tts_wrapper import ElevenLabsTTS, ElevenLabsClient  # type: ignore
-from tts_wrapper import PlayHTTTS, PlayHTClient  # type: ignore
-from tts_wrapper import SherpaOnnxTTS, SherpaOnnxClient  # type: ignore
+from tts_wrapper import (
+    MicrosoftTTS, MicrosoftClient,
+    GoogleTTS, GoogleClient,
+    ElevenLabsTTS, ElevenLabsClient,
+    PlayHTTTS, PlayHTClient,
+    SherpaOnnxTTS, SherpaOnnxClient
+)
+from pathlib import Path
 
 @dataclass
 class CredentialField:
-    """Defines a credential field requirement"""
-    name: str
+    """Defines a credential field requirement for a TTS engine"""
+    name: str  # Field identifier
     field_type: str  # "text", "file", or "region"
-    label: str
+    label: str  # Display label for UI
 
 @dataclass
 class TTSConfig:
     """Configuration for a TTS engine"""
-    name: str
-    tts_class: type
-    client_class: type
-    requires_download: bool = False
-    requires_credentials: bool = True
-    credential_fields: Optional[List[CredentialField]] = None
+    name: str  # Engine name
+    tts_class: type  # TTS class
+    client_class: type  # Client class
+    requires_download: bool = False  # Whether engine needs model downloads
+    requires_credentials: bool = True  # Whether engine needs credentials
+    credential_fields: Optional[List[CredentialField]] = None  # Required credential fields
 
     def __post_init__(self):
         if self.credential_fields is None:
@@ -79,32 +82,45 @@ class TTSManager:
         self.clients: Dict[str, Any] = {}
         self.tts_instances: Dict[str, Any] = {}
         self.initialized: Dict[str, bool] = {name: False for name in self.engines}
+        self.download_queue = []
+        self.downloading = False
 
     def initialize_engine(self, engine_name: str, credentials: tuple) -> bool:
-        """Initialize a TTS engine with credentials"""
+        """Initialize a TTS engine with credentials or default settings"""
         try:
             if engine_name not in self.engines:
                 raise ValueError(f"Unknown engine: {engine_name}")
 
             config = self.engines[engine_name]
             
-            # Create client - handle SherpaOnnx differently
             if engine_name == "SherpaOnnx":
-                client = config.client_class()  # No credentials needed
+                # Get base directory
+                try:
+                    from configparser import ConfigParser
+                    cfg = ConfigParser()
+                    cfg.read('settings.cfg')
+                    base_dir = Path(cfg.get('TTS', 'base_dir'))
+                except:
+                    base_dir = Path.home() / "mms_models"
+                
+                base_dir.mkdir(parents=True, exist_ok=True)
+                self.logger.info(f"Initializing SherpaOnnx with base dir: {base_dir}")
+                
+                # Initialize with no_default_download=True to prevent auto-downloads
+                client = config.client_class(
+                    model_path=str(base_dir),
+                    no_default_download=True
+                )
             else:
                 client = config.client_class(credentials=credentials)
             
             self.clients[engine_name] = client
-            
-            # Create TTS instance
-            tts = config.tts_class(client)
-            self.tts_instances[engine_name] = tts
-            
+            self.tts_instances[engine_name] = config.tts_class(client)
             self.initialized[engine_name] = True
             return True
             
         except Exception as e:
-            logging.error(f"Failed to initialize {engine_name}: {e}")
+            self.logger.error(f"Failed to initialize {engine_name}: {e}")
             return False
 
     def get_voices(self, engine_name: str) -> List[dict]:
@@ -112,7 +128,7 @@ class TTSManager:
         try:
             if engine_name not in self.tts_instances:
                 raise ValueError(f"Engine {engine_name} not initialized")
-                
+            
             tts = self.tts_instances[engine_name]
             return tts.get_voices()  # type: ignore
             
@@ -120,23 +136,24 @@ class TTSManager:
             logging.error(f"Failed to get voices for {engine_name}: {e}")
             return []
 
-    def preview_voice(
-        self, 
-        engine_name: str, 
-        voice_id: str, 
-        text: str = "This is a preview."
-    ) -> None:
+    def preview_voice(self, engine_name: str, voice_id: str, text: str = "This is a preview.") -> None:
         """Preview a voice"""
         try:
-            if engine_name not in self.tts_instances:
-                raise ValueError(f"Engine {engine_name} not initialized")
-                
-            tts = self.tts_instances[engine_name]
-            tts.set_voice(voice_id)  # type: ignore
-            tts.speak(text)  # type: ignore
+            if engine_name == "SherpaOnnx":
+                client = self.clients[engine_name]
+                tts = self.tts_instances[engine_name]
+                # Set voice ID before preview
+                client._model_id = voice_id
+                client.set_voice()
+                tts.speak(text)
+            else:
+                if engine_name not in self.tts_instances:
+                    raise ValueError(f"Engine {engine_name} not initialized")
+                tts = self.tts_instances[engine_name]
+                tts.speak(text)
             
         except Exception as e:
-            logging.error(f"Failed to preview voice {voice_id}: {e}")
+            self.logger.error(f"Failed to preview voice {voice_id}: {e}")
             raise
 
     def get_engine_names(self) -> List[str]:
@@ -146,3 +163,31 @@ class TTSManager:
     def requires_download(self, engine_name: str) -> bool:
         """Check if engine requires model download"""
         return self.engines[engine_name].requires_download
+
+    def queue_download(self, engine_name: str, voice_id: str) -> None:
+        """Add a voice to the download queue"""
+        self.download_queue.append((engine_name, voice_id))
+        if not self.downloading:
+            self.process_download_queue()
+
+    def process_download_queue(self) -> None:
+        """Process the next download in the queue"""
+        if not self.download_queue:
+            self.downloading = False
+            return
+
+        self.downloading = True
+        engine_name, voice_id = self.download_queue[0]
+        
+        try:
+            if engine_name == "SherpaOnnx":
+                client = self.clients[engine_name]
+                # Let client handle download and paths
+                client.check_and_download_model(voice_id)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to download voice {voice_id}: {e}")
+            raise
+        finally:
+            self.download_queue.pop(0)
+            self.process_download_queue()

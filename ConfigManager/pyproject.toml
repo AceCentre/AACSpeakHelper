@@ -5,7 +5,7 @@ description = "Configuration manager for AACSpeakHelper"
 requires-python = ">=3.10"
 dependencies = [
     "dearpygui",
-    "py3-tts-wrapper[google,googletrans,microsoft,elevenlabs,playht,sherpaonnx]",
+    "py3-tts-wrapper[google,googletrans,microsoft,elevenlabs,playht,sherpaonnx]==0.9.26",
     "cryptography",
     "langcodes",
     "deep-translator[ai]",

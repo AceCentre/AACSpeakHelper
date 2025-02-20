@@ -5,6 +5,7 @@ from encryption import EncryptionManager
 from credential_manager import CredentialManager
 from tts_manager import TTSManager
 from ui_components import create_voice_table
+import os
 
 class ConfigManager:
     def __init__(self):
@@ -33,13 +34,15 @@ class ConfigManager:
             dpg.bind_font(default_font)
 
         # Load and set icon - using PNG instead of ICO
-        try:
-            width, height, channels, data = dpg.load_image("assets/configure.png")
-            with dpg.texture_registry():
-                texture_id = dpg.add_static_texture(width, height, data)
-                dpg.configure_viewport(0, small_icon=texture_id)
-        except Exception as e:
-            self.logger.warning(f"Could not load icon: {e}")
+        icon_path = os.path.join(os.path.dirname(__file__), "assets/configure.png")
+        if os.path.exists(icon_path):
+            try:
+                width, height, channels, data = dpg.load_image(icon_path)
+                with dpg.texture_registry():
+                    texture_id = dpg.add_static_texture(width, height, data)
+                    dpg.configure_viewport(0, small_icon=texture_id)
+            except Exception as e:
+                self.logger.warning(f"Could not load icon: {e}")
 
         with dpg.window(
             label="AACSpeakHelper Configuration",
