@@ -45,7 +45,7 @@ class CredentialManager:
             self.logger.error(f"Error loading user credentials for {service}: {e}")
             return None
 
-    def _load_encrypted_credentials(self, service: str) -> Optional[Dict[str, Any]]:
+    def _load_encrypted_credentials(self, service: str) -> Optional[Dict[str, Any] | tuple]:
         """Load credentials from config.enc"""
         try:
             encrypted_creds = self.encryption.load_encrypted_credentials()
@@ -71,7 +71,7 @@ class CredentialManager:
                 return (
                     creds.get("MICROSOFT_TOKEN"),
                     creds.get("MICROSOFT_REGION")
-                )  # Return as tuple for Microsoft
+                )
             elif service == "Google":
                 # Google needs the credentials as a dictionary
                 if isinstance(creds, dict) and "GOOGLE_APPLICATION_CREDENTIALS" in creds:
@@ -81,9 +81,11 @@ class CredentialManager:
                         creds_json = base64.b64decode(
                             creds["GOOGLE_APPLICATION_CREDENTIALS"]
                         ).decode('utf-8')
-                        return json.loads(creds_json)  # Return the decoded JSON directly
+                        return json.loads(creds_json)
                     except Exception as e:
-                        self.logger.error(f"Failed to decode Google credentials: {e}")
+                        self.logger.error(
+                            f"Failed to decode Google credentials: {e}"
+                        )
                         return None
                 return None
             else:

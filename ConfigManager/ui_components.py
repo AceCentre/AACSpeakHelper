@@ -43,27 +43,75 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                     lang_name = LanguageManager.get_language_name(lang)
                     dpg.add_text(f"{lang_name} ({lang})")
                 except Exception as e:
+                    self.logger.debug(f"Could not get language name: {e}")
                     dpg.add_text(lang)
                 dpg.add_text(voice.get('gender', 'N/A'))
 
                 # Create unique tags for buttons
                 button_tag = f"button_{engine_name}_{voice['id']}"
                 
-                if tts_mgr.requires_download(engine_name) and not voice.get('is_downloaded', False):
-                    dpg.add_button(
-                        label="Download",
-                        width=90,
-                        height=25,
-                        tag=button_tag,
-                        callback=create_callback(download_voice, tts_mgr, engine_name, voice['id'])
+                if engine_name == "SherpaOnnx":
+                    # Check if model exists
+                    client = tts_mgr.clients[engine_name]
+                    model_exists = client._check_files_exist(
+                        client._model_dir,
+                        client._model_dir,
+                        voice['id']
                     )
+                    if not model_exists:
+                        dpg.add_button(
+                            label="Download",
+                            width=90,
+                            height=25,
+                            tag=button_tag,
+                            callback=create_callback(
+                                download_voice, 
+                                tts_mgr, 
+                                engine_name, 
+                                voice['id']
+                            )
+                        )
+                    else:
+                        dpg.add_button(
+                            label="Preview",
+                            width=90,
+                            height=25,
+                            tag=button_tag,
+                            callback=create_callback(
+                                preview_voice, 
+                                tts_mgr, 
+                                engine_name, 
+                                voice['id']
+                            )
+                        )
+                elif tts_mgr.requires_download(engine_name):
+                    # Handle other downloadable engines
+                    if not voice.get('is_downloaded', False):
+                        dpg.add_button(
+                            label="Download",
+                            width=90,
+                            height=25,
+                            tag=button_tag,
+                            callback=create_callback(
+                                download_voice, 
+                                tts_mgr, 
+                                engine_name, 
+                                voice['id']
+                            )
+                        )
                 else:
+                    # Non-downloadable engines just get preview
                     dpg.add_button(
                         label="Preview",
                         width=90,
                         height=25,
                         tag=button_tag,
-                        callback=create_callback(preview_voice, tts_mgr, engine_name, voice['id'])
+                        callback=create_callback(
+                            preview_voice, 
+                            tts_mgr, 
+                            engine_name, 
+                            voice['id']
+                        )
                     )
 
 
@@ -86,7 +134,17 @@ def download_voice(tts_mgr: TTSManager, engine_name: str, voice_id: str) -> None
     """Download a voice model"""
     try:
         client = tts_mgr.clients[engine_name]
-        if hasattr(client, 'download_model'):
+        if engine_name == "SherpaOnnx":
+            # Use SherpaOnnx specific download method
+            model_path, tokens_path, _, _ = client.check_and_download_model(voice_id)
+            if model_path and tokens_path:
+                dpg.show_info_dialog(
+                    message=f"Downloaded model to {model_path}",
+                    title="Download Complete"
+                )
+                # Refresh voice table to update download status
+                create_voice_table(tts_mgr, engine_name)
+        elif hasattr(client, 'download_model'):
             client.download_model(voice_id)
             create_voice_table(tts_mgr, engine_name)
     except Exception as e:

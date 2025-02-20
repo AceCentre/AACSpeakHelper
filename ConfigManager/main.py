@@ -16,14 +16,7 @@ def main() -> None:
     config = ConfigManager()
     config.create_main_window()
     
-    # Setup viewport with proper size and theme
-    dpg.create_viewport(
-        title="AACSpeakHelper Config",
-        width=1000,
-        height=800,
-        min_width=800,
-        min_height=600
-    )
+    # Setup DearPyGui
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.set_primary_window(config.window_tag, True)

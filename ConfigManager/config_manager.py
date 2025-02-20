@@ -1,4 +1,5 @@
 # File: config_manager.py
+import logging
 import dearpygui.dearpygui as dpg
 from encryption import EncryptionManager
 from credential_manager import CredentialManager
@@ -7,15 +8,42 @@ from ui_components import create_voice_table
 
 class ConfigManager:
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.encryption = EncryptionManager()
         self.cred_mgr = CredentialManager(self.encryption)
         self.tts_mgr = TTSManager()
         self.window_tag = "main_window"  # Add tag for the window
 
     def create_main_window(self):
+        # Create viewport first
+        dpg.create_viewport(
+            title="AACSpeakHelper Config",
+            width=1000,
+            height=800,
+            min_width=800,
+            min_height=600
+        )
+
+        # Load font
+        with dpg.font_registry():
+            default_font = dpg.add_font(
+                "assets/AtkinsonHyperlegibleNext-Regular.ttf", 
+                16
+            )
+            dpg.bind_font(default_font)
+
+        # Load and set icon - using PNG instead of ICO
+        try:
+            width, height, channels, data = dpg.load_image("assets/configure.png")
+            with dpg.texture_registry():
+                texture_id = dpg.add_static_texture(width, height, data)
+                dpg.configure_viewport(0, small_icon=texture_id)
+        except Exception as e:
+            self.logger.warning(f"Could not load icon: {e}")
+
         with dpg.window(
             label="AACSpeakHelper Configuration",
-            tag=self.window_tag,  # Add tag here
+            tag=self.window_tag,
             pos=(100, 100),
             no_resize=False
         ):
