@@ -19,7 +19,7 @@ from PySide6.QtCore import (
 from PySide6.QtWidgets import (
     QWidget, QListWidgetItem, QMessageBox, QApplication,
     QPushButton, QLabel, QHBoxLayout, QDialogButtonBox, 
-    QFileDialog, QVBoxLayout, QAbstractItemView  # Add this import
+    QFileDialog, QVBoxLayout, QAbstractItemView, QLineEdit  # Add this import
 )
 from PySide6.QtGui import QIcon, QMovie, QFont
 
@@ -32,7 +32,9 @@ from item import Ui_item
 from tts_wrapper import (
     SherpaOnnxTTS, SherpaOnnxClient,
     MicrosoftTTS, MicrosoftClient,
-    GoogleTransTTS, GoogleTransClient
+    GoogleTransTTS, GoogleTransClient,
+    PlayHTClient, PlayHTTTS,
+    ElevenLabsTTS, ElevenLabsClient
 )
 from language_dictionary import (
     Google_Translator, MyMemory_Translator, Libre_Translator,
@@ -86,6 +88,18 @@ PROVIDERS = {
         'enabled': True,
         'client_class': GoogleTransClient,
         'tts_class': GoogleTransTTS,
+    },
+    'elevenlabs': {
+        'name': 'ElevenLabs',
+        'enabled': True,
+        'client_class': ElevenLabsClient,
+        'tts_class': ElevenLabsTTS,
+    },
+    'playht': {
+        'name': 'PlayHT',
+        'enabled': True,
+        'client_class': PlayHTClient,
+        'tts_class': PlayHTTTS,
     }
 }
 
@@ -113,8 +127,6 @@ class SherpaOnnxManager:
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        
-        # Initialize UI
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
         
@@ -359,58 +371,69 @@ class Widget(QWidget):
             }
         """)
         
+        # Connect new search boxes
+        self.ui.search_language_elevenlabs.textChanged.connect(
+            lambda text: debug_text_changed(text, "elevenlabs"))
+        self.ui.search_language_playht.textChanged.connect(
+            lambda text: debug_text_changed(text, "playht"))
+        
+        self.ui.search_language_elevenlabs.returnPressed.connect(
+            lambda: debug_return_pressed("elevenlabs"))
+        self.ui.search_language_playht.returnPressed.connect(
+            lambda: debug_return_pressed("playht"))
+        
+        # Set placeholder text for new search boxes
+        self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+        self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
+        
+        # Connect credential change signals
+        self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
+        self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
+        self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+
     def load_existing_config(self):
         """Load configuration from existing config file."""
         try:
-            config = configparser.ConfigParser()
-            config_path = os.path.join(os.path.dirname(__file__), "config.ini")
-            if os.path.exists(config_path):
-                config.read(config_path)
+            if os.path.exists(self.config_path):
+                self.config.read(self.config_path)
                 
-                if "Providers" in config:
-                    for provider in self.providers:
-                        if provider in config["Providers"]:
-                            self.providers[provider] = config["Providers"].getboolean(provider)
+                # Load ElevenLabs config
+                if self.config.has_section("ElevenLabsTTS"):
+                    self.ui.elevenlabs_key.setText(
+                        self.config.get("ElevenLabsTTS", "api_key", fallback="")
+                    )
+                    if self.ui.elevenlabs_key.text():
+                        self.ui.elevenlabs_no_creds_label.hide()
+                        self.ui.search_language_elevenlabs.show()
+                        self.ui.elevenlabs_listWidget.show()
+                        self.generate_elevenlabs_voice_models()
+                        
+                        # Select saved voice if any
+                        saved_voice = self.config.get("ElevenLabsTTS", "voice_id", fallback=None)
+                        if saved_voice:
+                            self.select_voice_in_list(self.ui.elevenlabs_listWidget, saved_voice)
                 
-                if "Settings" in config:
-                    settings = config["Settings"]
-                    if "language" in settings:
-                        self.current_language = settings["language"]
-                    if "voice" in settings:
-                        self.current_voice = settings["voice"]
-                    if "provider" in settings:
-                        self.current_provider = settings["provider"]
-                
-                self.generate_azure_voice_models()
-                self.generate_google_voice_models()
-                self.generate_onnx_voice_models()
-                self.generate_google_trans_voice_models()
-                self.pool_starter()
-                self.get_microsoft_language()
-                
-                # Load configuration values
-                self.notranslate = self.ttsEngine = self.config.getboolean(
-                    "translate", "no_translate"
-                )
-                self.startLang = self.config.get("translate", "start_lang")
-                self.endLang = self.config.get("translate", "end_lang")
-                self.overwritePb = self.config.getboolean("translate", "replace_pb")
-                self.bypassTTS = self.config.getboolean("TTS", "bypass_tts")
-                self.provider = self.config.get("translate", "provider")
-                
-                # Update UI with loaded values
-                self.ui.comboBox_provider.setCurrentIndex(
-                    self.ui.comboBox_provider.findText(self.provider)
-                )
-                self.ui.checkBox_translate.setChecked(not self.notranslate)
-                self.ui.checkBox_overwritepb.setChecked(self.overwritePb)
-                self.ui.checkBox_bypass.setChecked(self.bypassTTS)
-                self.ui.spinBox_threshold.setValue(
-                    int(self.config.get("appCache", "threshold"))
-                )
+                # Load PlayHT config
+                if self.config.has_section("PlayHTTTS"):
+                    self.ui.playht_key.setText(
+                        self.config.get("PlayHTTTS", "api_key", fallback="")
+                    )
+                    self.ui.playht_userid.setText(
+                        self.config.get("PlayHTTTS", "user_id", fallback="")
+                    )
+                    if self.ui.playht_key.text() and self.ui.playht_userid.text():
+                        self.ui.playht_no_creds_label.hide()
+                        self.ui.search_language_playht.show()
+                        self.ui.playht_listWidget.show()
+                        self.generate_playht_voice_models()
+                        
+                        # Select saved voice if any
+                        saved_voice = self.config.get("PlayHTTTS", "voice_id", fallback=None)
+                        if saved_voice:
+                            self.select_voice_in_list(self.ui.playht_listWidget, saved_voice)
+
         except Exception as e:
             logging.error(f"Error loading configuration: {e}")
-            self.initialize_default_config()
 
     def initialize_default_config(self):
         """Initialize default configuration."""
@@ -446,22 +469,25 @@ class Widget(QWidget):
 
     def on_tts_engine_toggled(self, text):
         """Handle TTS engine selection changes."""
-        if text == "Azure TTS":
-            self.ui.stackedWidget.setCurrentIndex(0)
-            if self.screenSize and self.screenSize.height() > 800:
-                self.ui.listWidget_voiceazure.setFixedHeight(400)
-        elif text == "Google TTS":
-            self.ui.stackedWidget.setCurrentIndex(1)
-            if self.screenSize and self.screenSize.height() > 800:
-                self.ui.listWidget_voicegoogle.setFixedHeight(400)
-        elif text == "GoogleTranslator TTS":
-            self.ui.stackedWidget.setCurrentIndex(2)
-        elif text == "Sherpa-ONNX":
-            self.ui.stackedWidget.setCurrentIndex(6)
-            if self.screenSize and self.screenSize.height() > 800:
-                self.ui.onnx_listWidget.setFixedHeight(400)
-        else:
-            self.ui.stackedWidget.setCurrentIndex(5)
+        self.comboBox = text
+        if text == "Sherpa-ONNX":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.onnx_page)
+            self.ttsEngine = "SherpaOnnxTTS"
+        elif text == "Azure":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.azure_page)
+            self.ttsEngine = "MicrosoftTTS"
+        elif text == "Google":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.gTTS_page)
+            self.ttsEngine = "GoogleTTS"
+        elif text == "Google Trans":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.gspeak_page)
+            self.ttsEngine = "GoogleTransTTS"
+        elif text == "ElevenLabs":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.elevenlabs_page)
+            self.ttsEngine = "ElevenLabsTTS"
+        elif text == "PlayHT":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.playht_page)
+            self.ttsEngine = "PlayHTTTS"
 
     def on_save_pressed(self, permanent=True):
         self.ui.statusBar.clear()
@@ -1959,7 +1985,7 @@ class Widget(QWidget):
 
     def on_search_changed(self, text, provider):
         """Handler for search box text changes"""
-        print(f"Search changed handler called - Provider: {provider}, Text: '{text}'")  # Immediate feedback
+        print(f"Search changed handler called - Provider: {provider}, Text: '{text}'")
         logging.debug(f"Search changed handler called - Provider: {provider}, Text: '{text}'")
         if provider == "azure":
             self.filter_azure_voices()
@@ -1969,10 +1995,14 @@ class Widget(QWidget):
             self.filter_onnx_voices()
         elif provider == "google_trans":
             self.filter_google_trans_voices()
+        elif provider == "elevenlabs":
+            self.filter_elevenlabs_voices()
+        elif provider == "playht":
+            self.filter_playht_voices()
 
     def on_search_return(self, provider):
         """Handler for search box return pressed"""
-        print(f"Search return pressed for {provider}")  # Immediate feedback
+        print(f"Search return pressed for {provider}")
         logging.debug(f"Search return pressed for {provider}")
         if provider == "azure":
             self.filter_azure_voices()
@@ -1982,6 +2012,10 @@ class Widget(QWidget):
             self.filter_onnx_voices()
         elif provider == "google_trans":
             self.filter_google_trans_voices()
+        elif provider == "elevenlabs":
+            self.filter_elevenlabs_voices()
+        elif provider == "playht":
+            self.filter_playht_voices()
 
     def start_download(self, voice_id, button, container):
         """Start voice model download."""
@@ -2081,6 +2115,273 @@ class Widget(QWidget):
         
         # Clean up tracking
         del self.active_downloads[voice_id]
+
+    def generate_elevenlabs_voice_models(self):
+        """Generate ElevenLabs voice models."""
+        try:
+            self.ui.elevenlabs_listWidget.clear()
+            api_key = self.ui.elevenlabs_key.text()
+            
+            if api_key:
+                self.ui.elevenlabs_progressBar.setVisible(True)
+                self.ui.elevenlabs_progressBar.setValue(0)
+                
+                client = ElevenLabsClient(credentials=(api_key,))
+                tts = ElevenLabsTTS(client)
+                voices = tts.get_voices()
+                
+                for i, voice in enumerate(voices):
+                    self.add_voice_to_list(
+                        voice, 
+                        self.ui.elevenlabs_listWidget,
+                        "elevenlabs"
+                    )
+                    self.ui.elevenlabs_progressBar.setValue((i + 1) * 100 / len(voices))
+                
+                self.ui.elevenlabs_progressBar.setVisible(False)
+                
+        except Exception as e:
+            logging.error(f"Error loading ElevenLabs voices: {e}")
+            self.ui.elevenlabs_progressBar.setVisible(False)
+
+    def generate_playht_voice_models(self):
+        """Generate PlayHT voice models."""
+        try:
+            self.ui.playht_listWidget.clear()
+            api_key = self.ui.playht_key.text()
+            user_id = self.ui.playht_userid.text()
+            
+            if api_key and user_id:
+                client = PlayHTClient(credentials=(api_key, user_id))
+                tts = PlayHTTTS(client)
+                voices = tts.get_voices()
+                
+                for voice in voices:
+                    self.add_voice_to_list(
+                        voice, 
+                        self.ui.playht_listWidget,
+                        "playht"
+                    )
+                    
+        except Exception as e:
+            logging.error(f"Error loading PlayHT voices: {e}")
+
+    def save_config(self):
+        """Save configuration."""
+        try:
+            # ... existing save code ...
+
+            # Save ElevenLabs config
+            if not self.config.has_section("ElevenLabsTTS"):
+                self.config.add_section("ElevenLabsTTS")
+            self.config.set("ElevenLabsTTS", "api_key", self.ui.elevenlabs_key.text())
+            if self.ui.elevenlabs_listWidget.currentItem():
+                voice_id = self.ui.elevenlabs_listWidget.currentItem().data(Qt.UserRole)
+                self.config.set("ElevenLabsTTS", "voice_id", voice_id)
+                self.config.set("TTS", "engine", "ElevenLabsTTS")
+            
+            # Save PlayHT config
+            if not self.config.has_section("PlayHTTTS"):
+                self.config.add_section("PlayHTTTS")
+            self.config.set("PlayHTTTS", "api_key", self.ui.playht_key.text())
+            self.config.set("PlayHTTTS", "user_id", self.ui.playht_userid.text())
+            if self.ui.playht_listWidget.currentItem():
+                voice_id = self.ui.playht_listWidget.currentItem().data(Qt.UserRole)
+                self.config.set("PlayHTTTS", "voice_id", voice_id)
+                self.config.set("TTS", "engine", "PlayHTTTS")
+
+            with open(self.config_path, 'w') as configfile:
+                self.config.write(configfile)
+
+        except Exception as e:
+            logging.error(f"Error saving configuration: {e}")
+
+    def load_existing_config(self):
+        """Load configuration from existing config file."""
+        try:
+            if os.path.exists(self.config_path):
+                self.config.read(self.config_path)
+                
+                # Load ElevenLabs config
+                if self.config.has_section("ElevenLabsTTS"):
+                    self.ui.elevenlabs_key.setText(
+                        self.config.get("ElevenLabsTTS", "api_key", fallback="")
+                    )
+                    if self.ui.elevenlabs_key.text():
+                        self.ui.elevenlabs_no_creds_label.hide()
+                        self.ui.search_language_elevenlabs.show()
+                        self.ui.elevenlabs_listWidget.show()
+                        self.generate_elevenlabs_voice_models()
+                        
+                        # Select saved voice if any
+                        saved_voice = self.config.get("ElevenLabsTTS", "voice_id", fallback=None)
+                        if saved_voice:
+                            self.select_voice_in_list(self.ui.elevenlabs_listWidget, saved_voice)
+                
+                # Load PlayHT config
+                if self.config.has_section("PlayHTTTS"):
+                    self.ui.playht_key.setText(
+                        self.config.get("PlayHTTTS", "api_key", fallback="")
+                    )
+                    self.ui.playht_userid.setText(
+                        self.config.get("PlayHTTTS", "user_id", fallback="")
+                    )
+                    if self.ui.playht_key.text() and self.ui.playht_userid.text():
+                        self.ui.playht_no_creds_label.hide()
+                        self.ui.search_language_playht.show()
+                        self.ui.playht_listWidget.show()
+                        self.generate_playht_voice_models()
+                        
+                        # Select saved voice if any
+                        saved_voice = self.config.get("PlayHTTTS", "voice_id", fallback=None)
+                        if saved_voice:
+                            self.select_voice_in_list(self.ui.playht_listWidget, saved_voice)
+
+        except Exception as e:
+            logging.error(f"Error loading configuration: {e}")
+
+    def select_voice_in_list(self, list_widget, voice_id):
+        """Helper to select a voice in a list widget by its ID"""
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+            if item.data(Qt.UserRole) == voice_id:
+                list_widget.setCurrentItem(item)
+                break
+
+    def filter_elevenlabs_voices(self):
+        """Filter ElevenLabs voices based on search text."""
+        try:
+            search_text = self.ui.search_language_elevenlabs.text().lower()
+            logging.debug(f"Filtering ElevenLabs voices with: '{search_text}'")
+            
+            # Get all voices again
+            api_key = self.ui.elevenlabs_key.text()
+            if api_key:
+                client = ElevenLabsClient(credentials=(api_key,))
+                tts = ElevenLabsTTS(client)
+                voices = tts.get_voices()
+                
+                # Clear current list
+                self.ui.elevenlabs_listWidget.clear()
+                
+                # Add matching voices
+                for voice in voices:
+                    # Check if search text matches name or any other relevant fields
+                    name = voice.get('name', '').lower()
+                    description = voice.get('description', '').lower()
+                    if search_text in name or search_text in description:
+                        self.add_voice_to_list(
+                            voice,
+                            self.ui.elevenlabs_listWidget,
+                            "elevenlabs"
+                        )
+                
+                logging.debug(f"Finished filtering ElevenLabs voices")
+                
+        except Exception as e:
+            logging.error(f"Error filtering ElevenLabs voices: {e}")
+
+    def filter_playht_voices(self):
+        """Filter PlayHT voices based on search text."""
+        try:
+            search_text = self.ui.search_language_playht.text().lower()
+            logging.debug(f"Filtering PlayHT voices with: '{search_text}'")
+            
+            # Get all voices again
+            api_key = self.ui.playht_key.text()
+            user_id = self.ui.playht_userid.text()
+            
+            if api_key and user_id:
+                client = PlayHTClient(credentials=(api_key, user_id))
+                tts = PlayHTTTS(client)
+                voices = tts.get_voices()
+                
+                # Clear current list
+                self.ui.playht_listWidget.clear()
+                
+                # Add matching voices
+                for voice in voices:
+                    # Check if search text matches name or any other relevant fields
+                    name = voice.get('name', '').lower()
+                    language = voice.get('language', '').lower()
+                    if search_text in name or search_text in language:
+                        self.add_voice_to_list(
+                            voice,
+                            self.ui.playht_listWidget,
+                            "playht"
+                        )
+                
+                logging.debug(f"Finished filtering PlayHT voices")
+                
+        except Exception as e:
+            logging.error(f"Error filtering PlayHT voices: {e}")
+
+    def on_elevenlabs_creds_changed(self):
+        """Handle ElevenLabs credentials changes"""
+        if self.ui.elevenlabs_key.text():
+            self.ui.elevenlabs_no_creds_label.hide()
+            self.ui.search_language_elevenlabs.show()
+            self.ui.elevenlabs_listWidget.show()
+            self.ui.elevenlabs_progressBar.show()
+            self.generate_elevenlabs_voice_models()  # Load voices when API key is entered
+        else:
+            self.ui.elevenlabs_no_creds_label.show()
+            self.ui.search_language_elevenlabs.hide()
+            self.ui.elevenlabs_listWidget.clear()
+            self.ui.elevenlabs_listWidget.hide()
+            self.ui.elevenlabs_progressBar.hide()
+
+    def on_playht_creds_changed(self):
+        """Handle PlayHT credentials changes"""
+        if self.ui.playht_key.text() and self.ui.playht_userid.text():
+            self.ui.playht_no_creds_label.hide()
+            self.ui.search_language_playht.show()
+            self.ui.playht_listWidget.show()
+            self.generate_playht_voice_models()
+        else:
+            self.ui.playht_no_creds_label.show()
+            self.ui.search_language_playht.hide()
+            self.ui.playht_listWidget.clear()
+            self.ui.playht_listWidget.hide()
+
+    def add_voice_to_list(self, voice, list_widget, provider):
+        """Add a voice to the specified list widget."""
+        try:
+            item_widget = QWidget()
+            layout = QHBoxLayout(item_widget)
+            layout.setContentsMargins(5, 2, 5, 2)
+            
+            # Name and info
+            name_layout = QVBoxLayout()
+            name_label = QLabel(voice.get('name', ''))
+            name_label.setFont(QFont("Arial", 10, QFont.Bold))
+            name_layout.addWidget(name_label)
+            
+            if provider == "elevenlabs":
+                description = voice.get('description', '')
+                if description:
+                    desc_label = QLabel(description)
+                    desc_label.setStyleSheet("color: gray;")
+                    name_layout.addWidget(desc_label)
+            
+            layout.addLayout(name_layout)
+            
+            # Preview button
+            preview_btn = QPushButton("Preview")
+            preview_btn.setIcon(self.iconPlayed)
+            preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+            layout.addWidget(preview_btn)
+            
+            # Add to list
+            list_item = QListWidgetItem()
+            list_item.setSizeHint(item_widget.sizeHint())
+            list_item.setData(Qt.UserRole, voice.get('id'))
+            
+            list_widget.addItem(list_item)
+            list_widget.setItemWidget(list_item, item_widget)
+            
+        except Exception as e:
+            logging.error(f"Error adding voice to list: {e}")
 
 
 class Signals(QObject):
