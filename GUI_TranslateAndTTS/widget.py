@@ -11,7 +11,8 @@ import subprocess
 import platform
 import base64
 from pathlib import Path
-from threading import Thread
+import threading
+from threading import Thread, Lock
 from PySide6.QtCore import (
     Qt, QSize, QObject, Signal, QRunnable, QThreadPool, 
     QMetaObject, Slot, Q_ARG
@@ -127,25 +128,93 @@ class SherpaOnnxManager:
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_Widget()
-        self.ui.setupUi(self)
         
-        # Set up logging with more detail
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
-        logging.debug("Widget initialized")
+        # Show splash screen first
+        self.splash = SplashScreen()
+        self.splash.show()
+        QApplication.processEvents()  # Make sure splash screen is displayed
         
-        # Initialize icons
-        self.iconDownload = QIcon(":/images/images/download.ico")
-        self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
-        self.iconTick = QIcon(":/images/images/downloaded.ico")  # Use downloaded.ico as tick
+        try:
+            # Initialize UI
+            self.splash.loading_label.setText("Initializing UI...")
+            QApplication.processEvents()
+            self.ui = Ui_Widget()
+            self.ui.setupUi(self)
+            
+            # Initialize paths and attributes
+            self.splash.loading_label.setText("Setting up paths...")
+            QApplication.processEvents()
+            if getattr(sys, 'frozen', False):
+                self.onnx_cache_path = os.path.join(os.path.dirname(sys.executable), "models")
+                self.config_path = os.path.join(os.path.dirname(sys.executable), "settings.cfg")
+            else:
+                self.onnx_cache_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
+                self.config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "settings.cfg")
+            
+            # Create directories if needed
+            os.makedirs(self.onnx_cache_path, exist_ok=True)
+            
+            # Initialize basic attributes
+            self.lock = Lock()
+            self.temp_config_file = None
+            self.credsFilePath = ""
+            
+            # Initialize logging
+            logging.basicConfig(level=logging.DEBUG,
+                              format='%(asctime)s - %(levelname)s - %(message)s')
+            
+            # Initialize config
+            self.splash.loading_label.setText("Loading configuration...")
+            QApplication.processEvents()
+            self.config = configparser.ConfigParser()
+            self.load_existing_config()
+            
+            # Initialize icons
+            self.splash.loading_label.setText("Loading resources...")
+            QApplication.processEvents()
+            self.iconDownload = QIcon(":/images/images/download.ico")
+            self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
+            self.iconTick = QIcon(":/images/images/downloaded.ico")
+            
+            # Initialize voice models
+            self.splash.loading_label.setText("Loading voice models...")
+            QApplication.processEvents()
+            self.initialize_voice_models()
+            
+            # Set up UI connections
+            self.splash.loading_label.setText("Setting up UI connections...")
+            QApplication.processEvents()
+            self.setup_ui_connections()
+            
+            # Close splash screen and show main window
+            self.splash.close()
+            self.show()
+            
+        except Exception as e:
+            logging.error(f"Error during initialization: {e}")
+            if hasattr(self, 'splash'):
+                self.splash.close()
+            raise
         
-        # Create loading spinner movie
-        self.spinner = QMovie(":/images/images/loading.gif")  # Use existing loading.gif
-        self.spinner.setScaledSize(QSize(16, 16))
-        self.active_downloads = {}  # Track active downloads
+        # Initialize all the paths and other setup...
+        # [Keep all the existing initialization code]
+        
+        # After all initialization is done, close splash and show window
+        if hasattr(self, 'splash') and self.splash:
+            self.splash.close()
+            self.splash = None
+        self.show()
+        
+        # Set up paths and other non-UI initialization
+        self.setup_initial_state()
+        
+        # Load data using signals to update UI safely
+        self.load_thread = Thread(target=self.load_initial_data)
+        self.load_thread.daemon = True  # Make thread exit when main thread exits
+        self.load_signals = LoadingSignals()
+        self.load_signals.progress.connect(self.update_loading_progress)
+        self.load_signals.finished.connect(self.finish_loading)
+        self.load_thread.start()
         
         # Initialize providers dictionary
         self.providers = {
@@ -391,6 +460,64 @@ class Widget(QWidget):
         self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
         self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
 
+    def setup_initial_state(self):
+        # Initialize Sherpa client
+        try:
+            self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
+            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
+        except Exception as e:
+            logging.error(f"Sherpa initialization failed: {e}")
+
+        # Generate voice models
+            self.generate_azure_voice_models()
+            self.generate_google_voice_models()
+        self.generate_google_trans_voice_models()
+        
+        # Load saved credentials and voices
+        self.load_config()
+
+    def load_initial_data(self):
+        """Load all initial data in background"""
+        try:
+            # Initialize logging
+            logging.basicConfig(level=logging.DEBUG,
+                              format='%(asctime)s - %(levelname)s - %(message)s')
+            logging.debug("Widget initialized")
+            
+            # Load models one by one, emitting progress
+            self.load_signals.progress.emit("Initializing Sherpa ONNX...")
+            self.initialize_sherpa()
+            
+            self.load_signals.progress.emit("Loading Azure voices...")
+            self.initialize_azure()
+            
+            self.load_signals.progress.emit("Loading Google voices...")
+            self.initialize_google()
+            
+            self.load_signals.progress.emit("Loading configuration...")
+            self.load_config()
+            
+            # Signal completion
+            self.load_signals.finished.emit()
+            
+        except Exception as e:
+            logging.error(f"Error loading initial data: {e}")
+
+    @Slot(str)
+    def update_loading_progress(self, message):
+        """Update loading message in splash screen"""
+        if hasattr(self, 'splash') and self.splash:
+            self.splash.loading_label.setText(message)
+            QApplication.processEvents()
+
+    @Slot()
+    def finish_loading(self):
+        """Called when loading is complete"""
+        if hasattr(self, 'splash') and self.splash:
+            self.splash.close()
+            self.splash = None
+        self.show()
+
     def load_existing_config(self):
         """Load configuration from existing config file."""
         try:
@@ -465,7 +592,7 @@ class Widget(QWidget):
             self.ui.validate_azure.setVisible(
                 self.ui.lineEdit_key.text() != "" and self.ui.lineEdit_region.text() != ""
             )
-        return super().event_filter(obj, event)
+            return super().event_filter(obj, event)
 
     def on_tts_engine_toggled(self, text):
         """Handle TTS engine selection changes."""
@@ -1912,7 +2039,7 @@ class Widget(QWidget):
             font = QFont()
             font.setPointSize(14)  
             item_UI.name.setFont(font)
-            item_UI.play.clicked.connect(self.preview_pressed)  
+            item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
             item.setSizeHint(item_widget.sizeHint())
             item.setToolTip(data["id"])
@@ -1931,7 +2058,7 @@ class Widget(QWidget):
             font = QFont()
             font.setPointSize(14)  
             item_UI.name.setFont(font)
-            item_UI.play.clicked.connect(self.preview_pressed)  
+            item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
             item.setSizeHint(item_widget.sizeHint())
             item.setToolTip(data["id"])
@@ -1951,7 +2078,7 @@ class Widget(QWidget):
             font.setPointSize(14)  
             item_UI.name.setFont(font)
             if data.get("downloaded", False):
-                item_UI.play.setIcon(self.iconPlayed)  
+                item_UI.play.setIcon(self.iconPlayed)
                 item_UI.play.clicked.connect(self.preview_pressed)
             else:
                 item_UI.play.setIcon(self.iconDownload)  
@@ -1974,7 +2101,7 @@ class Widget(QWidget):
             font = QFont()
             font.setPointSize(14)  
             item_UI.name.setFont(font)
-            item_UI.play.clicked.connect(self.preview_pressed)  
+            item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
             item.setSizeHint(item_widget.sizeHint())
             item.setToolTip(data["id"])
@@ -2383,6 +2510,93 @@ class Widget(QWidget):
         except Exception as e:
             logging.error(f"Error adding voice to list: {e}")
 
+    def initialize_voice_models(self):
+        """Initialize all voice models and data"""
+        # Initialize Sherpa client
+        try:
+            self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
+            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
+        except Exception as e:
+            logging.error(f"Sherpa initialization failed: {e}")
+
+        # Generate voice models
+        self.generate_azure_voice_models()
+        self.generate_google_voice_models()
+        self.generate_google_trans_voice_models()
+        
+        # Load saved credentials and voices
+        self.load_config()
+
+    def load_config(self):
+        """Load configuration from settings.cfg"""
+        try:
+            if os.path.exists(self.config_path):
+                self.config.read(self.config_path)
+                logging.debug(f"Configuration loaded from {self.config_path}")
+            else:
+                logging.debug("No existing configuration found, using defaults")
+                self.setup_default_config()
+        except Exception as e:
+            logging.error(f"Error loading configuration: {e}")
+            self.setup_default_config()
+
+    def setup_default_config(self):
+        """Set up default configuration"""
+        if not self.config.has_section("App"):
+            self.config.add_section("App")
+        if not self.config.has_section("TTS"):
+            self.config.add_section("TTS")
+        if not self.config.has_section("translate"):
+            self.config.add_section("translate")
+        
+        # Set some default values
+        self.config.set("TTS", "engine", "Sherpa-ONNX")
+        self.config.set("TTS", "bypass_tts", "False")
+        self.config.set("TTS", "save_audio_file", "True")
+        self.config.set("TTS", "rate", "50")
+        self.config.set("TTS", "volume", "100")
+        self.config.set("TTS", "voice_id", "eng")
+
+    def setup_ui_connections(self):
+        """Set up all UI signal/slot connections"""
+        # Connect TTS engine changes
+        self.ui.ttsEngineBox.currentTextChanged.connect(self.on_tts_engine_toggled)
+        
+        # Connect save/discard buttons
+        self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
+            lambda: self.on_save_pressed(True)
+        )
+        self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
+            self.on_discard_pressed
+        )
+        
+        # Connect browse and file path changes
+        self.ui.browseButton.clicked.connect(self.on_browse_button_pressed)
+        self.ui.credsFilePathEdit.textChanged.connect(self.on_creds_file_path_changed)
+        
+        # Connect cache buttons
+        self.ui.clear_cache.clicked.connect(self.cache_clear)
+        self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
+        
+        # Connect search boxes
+        self.ui.search_language_azure.textChanged.connect(
+            lambda text: self.on_search_changed(text, "azure"))
+        self.ui.search_language_google.textChanged.connect(
+            lambda text: self.on_search_changed(text, "google"))
+        self.ui.search_language.textChanged.connect(
+            lambda text: self.on_search_changed(text, "onnx"))
+        self.ui.search_language_googleTrans.textChanged.connect(
+            lambda text: self.on_search_changed(text, "google_trans"))
+        self.ui.search_language_elevenlabs.textChanged.connect(
+            lambda text: self.on_search_changed(text, "elevenlabs"))
+        self.ui.search_language_playht.textChanged.connect(
+            lambda text: self.on_search_changed(text, "playht"))
+        
+        # Connect credential change signals
+        self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
+        self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
+        self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+
 
 class Signals(QObject):
     started = Signal()
@@ -2528,8 +2742,56 @@ def setup_logging():
     logging.info(f"Log file location: {log_file}")
     logging.info(f"Python version: {sys.version}")
     logging.info(f"Operating system: {platform.platform()}")
-    
+
     return log_file
+
+
+class SplashScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setFixedSize(400, 200)
+        
+        # Create semi-transparent white background
+        self.setStyleSheet("""
+            QWidget {
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 10px;
+            }
+        """)
+        
+        layout = QVBoxLayout(self)
+        
+        # Add loading spinner
+        self.spinner = QMovie(":/images/images/loading.gif")
+        self.spinner.setScaledSize(QSize(32, 32))
+        spinner_label = QLabel()
+        spinner_label.setMovie(self.spinner)
+        layout.addWidget(spinner_label, alignment=Qt.AlignCenter)
+        
+        # Add loading text
+        self.loading_label = QLabel("Initializing...")
+        self.loading_label.setStyleSheet("""
+            color: black;
+            font-size: 14px;
+            font-weight: bold;
+        """)
+        layout.addWidget(self.loading_label, alignment=Qt.AlignCenter)
+        
+        # Center on screen
+        screen = QApplication.primaryScreen().geometry()
+        self.move(
+            screen.center().x() - self.width() // 2,
+            screen.center().y() - self.height() // 2
+        )
+        
+        self.spinner.start()
+
+
+class LoadingSignals(QObject):
+    progress = Signal(str)  # Signal for updating loading status
+    finished = Signal()     # Signal for when loading is complete
 
 
 if __name__ == "__main__":
