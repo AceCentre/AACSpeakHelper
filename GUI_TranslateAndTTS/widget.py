@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QFileDialog, QVBoxLayout, QAbstractItemView, QLineEdit  # Add this import
 )
 from PySide6.QtGui import QIcon, QMovie, QFont
+from typing import Dict
 
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -45,6 +46,7 @@ from language_dictionary import (
     google_TTS_list, gSpeak_TTS_list
 )
 from configure_enc_utils import load_credentials
+from tts_engine_manager import TTS_ENGINES, TTSEngineHandler
 
 # Language codes mapping
 LANGUAGE_CODES = {
@@ -129,18 +131,62 @@ class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         
-        # Show splash screen first
+        # Initialize UI first
+        self.ui = Ui_Widget()
+        self.ui.setupUi(self)
+        
+        # Initialize icons first
+        self.iconDownload = QIcon(":/images/images/download.ico")
+        self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
+        self.iconTick = QIcon(":/images/images/downloaded.ico")
+        
+        # Create icons dictionary for engine handlers
+        icons = {
+            'preview': self.iconPlayed,
+            'download': self.iconDownload,
+            'downloaded': self.iconTick
+        }
+        
+        # Map engine IDs to actual UI widget names
+        list_widget_map = {
+            "microsoft": "listWidget_voiceazure",  # The actual name in the UI
+            "google": "listWidget_voicegoogle",
+            "sherpa": "onnx_listWidget",
+            "google_trans": "listWidget_voicegoogleTrans",
+            "elevenlabs": "elevenlabs_listWidget",
+            "playht": "playht_listWidget"
+        }
+        
+        search_box_map = {
+            "microsoft": "search_language_azure",  # The actual name in the UI
+            "google": "search_language_google",
+            "sherpa": "search_language",
+            "google_trans": "search_language_googleTrans",
+            "elevenlabs": "search_language_elevenlabs",
+            "playht": "search_language_playht"
+        }
+        
+        # Initialize engine handlers
+        self.engine_handlers = {}
+        for engine_id, engine_def in TTS_ENGINES.items():
+            list_widget = getattr(self.ui, list_widget_map[engine_id])
+            search_box = getattr(self.ui, search_box_map[engine_id])
+            no_creds = getattr(self.ui, f"{engine_id}_no_creds_label", None)
+            
+            self.engine_handlers[engine_id] = TTSEngineHandler(
+                engine_def,
+                list_widget,
+                search_box,
+                no_creds,
+                icons=icons
+            )
+        
+        # Show splash screen
         self.splash = SplashScreen()
         self.splash.show()
-        QApplication.processEvents()  # Make sure splash screen is displayed
+        QApplication.processEvents()
         
         try:
-            # Initialize UI
-            self.splash.loading_label.setText("Initializing UI...")
-            QApplication.processEvents()
-            self.ui = Ui_Widget()
-            self.ui.setupUi(self)
-            
             # Initialize paths and attributes
             self.splash.loading_label.setText("Setting up paths...")
             QApplication.processEvents()
@@ -168,13 +214,6 @@ class Widget(QWidget):
             QApplication.processEvents()
             self.config = configparser.ConfigParser()
             self.load_existing_config()
-            
-            # Initialize icons
-            self.splash.loading_label.setText("Loading resources...")
-            QApplication.processEvents()
-            self.iconDownload = QIcon(":/images/images/download.ico")
-            self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
-            self.iconTick = QIcon(":/images/images/downloaded.ico")
             
             # Initialize voice models
             self.splash.loading_label.setText("Loading voice models...")
@@ -594,27 +633,29 @@ class Widget(QWidget):
             )
             return super().event_filter(obj, event)
 
-    def on_tts_engine_toggled(self, text):
-        """Handle TTS engine selection changes."""
-        self.comboBox = text
-        if text == "Sherpa-ONNX":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.onnx_page)
-            self.ttsEngine = "SherpaOnnxTTS"
-        elif text == "Azure":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.azure_page)
-            self.ttsEngine = "MicrosoftTTS"
-        elif text == "Google":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.gTTS_page)
-            self.ttsEngine = "GoogleTTS"
-        elif text == "Google Trans":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.gspeak_page)
-            self.ttsEngine = "GoogleTransTTS"
-        elif text == "ElevenLabs":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.elevenlabs_page)
-            self.ttsEngine = "ElevenLabsTTS"
-        elif text == "PlayHT":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.playht_page)
-            self.ttsEngine = "PlayHTTTS"
+    def on_tts_engine_toggled(self, engine_name: str):
+        # Find engine definition by UI name
+        engine_def = next(
+            (eng for eng in TTS_ENGINES.values() if eng.ui_name == engine_name),
+            None
+        )
+        if not engine_def:
+            logging.warning(f"Unknown engine name: {engine_name}")
+            return
+
+        # Switch page
+        if engine_def.page_name:
+            page = getattr(self.ui, engine_def.page_name)
+            self.ui.stackedWidget.setCurrentWidget(page)
+
+        # Initialize engine
+        handler = self.engine_handlers.get(engine_def.id)
+        if handler:
+            ui_creds = self.get_ui_credentials(engine_def.id)
+            if handler.initialize(ui_creds):
+                logging.info(f"Successfully initialized {engine_def.id} TTS engine")
+            else:
+                logging.warning(f"Failed to initialize {engine_def.id} TTS engine")
 
     def on_save_pressed(self, permanent=True):
         self.ui.statusBar.clear()
@@ -2110,22 +2151,18 @@ class Widget(QWidget):
         except Exception as e:
             logging.error(f"Error loading Google Translate item: {e}")
 
-    def on_search_changed(self, text, provider):
-        """Handler for search box text changes"""
-        print(f"Search changed handler called - Provider: {provider}, Text: '{text}'")
-        logging.debug(f"Search changed handler called - Provider: {provider}, Text: '{text}'")
-        if provider == "azure":
-            self.filter_azure_voices()
-        elif provider == "google":
-            self.filter_google_voices()
-        elif provider == "onnx":
-            self.filter_onnx_voices()
-        elif provider == "google_trans":
-            self.filter_google_trans_voices()
-        elif provider == "elevenlabs":
-            self.filter_elevenlabs_voices()
-        elif provider == "playht":
-            self.filter_playht_voices()
+    def on_search_changed(self, text: str, engine_id: str):
+        """Handle search text changes for any engine"""
+        if engine_id in self.engine_handlers:
+            self.engine_handlers[engine_id].filter_voices(text)
+
+    def on_credentials_changed(self, engine_id: str):
+        """Handle credential changes for any engine"""
+        if engine_id in self.engine_handlers:
+            handler = self.engine_handlers[engine_id]
+            credentials = self.get_credentials_for_engine(engine_id)
+            if handler.initialize(credentials):
+                handler.load_voices()
 
     def on_search_return(self, provider):
         """Handler for search box return pressed"""
@@ -2596,6 +2633,81 @@ class Widget(QWidget):
         self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
         self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
         self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+
+    def setup_tts_engines(self):
+        """Set up TTS engine handlers"""
+        # Common icons
+        icons = {
+            'preview': self.iconPlayed,
+            'download': self.iconDownload,
+            'downloaded': self.iconTick
+        }
+        
+        # Configure all engines
+        self.engine_handlers = {
+            "microsoft": TTSEngineConfig(  # Changed from "azure"
+                name="Microsoft TTS",
+                engine_id="MicrosoftTTS",  # This matches the tts_wrapper class name
+                client_class=MicrosoftClient,
+                tts_class=MicrosoftTTS,
+                credential_fields=["key", "region"]
+            ),
+            "google": TTSEngineConfig(
+                name="Google Cloud",
+                engine_id="GoogleTTS",
+                client_class=GoogleTransClient,
+                tts_class=GoogleTransTTS,
+                credential_fields=["creds_path"]
+            ),
+            "elevenlabs": TTSEngineConfig(
+                name="ElevenLabs",
+                engine_id="ElevenLabsTTS",
+                client_class=ElevenLabsClient,
+                tts_class=ElevenLabsTTS,
+                credential_fields=["api_key"]
+            ),
+            "playht": TTSEngineConfig(
+                name="PlayHT",
+                engine_id="PlayHTTTS",
+                client_class=PlayHTClient,
+                tts_class=PlayHTTTS,
+                credential_fields=["api_key", "user_id"]
+            )
+        }
+
+    def on_tts_engine_changed(self, engine_id: str):
+        """Handle TTS engine selection changes"""
+        if engine_id in self.engine_handlers:
+            handler = self.engine_handlers[engine_id]
+            
+            # Get UI credentials if any
+            ui_creds = self.get_ui_credentials(engine_id)
+            
+            # Initialize with UI credentials
+            if handler.initialize(ui_creds):
+                logging.info(f"Successfully initialized {engine_id} TTS engine")
+            else:
+                logging.warning(f"Failed to initialize {engine_id} TTS engine")
+
+    def get_ui_credentials(self, engine_id: str) -> Dict[str, str]:
+        """Get credentials from UI fields"""
+        if engine_id == "microsoft":  # Changed from "azure"
+            return {
+                "key": self.ui.lineEdit_key.text(),
+                "region": self.ui.lineEdit_region.text()
+            }
+        elif engine_id == "google":
+            return {"creds_path": self.credsFilePath} if self.credsFilePath else {}
+        elif engine_id == "sherpa":
+            return {"model_path": self.onnx_cache_path}
+        elif engine_id == "elevenlabs":
+            return {"api_key": self.ui.elevenlabs_key.text()}
+        elif engine_id == "playht":
+            return {
+                "api_key": self.ui.playht_key.text(),
+                "user_id": self.ui.playht_userid.text()
+            }
+        return {}
 
 
 class Signals(QObject):
