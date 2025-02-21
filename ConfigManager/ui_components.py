@@ -35,8 +35,7 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
         dpg.add_table_column(label="Name", width_fixed=True, width=200)
         dpg.add_table_column(label="Language", width_fixed=True, width=150)
         dpg.add_table_column(label="Gender", width_fixed=True, width=100)
-        dpg.add_table_column(label="Status", width_fixed=True, width=100)
-        dpg.add_table_column(label="Actions", width_fixed=True, width=100)
+        dpg.add_table_column(label="Actions", width_fixed=True, width=150)
 
         voices = tts_mgr.get_voices(engine_name)
         
@@ -68,18 +67,23 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                 dpg.add_text(voice.get('gender', 'N/A'))
                 
                 with dpg.group(horizontal=True):
+                    voice_id = voice['id']  # Get voice ID
+                    
                     # Preview button
                     dpg.add_button(
                         label="Preview",
-                        callback=lambda s, a, v=voice['id']: preview_voice(tts_mgr, engine_name, v)
+                        callback=lambda s, a, u=(engine_name, voice_id, tts_mgr): 
+                            preview_voice(u[2], u[0], u[1]),
+                        user_data=(engine_name, voice_id, tts_mgr)
                     )
                     
                     # Select button - highlighted if this is the active voice
-                    is_active = (engine_name == active_engine and voice['id'] == active_voice)
+                    is_active = (engine_name == active_engine and str(voice_id) == str(active_voice))
                     dpg.add_button(
                         label="Select" if not is_active else "Active",
-                        callback=lambda s, a, e=engine_name, v=voice['id']: 
-                            set_active_voice(e, v, tts_mgr),
+                        callback=lambda s, a, u=(engine_name, voice_id, tts_mgr): 
+                            set_active_voice(u[0], u[1], u[2]),
+                        user_data=(engine_name, voice_id, tts_mgr),
                         enabled=not is_active
                     )
                     if is_active:
