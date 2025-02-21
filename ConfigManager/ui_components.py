@@ -18,6 +18,12 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
     if dpg.does_item_exist("voice_table_container"):
         dpg.delete_item("voice_table_container", children_only=True)
     
+    voices = tts_mgr.get_voices(engine_name)
+    logger.debug(f"Got {len(voices)} voices for {engine_name}")
+    if voices:
+        # Log first voice structure to see format
+        logger.debug(f"First voice structure: {voices[0]}")
+    
     with dpg.table(
         header_row=True,
         policy=dpg.mvTable_SizingStretchProp,
@@ -37,8 +43,6 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
         dpg.add_table_column(label="Gender", width_fixed=True, width=100)
         dpg.add_table_column(label="Actions", width_fixed=True, width=150)
 
-        voices = tts_mgr.get_voices(engine_name)
-        
         if not voices:
             with dpg.table_row():
                 if engine_name not in tts_mgr.clients:
@@ -53,6 +57,10 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
 
         for voice in voices:
             with dpg.table_row():
+                # Log each voice ID for debugging
+                voice_id = voice.get('id', voice.get('name', 'Unknown'))  # Fallback to name if no ID
+                logger.debug(f"Processing voice: {voice_id} with data: {voice}")
+                
                 dpg.add_text(voice.get('name', 'Unknown'))
                 lang = voice.get('language', 'Unknown')
                 try:
@@ -67,8 +75,6 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                 dpg.add_text(voice.get('gender', 'N/A'))
                 
                 with dpg.group(horizontal=True):
-                    voice_id = voice['id']  # Get voice ID
-                    
                     # Preview button
                     dpg.add_button(
                         label="Preview",
