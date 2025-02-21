@@ -12,7 +12,8 @@ from ui_components import (
     get_translate_setting,
     show_success_dialog,
     show_error_dialog,
-    show_info_dialog
+    show_info_dialog,
+    create_current_settings_panel
 )
 import os
 from translation_manager import TranslationManager
@@ -131,41 +132,7 @@ class ConfigManager:
                             create_voice_table(self.tts_mgr, engine_names[0])
 
                 # Right side - current settings
-                with dpg.child_window(width=250, border=True):
-                    dpg.add_text("Current Settings", color=(255, 255, 0))
-                    dpg.add_separator()
-                    
-                    # Active TTS Engine
-                    dpg.add_text("TTS Engine:")
-                    dpg.add_text(
-                        get_setting('tts', 'engine', 'None'),
-                        color=(0, 255, 0),
-                        tag="active_engine_display"
-                    )
-                    
-                    # Active Voice
-                    dpg.add_text("Voice:")
-                    dpg.add_text(
-                        get_setting('tts', 'voice_name', 'None'),
-                        color=(0, 255, 0),
-                        tag="active_voice_display"
-                    )
-                    
-                    # Translation Settings
-                    dpg.add_separator()
-                    dpg.add_text("Translation", color=(255, 255, 0))
-                    dpg.add_text("Source:")
-                    dpg.add_text(
-                        get_setting('translate', 'source_lang', 'Auto'),
-                        color=(0, 255, 0),
-                        tag="trans_source_display"
-                    )
-                    dpg.add_text("Target:")
-                    dpg.add_text(
-                        get_setting('translate', 'target_lang', 'None'),
-                        color=(0, 255, 0),
-                        tag="trans_target_display"
-                    )
+                create_current_settings_panel("tts")
 
     def _create_credential_inputs(self, engine_name: str):
         """Create credential input fields for an engine"""
@@ -223,11 +190,23 @@ class ConfigManager:
 
     def _create_translation_tab(self):
         with dpg.tab(label="Translation"):
-            create_translation_tab(self.translation_mgr)
+            with dpg.group(horizontal=True):
+                # Left side - translation settings
+                with dpg.child_window(width=-250):
+                    create_translation_tab(self.translation_mgr)
+                
+                # Right side - current settings
+                create_current_settings_panel("translation")
 
     def _create_settings_tab(self):
         with dpg.tab(label="Application Settings"):
-            create_settings_tab()
+            with dpg.group(horizontal=True):
+                # Left side - app settings
+                with dpg.child_window(width=-250):
+                    create_settings_tab()
+                
+                # Right side - current settings
+                create_current_settings_panel("settings")
 
     def _save_all_settings(self):
         """Save all settings to config file"""

@@ -57,12 +57,25 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
 
         for voice in voices:
             with dpg.table_row():
-                # Log each voice ID for debugging
-                voice_id = voice.get('id', voice.get('name', 'Unknown'))  # Fallback to name if no ID
+                # Get voice ID based on engine
+                if engine_name == "Google TTS":
+                    # Google uses language-Voice Name format
+                    lang = voice.get('language_code', '')
+                    name = voice.get('name', '')
+                    voice_id = f"{lang}-{name}"
+                else:
+                    voice_id = voice.get('id', voice.get('name', 'Unknown'))
+                
                 logger.debug(f"Processing voice: {voice_id} with data: {voice}")
                 
-                dpg.add_text(voice.get('name', 'Unknown'))
-                lang = voice.get('language', 'Unknown')
+                # Display name
+                display_name = voice.get('name', 'Unknown')
+                if engine_name == "Google TTS":
+                    display_name = f"{voice.get('name', 'Unknown')} ({voice.get('ssml_gender', 'N/A')})"
+                dpg.add_text(display_name)
+                
+                # Display language
+                lang = voice.get('language_code' if engine_name == "Google TTS" else 'language', 'Unknown')
                 try:
                     if lang.lower() != 'unknown':
                         lang_name = LanguageManager.get_language_name(lang)
@@ -72,7 +85,10 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                 except Exception as e:
                     logger.debug(f"Could not get language name for {lang}: {e}")
                     dpg.add_text(lang)
-                dpg.add_text(voice.get('gender', 'N/A'))
+                
+                # Display gender
+                gender = voice.get('ssml_gender' if engine_name == "Google TTS" else 'gender', 'N/A')
+                dpg.add_text(gender)
                 
                 with dpg.group(horizontal=True):
                     # Preview button
@@ -526,9 +542,19 @@ def set_active_voice(engine_name: str, voice_id: str, tts_mgr: TTSManager) -> No
         voice_name = "Unknown"
         voices = tts_mgr.get_voices(engine_name)
         for voice in voices:
-            if str(voice['id']) == str(voice_id):  # Compare as strings
-                voice_name = str(voice.get('name', 'Unknown'))
-                break
+            # Handle different voice ID formats per engine
+            if engine_name == "Google TTS":
+                # Reconstruct Google voice ID
+                lang = voice.get('language_code', '')
+                name = voice.get('name', '')
+                current_voice_id = f"{lang}-{name}"
+                if str(current_voice_id) == str(voice_id):
+                    voice_name = f"{voice.get('name', 'Unknown')} ({voice.get('ssml_gender', 'N/A')})"
+                    break
+            else:
+                if str(voice.get('id')) == str(voice_id):
+                    voice_name = str(voice.get('name', 'Unknown'))
+                    break
                 
         config.set('tts', 'voice_name', voice_name)
         
@@ -536,10 +562,11 @@ def set_active_voice(engine_name: str, voice_id: str, tts_mgr: TTSManager) -> No
             config.write(f)
             
         # Update display
-        if dpg.does_item_exist("active_engine_display"):
-            dpg.set_value("active_engine_display", engine_name)
-        if dpg.does_item_exist("active_voice_display"):
-            dpg.set_value("active_voice_display", voice_name)
+        for tab in ["tts", "translation", "settings"]:
+            if dpg.does_item_exist(f"active_engine_display_{tab}"):
+                dpg.set_value(f"active_engine_display_{tab}", engine_name)
+            if dpg.does_item_exist(f"active_voice_display_{tab}"):
+                dpg.set_value(f"active_voice_display_{tab}", voice_name)
             
         # Refresh voice table to show new active voice
         create_voice_table(tts_mgr, engine_name)
@@ -547,5 +574,44 @@ def set_active_voice(engine_name: str, voice_id: str, tts_mgr: TTSManager) -> No
         show_success_dialog(f"Active voice set to {voice_name}")
         
     except Exception as e:
-        logging.error(f"Failed to set active voice: {e}", exc_info=True)  # Add stack trace
+        logging.error(f"Failed to set active voice: {e}", exc_info=True)
         show_error_dialog(f"Failed to set active voice: {str(e)}")
+
+
+def create_current_settings_panel(tab_name: str = "") -> None:
+    """Create the current settings panel that shows on all tabs"""
+    with dpg.child_window(width=250, border=True):
+        dpg.add_text("Current Settings", color=(255, 255, 0))
+        dpg.add_separator()
+        
+        # Active TTS Engine
+        dpg.add_text("TTS Engine:")
+        dpg.add_text(
+            get_setting('tts', 'engine', 'None'),
+            color=(0, 255, 0),
+            tag=f"active_engine_display_{tab_name}"  # Make tag unique
+        )
+        
+        # Active Voice
+        dpg.add_text("Voice:")
+        dpg.add_text(
+            get_setting('tts', 'voice_name', 'None'),
+            color=(0, 255, 0),
+            tag=f"active_voice_display_{tab_name}"  # Make tag unique
+        )
+        
+        # Translation Settings
+        dpg.add_separator()
+        dpg.add_text("Translation", color=(255, 255, 0))
+        dpg.add_text("Source:")
+        dpg.add_text(
+            get_setting('translate', 'source_lang', 'Auto'),
+            color=(0, 255, 0),
+            tag=f"trans_source_display_{tab_name}"  # Make tag unique
+        )
+        dpg.add_text("Target:")
+        dpg.add_text(
+            get_setting('translate', 'target_lang', 'None'),
+            color=(0, 255, 0),
+            tag=f"trans_target_display_{tab_name}"  # Make tag unique
+        )
