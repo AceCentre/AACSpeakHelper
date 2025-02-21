@@ -12,6 +12,7 @@ class EncryptionManager:
     def __init__(self):
         self.key = self._get_or_create_key()
         self.fernet = Fernet(self.key)
+        self.logger = logging.getLogger(__name__)
 
     def _get_or_create_key(self) -> bytes:
         """Get existing key or create new one"""
@@ -69,4 +70,22 @@ class EncryptionManager:
                 
         except Exception as e:
             logging.error(f"Failed to create Google credentials file: {e}")
+            raise
+
+    def load_encrypted_config(self, config_path: str) -> dict:
+        """Load and decrypt config.enc"""
+        try:
+            with open(config_path, 'rb') as f:
+                encrypted_data = f.read()
+            
+            # Get key from environment
+            key = os.environ.get('CONFIG_ENCRYPTION_KEY').encode()
+            fernet = Fernet(key)
+            
+            # Decrypt and parse JSON
+            decrypted_data = fernet.decrypt(encrypted_data)
+            return json.loads(decrypted_data)
+        
+        except Exception as e:
+            self.logger.error(f"Failed to load encrypted config: {e}")
             raise

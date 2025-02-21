@@ -4,7 +4,16 @@ import dearpygui.dearpygui as dpg
 from encryption import EncryptionManager
 from credential_manager import CredentialManager
 from tts_manager import TTSManager
-from ui_components import create_voice_table, create_translation_tab, create_settings_tab
+from ui_components import (
+    create_voice_table,
+    create_translation_tab, 
+    create_settings_tab,
+    get_setting,
+    get_translate_setting,
+    show_success_dialog,
+    show_error_dialog,
+    show_info_dialog
+)
 import os
 from translation_manager import TranslationManager
 
@@ -27,10 +36,10 @@ class ConfigManager:
             min_height=600
         )
 
-        # Load font
+        # Load font with international character support
         with dpg.font_registry():
             default_font = dpg.add_font(
-                "assets/AtkinsonHyperlegibleNext-Regular.ttf", 
+                "assets/NotoSans-Regular.ttf", 
                 16
             )
             dpg.bind_font(default_font)
@@ -99,36 +108,72 @@ class ConfigManager:
     def _create_tts_tab(self):
         with dpg.tab(label="TTS Engines"):
             with dpg.group(horizontal=True):
-                # Engine selection on the left
-                with dpg.group():
-                    engine_names = self.tts_mgr.get_engine_names()
-                    dpg.add_combo(
-                        items=engine_names,
-                        label="Select Engine",
-                        width=200,
-                        callback=self._on_engine_selected,
-                        default_value=engine_names[0] if engine_names else ""
+                # Left side - engine selection and voice table
+                with dpg.child_window(width=-250):  # Leave 250px for right panel
+                    with dpg.group():
+                        engine_names = self.tts_mgr.get_engine_names()
+                        dpg.add_combo(
+                            items=engine_names,
+                            label="Select Engine",
+                            callback=self._on_engine_selected,
+                            default_value=engine_names[0] if engine_names else ""
+                        )
+                        
+                        dpg.add_spacer(height=10)
+                        
+                        # Create a permanent container for credentials
+                        dpg.add_group(tag="credentials_container")
+                        self._create_credential_inputs(engine_names[0] if engine_names else None)
+                        
+                        # Add voice table container here
+                        dpg.add_child_window(tag="voice_table_container", border=True)
+                        if engine_names:
+                            create_voice_table(self.tts_mgr, engine_names[0])
+
+                # Right side - current settings
+                with dpg.child_window(width=250, border=True):
+                    dpg.add_text("Current Settings", color=(255, 255, 0))
+                    dpg.add_separator()
+                    
+                    # Active TTS Engine
+                    dpg.add_text("TTS Engine:")
+                    dpg.add_text(
+                        get_setting('tts', 'engine', 'None'),
+                        color=(0, 255, 0),
+                        tag="active_engine_display"
                     )
                     
-                    dpg.add_spacer(height=10)
+                    # Active Voice
+                    dpg.add_text("Voice:")
+                    dpg.add_text(
+                        get_setting('tts', 'voice_name', 'None'),
+                        color=(0, 255, 0),
+                        tag="active_voice_display"
+                    )
                     
-                    # Create a permanent container for credentials
-                    dpg.add_group(tag="credentials_container")
-                    self._create_credential_inputs(engine_names[0] if engine_names else None)
-
-            dpg.add_spacer(height=10)
-
-            # Voice table container
-            with dpg.child_window(tag="voice_table_container", border=True):
-                if engine_names:
-                    engine_name = engine_names[0]
-                    if engine_name == "SherpaOnnx":
-                        self.tts_mgr.initialize_engine(engine_name, None)
-                        create_voice_table(self.tts_mgr, engine_name)
+                    # Translation Settings
+                    dpg.add_separator()
+                    dpg.add_text("Translation", color=(255, 255, 0))
+                    dpg.add_text("Source:")
+                    dpg.add_text(
+                        get_setting('translate', 'source_lang', 'Auto'),
+                        color=(0, 255, 0),
+                        tag="trans_source_display"
+                    )
+                    dpg.add_text("Target:")
+                    dpg.add_text(
+                        get_setting('translate', 'target_lang', 'None'),
+                        color=(0, 255, 0),
+                        tag="trans_target_display"
+                    )
 
     def _create_credential_inputs(self, engine_name: str):
-        """Create credential input fields based on engine requirements"""
+        """Create credential input fields for an engine"""
         if not engine_name:
+            return
+        
+        engine_info = self.tts_mgr.engines[engine_name]
+        if not engine_info['requires_credentials']:
             return
 
         # Clear existing items in credentials container
@@ -136,13 +181,8 @@ class ConfigManager:
 
         # Add new items inside the container
         with dpg.group(parent="credentials_container"):
-            config = self.tts_mgr.engines[engine_name]
-            if not config.requires_credentials:
-                dpg.add_text("No credentials required")
-                return
-
             dpg.add_text("Credentials")
-            for field in config.credential_fields:
+            for field in engine_info['credential_fields']:
                 if field.field_type == "file":
                     dpg.add_button(
                         label=f"Select {field.label}",
@@ -175,11 +215,7 @@ class ConfigManager:
 
         # Clear and update voice table
         dpg.delete_item("voice_table_container", children_only=True)
-        
-        # Only try to show voices for SherpaOnnx or engines with credentials
-        if app_data == "SherpaOnnx":
-            self.tts_mgr.initialize_engine(app_data, None)
-            create_voice_table(self.tts_mgr, app_data)
+        create_voice_table(self.tts_mgr, app_data)
 
     def _on_save_credentials(self, sender, app_data):
         """Handle saving credentials"""
@@ -248,3 +284,24 @@ class ConfigManager:
         except Exception as e:
             self.logger.error(f"Failed to discard changes: {e}")
             show_error_dialog(f"Failed to reload settings: {str(e)}")
+
+    def _file_dialog_callback(self, field_name: str) -> None:
+        """Handle file dialog selection"""
+        try:
+            # Open file dialog
+            file_path = dpg.add_file_dialog(
+                label="Select File",
+                callback=lambda s, a: self._on_file_selected(field_name, a['file_path_name']),
+                modal=True
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to open file dialog: {e}")
+            show_error_dialog(f"Failed to open file dialog: {str(e)}")
+
+    def _on_file_selected(self, field_name: str, file_path: str) -> None:
+        """Handle file selection"""
+        try:
+            dpg.set_value(f"file_path_{field_name}", file_path)
+        except Exception as e:
+            self.logger.error(f"Failed to set file path: {e}")
+            show_error_dialog(f"Failed to set file path: {str(e)}")

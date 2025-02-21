@@ -1,11 +1,13 @@
 # File: ui_components.py
-from typing import Callable
+from typing import Callable, Optional
 import dearpygui.dearpygui as dpg
 from language_manager import LanguageManager
 from tts_manager import TTSManager
 import logging
 from pathlib import Path
 from translation_manager import TranslationManager
+import configparser
+import os
 
 
 def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
@@ -40,11 +42,15 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
         
         if not voices:
             with dpg.table_row():
-                if tts_mgr.engines[engine_name].requires_credentials:
-                    dpg.add_text("No voices available - credentials needed")
+                if engine_name not in tts_mgr.clients:
+                    dpg.add_text("Engine not initialized - credentials needed")
                 else:
                     dpg.add_text("No voices available")
             return
+
+        # Get current active voice
+        active_voice = get_setting('tts', 'voice_id', '')
+        active_engine = get_setting('tts', 'engine', '')
 
         for voice in voices:
             with dpg.table_row():
@@ -60,87 +66,27 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                     logger.debug(f"Could not get language name for {lang}: {e}")
                     dpg.add_text(lang)
                 dpg.add_text(voice.get('gender', 'N/A'))
-
-                # Status and action buttons
-                status_tag = f"status_{engine_name}_{voice['id']}"
-                button_tag = f"button_{engine_name}_{voice['id']}"
                 
-                if engine_name == "SherpaOnnx":
-                    # Check if model exists without triggering download
-                    client = tts_mgr.clients[engine_name]
-                    try:
-                        # Use client's base directory
-                        voice_dir = client._base_dir / voice['id']
-                        model_file = voice_dir / "model.onnx"
-                        tokens_file = voice_dir / "tokens.txt"
-                        
-                        model_exists = (
-                            model_file.exists() and 
-                            model_file.stat().st_size > 1024*1024 and
-                            tokens_file.exists() and 
-                            tokens_file.stat().st_size > 0
-                        )
-                        
-                        # Status column
-                        if model_exists:
-                            dpg.add_text("Downloaded", tag=status_tag, color=(0, 255, 0))
-                            dpg.add_button(
-                                label="Preview",
-                                width=90,
-                                height=25,
-                                tag=button_tag,
-                                callback=create_callback(
-                                    preview_voice, 
-                                    tts_mgr, 
-                                    engine_name, 
-                                    voice['id']
-                                )
-                            )
-                        else:
-                            dpg.add_text("Not Downloaded", tag=status_tag, color=(255, 165, 0))
-                            dpg.add_button(
-                                label="Download",
-                                width=90,
-                                height=25,
-                                tag=button_tag,
-                                callback=create_callback(
-                                    download_voice, 
-                                    tts_mgr, 
-                                    engine_name, 
-                                    voice['id']
-                                )
-                            )
-                    except Exception as e:
-                        logger.error(f"Error checking model files: {e}")
-                elif tts_mgr.requires_download(engine_name):
-                    # Handle other downloadable engines
-                    if not voice.get('is_downloaded', False):
-                        dpg.add_button(
-                            label="Download",
-                            width=90,
-                            height=25,
-                            tag=button_tag,
-                            callback=create_callback(
-                                download_voice, 
-                                tts_mgr, 
-                                engine_name, 
-                                voice['id']
-                            )
-                        )
-                else:
-                    # Non-downloadable engines just get preview
+                with dpg.group(horizontal=True):
+                    # Preview button
                     dpg.add_button(
                         label="Preview",
-                        width=90,
-                        height=25,
-                        tag=button_tag,
-                        callback=create_callback(
-                            preview_voice, 
-                            tts_mgr, 
-                            engine_name, 
-                            voice['id']
-                        )
+                        callback=lambda s, a, v=voice['id']: preview_voice(tts_mgr, engine_name, v)
                     )
+                    
+                    # Select button - highlighted if this is the active voice
+                    is_active = (engine_name == active_engine and voice['id'] == active_voice)
+                    dpg.add_button(
+                        label="Select" if not is_active else "Active",
+                        callback=lambda s, a, e=engine_name, v=voice['id']: 
+                            set_active_voice(e, v, tts_mgr),
+                        enabled=not is_active
+                    )
+                    if is_active:
+                        with dpg.theme() as active_theme:
+                            with dpg.theme_component(dpg.mvButton):
+                                dpg.add_theme_color(dpg.mvThemeCol_Button, (0, 150, 0))
+                        dpg.bind_item_theme(dpg.last_item(), active_theme)
 
 
 def create_callback(
@@ -150,74 +96,41 @@ def create_callback(
     return lambda: func(tts_mgr, engine_name, voice_id)
 
 
-def show_success_dialog(message: str):
+def show_success_dialog(message: str) -> None:
     """Show a success dialog"""
-    def _create_dialog():
-        viewport_width = dpg.get_viewport_width()
-        viewport_height = dpg.get_viewport_height()
-        window_width = 400
-        window_height = 100
-        
-        window_tag = f"success_dialog_{dpg.generate_uuid()}"
-        
-        with dpg.window(
-            label="Success",
-            modal=True,
-            no_close=False,
-            width=window_width,
-            height=window_height,
-            pos=[
-                viewport_width//2 - window_width//2,
-                viewport_height//2 - window_height//2
-            ],
-            tag=window_tag
-        ):
-            dpg.add_text(message, color=(0, 255, 0))
-            dpg.add_button(
-                label="OK",
-                width=75,
-                callback=lambda: dpg.delete_item(window_tag)
-            )
-    
-    dpg.split_frame()  # Wait for next frame
-    _create_dialog()
+    with dpg.window(label="Success", modal=True, no_close=False):
+        dpg.add_text(message)
+        dpg.add_button(label="OK", callback=lambda: dpg.delete_item(dpg.last_container()))
 
 
-def show_error_dialog(message: str):
+def show_error_dialog(message: str) -> None:
     """Show an error dialog"""
-    viewport_width = dpg.get_viewport_width()
-    viewport_height = dpg.get_viewport_height()
-    window_width = 400
-    window_height = 100
-    
-    # Create unique tag for window
-    window_tag = f"error_dialog_{dpg.generate_uuid()}"
-    
-    with dpg.window(
-        label="Error",
-        modal=True,
-        no_close=False,
-        width=window_width,
-        height=window_height,
-        pos=[
-            viewport_width//2 - window_width//2,
-            viewport_height//2 - window_height//2
-        ],
-        tag=window_tag
-    ):
-        dpg.add_text(message, color=(255, 0, 0))
-        dpg.add_button(
-            label="OK",
-            width=75,
-            callback=lambda: dpg.delete_item(window_tag)
-        )
+    with dpg.window(label="Error", modal=True, no_close=False):
+        dpg.add_text(message)
+        dpg.add_button(label="OK", callback=lambda: dpg.delete_item(dpg.last_container()))
+
+
+def show_info_dialog(message: str) -> None:
+    """Show an info dialog"""
+    with dpg.window(label="Info", modal=True, no_close=False):
+        dpg.add_text(message)
+        dpg.add_button(label="OK", callback=lambda: dpg.delete_item(dpg.last_container()))
 
 
 def preview_voice(tts_mgr: TTSManager, engine_name: str, voice_id: str) -> None:
     """Preview a voice"""
     try:
+        if not voice_id:
+            show_error_dialog("No voice selected")
+            return
+            
+        if not engine_name:
+            show_error_dialog("No engine selected")
+            return
+            
         tts_mgr.preview_voice(engine_name, voice_id)
     except Exception as e:
+        logging.error(f"Failed to preview voice {voice_id}: {e}", exc_info=True)
         show_error_dialog(str(e))
 
 
@@ -319,6 +232,23 @@ def create_translation_tab(translation_mgr: TranslationManager) -> None:
     with dpg.group(tag="translation_credentials"):
         pass
 
+    # Add result text area
+    dpg.add_text("Translation Result:")
+    dpg.add_text("", tag="translation_result")  # Create empty text widget for results
+
+    # Test translation section
+    dpg.add_text("Test Translation")
+    dpg.add_input_text(
+        multiline=True,
+        height=100,
+        tag="test_input",
+        default_value="Hello, this is a test translation."
+    )
+    dpg.add_button(
+        label="Test",
+        callback=lambda: test_translation(translation_mgr)
+    )
+
 
 def on_provider_selected(translation_mgr: TranslationManager, provider: str) -> None:
     """Handle translation provider selection"""
@@ -397,6 +327,17 @@ def test_translation(translation_mgr: TranslationManager) -> None:
         logging.error(f"Translation test failed: {e}")
 
 
+def set_result_text(tag: str, text: str) -> None:
+    """Safely set text for a widget"""
+    try:
+        if dpg.does_item_exist(tag):
+            dpg.set_value(tag, text)
+        else:
+            logging.error(f"Widget {tag} does not exist")
+    except Exception as e:
+        logging.error(f"Failed to set text for {tag}: {e}")
+
+
 def save_translation_credentials(translation_mgr: TranslationManager, provider: str) -> None:
     """Save credentials for a translation provider"""
     try:
@@ -420,18 +361,17 @@ def save_translation_credentials(translation_mgr: TranslationManager, provider: 
                 "target_language",
                 items=[l["code"] for l in languages]
             )
-            dpg.set_value("translation_result", "Credentials saved successfully")
+            set_result_text("translation_result", "Credentials saved successfully")
         else:
-            dpg.set_value("translation_result", "Failed to initialize translator")
+            set_result_text("translation_result", "Failed to initialize translator")
             
     except Exception as e:
-        dpg.set_value("translation_result", f"Failed to save credentials: {str(e)}")
+        set_result_text("translation_result", f"Failed to save credentials: {str(e)}")
         logging.error(f"Failed to save translation credentials: {e}")
 
 
 def save_translate_setting(enabled: bool) -> None:
     """Save translate setting to config file"""
-    import configparser
     config = configparser.ConfigParser()
     config.read('settings.cfg')
     
@@ -445,15 +385,13 @@ def save_translate_setting(enabled: bool) -> None:
 
 
 def get_translate_setting() -> bool:
-    """Get translate setting from config file"""
-    import configparser
+    """Get the translate setting"""
     config = configparser.ConfigParser()
     config.read('settings.cfg')
-    
     try:
         return not config.getboolean('translate', 'no_translate')
     except:
-        return True  # Default to enabled if setting doesn't exist
+        return True
 
 
 def create_settings_tab() -> None:
@@ -510,7 +448,6 @@ def create_settings_tab() -> None:
 
 def save_setting(section: str, key: str, value: str) -> None:
     """Save a setting to the config file"""
-    import configparser
     config = configparser.ConfigParser()
     config.read('settings.cfg')
     
@@ -525,7 +462,6 @@ def save_setting(section: str, key: str, value: str) -> None:
 
 def get_setting(section: str, key: str, default: any) -> any:
     """Get a setting from the config file"""
-    import configparser
     config = configparser.ConfigParser()
     config.read('settings.cfg')
     
@@ -548,7 +484,6 @@ def clear_cache() -> None:
 
 def open_cache() -> None:
     """Open the cache directory"""
-    import os
     import platform
     import subprocess
     
@@ -561,3 +496,46 @@ def open_cache() -> None:
         subprocess.run(["open", cache_path])
     else:  # Linux
         subprocess.run(["xdg-open", cache_path])
+
+
+def set_active_voice(engine_name: str, voice_id: str, tts_mgr: TTSManager) -> None:
+    """Set the active voice and save to settings"""
+    try:
+        # Save to config file
+        config = configparser.ConfigParser()
+        config.read('settings.cfg')
+        
+        if not config.has_section('tts'):
+            config.add_section('tts')
+            
+        # Convert all values to strings
+        config.set('tts', 'engine', str(engine_name))
+        config.set('tts', 'voice_id', str(voice_id))
+        
+        # Get voice name for display
+        voice_name = "Unknown"
+        voices = tts_mgr.get_voices(engine_name)
+        for voice in voices:
+            if str(voice['id']) == str(voice_id):  # Compare as strings
+                voice_name = str(voice.get('name', 'Unknown'))
+                break
+                
+        config.set('tts', 'voice_name', voice_name)
+        
+        with open('settings.cfg', 'w') as f:
+            config.write(f)
+            
+        # Update display
+        if dpg.does_item_exist("active_engine_display"):
+            dpg.set_value("active_engine_display", engine_name)
+        if dpg.does_item_exist("active_voice_display"):
+            dpg.set_value("active_voice_display", voice_name)
+            
+        # Refresh voice table to show new active voice
+        create_voice_table(tts_mgr, engine_name)
+        
+        show_success_dialog(f"Active voice set to {voice_name}")
+        
+    except Exception as e:
+        logging.error(f"Failed to set active voice: {e}", exc_info=True)  # Add stack trace
+        show_error_dialog(f"Failed to set active voice: {str(e)}")
