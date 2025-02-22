@@ -110,7 +110,7 @@ class ConfigManager:
         with dpg.tab(label="TTS Engines"):
             with dpg.group(horizontal=True):
                 # Left side - engine selection and voice table
-                with dpg.child_window(width=-250):  # Leave 250px for right panel
+                with dpg.child_window(width=-180):  # Changed from -250 to -180
                     with dpg.group():
                         engine_names = self.tts_mgr.get_engine_names()
                         dpg.add_combo(
@@ -192,7 +192,7 @@ class ConfigManager:
         with dpg.tab(label="Translation"):
             with dpg.group(horizontal=True):
                 # Left side - translation settings
-                with dpg.child_window(width=-250):
+                with dpg.child_window(width=-180):  # Changed from -250 to -180
                     create_translation_tab(self.translation_mgr)
                 
                 # Right side - current settings
@@ -202,7 +202,7 @@ class ConfigManager:
         with dpg.tab(label="Application Settings"):
             with dpg.group(horizontal=True):
                 # Left side - app settings
-                with dpg.child_window(width=-250):
+                with dpg.child_window(width=-180):  # Changed from -250 to -180
                     create_settings_tab()
                 
                 # Right side - current settings

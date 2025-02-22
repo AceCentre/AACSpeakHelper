@@ -24,6 +24,61 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
         # Log first voice structure to see format
         logger.debug(f"First voice structure: {voices[0]}")
     
+    # Add search/filter box
+    with dpg.group(parent="voice_table_container"):
+        dpg.add_input_text(
+            label="Filter Voices",
+            callback=lambda s, a: filter_voices(tts_mgr, engine_name, voices, a),
+            tag=f"voice_filter_{engine_name}",
+            width=-1
+        )
+        dpg.add_text(
+            f"Showing all {len(voices)} voices",
+            tag=f"voice_count_{engine_name}"
+        )
+    
+    # Create table with filtered voices
+    create_voice_table_contents(tts_mgr, engine_name, voices)
+
+
+def filter_voices(tts_mgr: TTSManager, engine_name: str, voices: list, filter_text: str) -> None:
+    """Filter voices based on search text"""
+    if not filter_text:
+        filtered = voices
+    else:
+        filter_text = filter_text.lower()
+        filtered = [
+            voice for voice in voices
+            if (
+                filter_text in str(voice.get('name', '')).lower() or
+                # Search in both language codes and full language names
+                any(
+                    filter_text in lang.lower() or 
+                    filter_text in LanguageManager.get_language_name(lang).lower()
+                    for lang in voice.get('language_codes', [])
+                ) or
+                filter_text in str(voice.get('gender', '')).lower()
+            )
+        ]
+    
+    # Update count display
+    dpg.set_value(
+        f"voice_count_{engine_name}", 
+        f"Showing {len(filtered)} of {len(voices)} voices"
+    )
+    
+    # Recreate table with filtered voices
+    create_voice_table_contents(tts_mgr, engine_name, filtered)
+
+
+def create_voice_table_contents(tts_mgr: TTSManager, engine_name: str, voices: list) -> None:
+    """Create the voice table with the given voices"""
+    logger = logging.getLogger(__name__)  # Add logger
+    
+    # Delete existing table if it exists
+    if dpg.does_item_exist("voice_table"):
+        dpg.delete_item("voice_table")
+        
     with dpg.table(
         header_row=True,
         policy=dpg.mvTable_SizingStretchProp,
@@ -35,7 +90,8 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
         row_background=True,
         resizable=True,
         width=-1,
-        tag="voice_table"
+        tag="voice_table",
+        user_data=tts_mgr  # Store tts_mgr for filter callback
     ):
         # Add columns
         dpg.add_table_column(label="Name", width_fixed=True, width=200)
@@ -74,17 +130,26 @@ def create_voice_table(tts_mgr: TTSManager, engine_name: str) -> None:
                     display_name = f"{voice.get('name', 'Unknown')} ({voice.get('ssml_gender', 'N/A')})"
                 dpg.add_text(display_name)
                 
-                # Display language
-                lang = voice.get('language_code' if engine_name == "Google TTS" else 'language', 'Unknown')
-                try:
-                    if lang.lower() != 'unknown':
-                        lang_name = LanguageManager.get_language_name(lang)
-                        dpg.add_text(f"{lang_name} ({lang})")
-                    else:
-                        dpg.add_text(lang)
-                except Exception as e:
-                    logger.debug(f"Could not get language name for {lang}: {e}")
-                    dpg.add_text(lang)
+                # Display languages
+                language_codes = voice.get('language_codes', [])
+                if not language_codes:  # Fallback to single language if no codes array
+                    language_codes = [voice.get('language_code', voice.get('language', 'Unknown'))]
+                
+                # Convert codes to language names
+                language_names = []
+                for code in language_codes:
+                    try:
+                        if code.lower() != 'unknown':
+                            lang_name = LanguageManager.get_language_name(code)
+                            language_names.append(f"{lang_name} ({code})")
+                        else:
+                            language_names.append(code)
+                    except Exception as e:
+                        logger.debug(f"Could not get language name for {code}: {e}")
+                        language_names.append(code)
+                
+                # Join all languages with commas
+                dpg.add_text(", ".join(language_names))
                 
                 # Display gender
                 gender = voice.get('ssml_gender' if engine_name == "Google TTS" else 'gender', 'N/A')
@@ -580,7 +645,7 @@ def set_active_voice(engine_name: str, voice_id: str, tts_mgr: TTSManager) -> No
 
 def create_current_settings_panel(tab_name: str = "") -> None:
     """Create the current settings panel that shows on all tabs"""
-    with dpg.child_window(width=250, border=True):
+    with dpg.child_window(width=180, border=True):
         dpg.add_text("Current Settings", color=(255, 255, 0))
         dpg.add_separator()
         
