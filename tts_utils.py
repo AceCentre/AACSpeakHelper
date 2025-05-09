@@ -14,7 +14,7 @@ from tts_wrapper import (
     GoogleClient,
     GoogleTTS,
     SAPIClient,
-    SAPITTS,
+    SAPIEngine,
     SherpaOnnxClient,
     SherpaOnnxTTS,
     GoogleTransTTS,
@@ -122,16 +122,16 @@ def init_google_tts():
 
 
 def init_sapi_tts():
-    """Initialize unique instance of SAPITTS based on the changes in voiceid.
+    """Initialize unique instance of SAPIEngine based on the changes in voiceid.
 
-    Returns: SAPITTS
+    Returns: SAPIEngine
     """
     voiceid = utils.config.get("sapi5TTS", "voiceid")
     client = SAPIClient()
     client._client.setProperty("voice", voiceid)
     client._client.setProperty("rate", utils.config.get("TTS", "rate"))
     client._client.setProperty("volume", utils.config.get("TTS", "volume"))
-    return SAPITTS(client=client)
+    return SAPIEngine(client=client)
 
 
 def init_onnx_tts():
@@ -390,6 +390,8 @@ def ttsWrapperSpeak(text: str, tts, engine):
             pass
         case GoogleTransTTS():
             fmt = "mp3"
+        case SAPIEngine():
+            pass
         case AbstractTTS():
             tts.ssml.clear_ssml()
             text = tts.ssml.add(text)
