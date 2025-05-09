@@ -281,3 +281,24 @@ class TTSEngineHandler:
     def set_model_path(self, path: str):
         """Set the path where models are stored"""
         self.model_path = path 
+
+    def download_voice(self, voice_id: str):
+        """Download a voice model
+        
+        This is a placeholder method for the updated py3-tts-wrapper package.
+        In the new version, voice models might be handled differently.
+        """
+        try:
+            logging.info(f"Attempting to download voice model: {voice_id}")
+            # For now, we'll just update the UI to show the voice as available
+            # In a real implementation, this would download the model
+            if self.tts and hasattr(self.tts, 'download_model'):
+                self.tts.download_model(voice_id)
+                logging.info(f"Successfully downloaded voice model: {voice_id}")
+            else:
+                logging.warning(f"TTS engine does not support downloading models for voice: {voice_id}")
+                
+            # Refresh the voice list to show updated status
+            self.load_voices()
+        except Exception as e:
+            logging.error(f"Error downloading voice {voice_id}: {e}")

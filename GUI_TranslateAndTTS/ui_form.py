@@ -58,16 +58,14 @@ class Ui_Widget(object):
         self.gridLayout_12 = QGridLayout(self.TextToSpeechSetting)
         self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.ttsEngineBox = QComboBox(self.TextToSpeechSetting)
+        icon1 = QIcon()
+        icon1.addFile(u":/images/images/downloaded.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
+        self.ttsEngineBox.addItem(icon1, "")
         self.ttsEngineBox.setObjectName(u"ttsEngineBox")
         self.ttsEngineBox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        
-        # Add TTS engine options (only once)
-        self.ttsEngineBox.addItem("Sherpa-ONNX")
-        self.ttsEngineBox.addItem("Azure")
-        self.ttsEngineBox.addItem("Google")
-        self.ttsEngineBox.addItem("Google Trans")
-        self.ttsEngineBox.addItem("ElevenLabs")
-        self.ttsEngineBox.addItem("PlayHT")
 
         self.gridLayout_12.addWidget(self.ttsEngineBox, 0, 0, 1, 1)
 
@@ -505,6 +503,7 @@ class Ui_Widget(object):
         self.frame_3.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_3 = QHBoxLayout(self.frame_3)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.onnx_cache = QLineEdit(self.frame_3)
         self.onnx_cache.setObjectName(u"onnx_cache")
         self.onnx_cache.setFont(font1)
@@ -946,81 +945,19 @@ class Ui_Widget(object):
 
 
         QMetaObject.connectSlotsByName(Widget)
-
-        # ElevenLabs page
-        self.elevenlabs_page = QWidget()
-        self.stackedWidget.addWidget(self.elevenlabs_page)
-        self.elevenlabs_layout = QVBoxLayout(self.elevenlabs_page)
-
-        # ElevenLabs credentials group
-        self.elevenlabs_creds_group = QGroupBox("ElevenLabs Credentials")
-        self.elevenlabs_creds_layout = QFormLayout(self.elevenlabs_creds_group)
-        self.elevenlabs_key = QLineEdit()
-        self.elevenlabs_key.setEchoMode(QLineEdit.Password)
-        self.elevenlabs_key.setPlaceholderText("Enter your ElevenLabs API key")
-        self.elevenlabs_key.setMinimumWidth(400)  # Make the field longer
-        self.elevenlabs_creds_layout.addRow("API Key:", self.elevenlabs_key)
-        self.elevenlabs_layout.addWidget(self.elevenlabs_creds_group)
-
-        # Voice selection group
-        self.elevenlabs_voice_group = QGroupBox("Voice Selection")
-        self.elevenlabs_voice_layout = QVBoxLayout(self.elevenlabs_voice_group)
-        self.elevenlabs_no_creds_label = QLabel("Please enter your API key to view available voices")
-        self.elevenlabs_no_creds_label.setStyleSheet("color: gray; font-style: italic;")
-        self.elevenlabs_voice_layout.addWidget(self.elevenlabs_no_creds_label)
-        self.search_language_elevenlabs = QLineEdit()
-        self.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
-        self.elevenlabs_voice_layout.addWidget(self.search_language_elevenlabs)
-        self.elevenlabs_listWidget = QListWidget()
-        self.elevenlabs_progressBar = QProgressBar()
-        self.elevenlabs_voice_layout.addWidget(self.elevenlabs_listWidget)
-        self.elevenlabs_voice_layout.addWidget(self.elevenlabs_progressBar)
-        self.elevenlabs_layout.addWidget(self.elevenlabs_voice_group)
-
-        # PlayHT page
-        self.playht_page = QWidget()
-        self.stackedWidget.addWidget(self.playht_page)
-        self.playht_layout = QVBoxLayout(self.playht_page)
-
-        # PlayHT credentials group
-        self.playht_creds_group = QGroupBox("PlayHT Credentials")
-        self.playht_creds_layout = QFormLayout(self.playht_creds_group)
-        self.playht_key = QLineEdit()
-        self.playht_key.setEchoMode(QLineEdit.Password)
-        self.playht_key.setPlaceholderText("Enter your PlayHT API key")
-        self.playht_key.setMinimumWidth(400)  # Make the field longer
-        self.playht_userid = QLineEdit()
-        self.playht_userid.setPlaceholderText("Enter your PlayHT User ID")
-        self.playht_userid.setMinimumWidth(400)  # Make the field longer
-        self.playht_creds_layout.addRow("API Key:", self.playht_key)
-        self.playht_creds_layout.addRow("User ID:", self.playht_userid)
-        self.playht_layout.addWidget(self.playht_creds_group)
-
-        # PlayHT voice selection group
-        self.playht_voice_group = QGroupBox("Voice Selection")
-        self.playht_voice_layout = QVBoxLayout(self.playht_voice_group)
-        self.playht_no_creds_label = QLabel("Please enter your API key and User ID to view available voices")
-        self.playht_no_creds_label.setStyleSheet("color: gray; font-style: italic;")
-        self.playht_voice_layout.addWidget(self.playht_no_creds_label)
-        self.search_language_playht = QLineEdit()
-        self.search_language_playht.setPlaceholderText("Search PlayHT voices...")
-        self.playht_voice_layout.addWidget(self.search_language_playht)
-        self.playht_listWidget = QListWidget()
-        self.playht_progressBar = QProgressBar()
-        self.playht_voice_layout.addWidget(self.playht_listWidget)
-        self.playht_voice_layout.addWidget(self.playht_progressBar)
-        self.playht_layout.addWidget(self.playht_voice_group)
     # setupUi
 
     def retranslateUi(self, Widget):
+        try:
+            import GUI_TranslateAndTTS.resources_rc
+        except ImportError:
+            import resources_rc
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
         self.statusBar.setText("")
         self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Sherpa-ONNX", None))
         self.ttsEngineBox.setItemText(1, QCoreApplication.translate("Widget", u"Azure TTS", None))
         self.ttsEngineBox.setItemText(2, QCoreApplication.translate("Widget", u"Google TTS", None))
-        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"Google Trans", None))
-        self.ttsEngineBox.setItemText(4, QCoreApplication.translate("Widget", u"ElevenLabs", None))
-        self.ttsEngineBox.setItemText(5, QCoreApplication.translate("Widget", u"PlayHT", None))
+        self.ttsEngineBox.setItemText(3, QCoreApplication.translate("Widget", u"GoogleTranslator TTS", None))
 
         self.azure_voice_models.setTitle(QCoreApplication.translate("Widget", u"Voices Models", None))
         self.label_10.setText(QCoreApplication.translate("Widget", u"Region:", None))

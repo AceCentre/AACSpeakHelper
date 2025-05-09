@@ -129,14 +129,17 @@ class PipeServerThread(QThread):
                 logging.info("Client connected.")
 
                 result, data = win32file.ReadFile(pipe, 64 * 1024)
+                get_voices = False
                 if result == 0:
                     message = data.decode()
                     logging.info(f"Received data: {message[:50]}...")
                     self.message_received.emit(message)
-                    get_voices = json.loads(message)["args"]["listvoices"]
-                    # Extract data from the received message
-                else:
-                    get_voices = None
+                    try:
+                        parsed_message = json.loads(message)
+                        get_voices = parsed_message.get("args", {}).get("listvoices", False)
+                    except Exception as e:
+                        logging.error(f"Error parsing message: {e}")
+                        get_voices = False
                 logging.info("Processing complete. Ready for next connection.")
             except Exception as e:
                 logging.error(f"Pipe server error: {e}", exc_info=True)

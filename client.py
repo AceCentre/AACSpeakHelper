@@ -1,6 +1,7 @@
 # client.py
 
 import sys
+import os
 import argparse
 import logging
 import pyperclip
@@ -160,10 +161,18 @@ def main():
     clipboard_text = get_clipboard_text()
     logging.debug(f"Clipboard text: {clipboard_text}")
 
+    # Convert ConfigParser to dictionary for JSON serialization
+    config_dict = {}
+    if hasattr(config, 'sections'):
+        for section in config.sections():
+            config_dict[section] = {}
+            for key, value in config.items(section):
+                config_dict[section][key] = value
+    
     # Prepare data to send
     data_to_send = {
         "args": args,
-        "config": config,
+        "config": config_dict,
         "clipboard_text": clipboard_text,
     }
 

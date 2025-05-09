@@ -25,12 +25,74 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QIcon, QMovie, QFont
 from typing import Dict
 
+# Define SplashScreen class
+class SplashScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Create frame for splash screen content
+        frame = QWidget(self)
+        frame.setObjectName("splash_frame")
+        frame.setStyleSheet("""
+            #splash_frame {
+                background-color: white;
+                border-radius: 10px;
+                border: 1px solid #cccccc;
+            }
+        """)
+        frame_layout = QVBoxLayout(frame)
+        
+        # Add title label
+        title_label = QLabel("AACSpeakHelper")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("""
+            font-size: 18px;
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 10px;
+        """)
+        frame_layout.addWidget(title_label)
+        
+        # Add loading label
+        self.loading_label = QLabel("Loading...")
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.loading_label.setStyleSheet("""
+            font-size: 14px;
+            color: #666666;
+        """)
+        frame_layout.addWidget(self.loading_label)
+        
+        # Add to main layout
+        layout.addWidget(frame)
+        
+        # Center on screen
+        self.resize(300, 150)
+        screen = QApplication.primaryScreen().geometry()
+        self.move(screen.width() // 2 - self.width() // 2,
+                  screen.height() // 2 - self.height() // 2)
+
+# Define LoadingSignals class for thread communication
+class LoadingSignals(QObject):
+    progress = Signal(str)  # Signal to update loading progress message
+    finished = Signal()     # Signal to indicate loading is complete
+
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(project_root)
 
-from ui_form import Ui_Widget
-from item import Ui_item
+try:
+    # When run as a module
+    from GUI_TranslateAndTTS.ui_form import Ui_Widget
+    from GUI_TranslateAndTTS.ui_item import Ui_item
+except ImportError:
+    # When run directly
+    from ui_form import Ui_Widget
+    from ui_item import Ui_item
 from tts_wrapper import (
     SherpaOnnxTTS, SherpaOnnxClient,
     MicrosoftTTS, MicrosoftClient,
@@ -169,17 +231,22 @@ class Widget(QWidget):
         # Initialize engine handlers
         self.engine_handlers = {}
         for engine_id, engine_def in TTS_ENGINES.items():
-            list_widget = getattr(self.ui, list_widget_map[engine_id])
-            search_box = getattr(self.ui, search_box_map[engine_id])
-            no_creds = getattr(self.ui, f"{engine_id}_no_creds_label", None)
-            
-            self.engine_handlers[engine_id] = TTSEngineHandler(
-                engine_def,
-                list_widget,
-                search_box,
-                no_creds,
-                icons=icons
-            )
+            # Check if the UI has the required widgets for this engine
+            try:
+                list_widget = getattr(self.ui, list_widget_map[engine_id])
+                search_box = getattr(self.ui, search_box_map[engine_id])
+                no_creds = getattr(self.ui, f"{engine_id}_no_creds_label", None)
+                
+                self.engine_handlers[engine_id] = TTSEngineHandler(
+                    engine_def,
+                    list_widget,
+                    search_box,
+                    no_creds,
+                    icons=icons
+                )
+            except AttributeError as e:
+                logging.warning(f"Skipping engine {engine_id} due to missing UI elements: {e}")
+                # Continue with other engines
         
         # Show splash screen
         self.splash = SplashScreen()
@@ -247,13 +314,14 @@ class Widget(QWidget):
         # Set up paths and other non-UI initialization
         self.setup_initial_state()
         
-        # Load data using signals to update UI safely
-        self.load_thread = Thread(target=self.load_initial_data)
-        self.load_thread.daemon = True  # Make thread exit when main thread exits
+        # Create signals for loading
         self.load_signals = LoadingSignals()
         self.load_signals.progress.connect(self.update_loading_progress)
         self.load_signals.finished.connect(self.finish_loading)
-        self.load_thread.start()
+        
+        # Call load_initial_data directly instead of using a separate thread
+        # This avoids threading issues with Qt
+        QMetaObject.invokeMethod(self, "load_initial_data", Qt.QueuedConnection)
         
         # Initialize providers dictionary
         self.providers = {
@@ -479,25 +547,36 @@ class Widget(QWidget):
             }
         """)
         
-        # Connect new search boxes
-        self.ui.search_language_elevenlabs.textChanged.connect(
-            lambda text: debug_text_changed(text, "elevenlabs"))
-        self.ui.search_language_playht.textChanged.connect(
-            lambda text: debug_text_changed(text, "playht"))
+        # Connect new search boxes if they exist
+        try:
+            self.ui.search_language_elevenlabs.textChanged.connect(
+                lambda text: debug_text_changed(text, "elevenlabs"))
+            self.ui.search_language_elevenlabs.returnPressed.connect(
+                lambda: debug_return_pressed("elevenlabs"))
+            self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+        except AttributeError:
+            logging.warning("ElevenLabs search box not found in UI during initialization")
+            
+        try:
+            self.ui.search_language_playht.textChanged.connect(
+                lambda text: debug_text_changed(text, "playht"))
+            self.ui.search_language_playht.returnPressed.connect(
+                lambda: debug_return_pressed("playht"))
+            self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
+        except AttributeError:
+            logging.warning("PlayHT search box not found in UI during initialization")
         
-        self.ui.search_language_elevenlabs.returnPressed.connect(
-            lambda: debug_return_pressed("elevenlabs"))
-        self.ui.search_language_playht.returnPressed.connect(
-            lambda: debug_return_pressed("playht"))
-        
-        # Set placeholder text for new search boxes
-        self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
-        self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
-        
-        # Connect credential change signals
-        self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
-        self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
-        self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+        # Connect credential change signals if they exist
+        try:
+            self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
+        except AttributeError:
+            logging.warning("ElevenLabs key field not found in UI during initialization")
+            
+        try:
+            self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
+            self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+        except AttributeError:
+            logging.warning("PlayHT credential fields not found in UI during initialization")
 
     def setup_initial_state(self):
         """Initialize basic state and load models once"""
@@ -517,6 +596,7 @@ class Widget(QWidget):
         except Exception as e:
             logging.error(f"Error in setup_initial_state: {e}")
 
+    @Slot()
     def load_initial_data(self):
         """Load all initial data in background"""
         try:
@@ -543,6 +623,59 @@ class Widget(QWidget):
             
         except Exception as e:
             logging.error(f"Error loading initial data: {e}")
+            
+    def initialize_sherpa(self):
+        """Initialize Sherpa ONNX TTS engine"""
+        try:
+            # Initialize Sherpa client
+            if not hasattr(self, 'sherpa_client') or self.sherpa_client is None:
+                self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
+                logging.info(f"Sample rate set to 16000")
+                logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
+            
+            # Initialize the Sherpa engine handler
+            if 'sherpa' in self.engine_handlers:
+                handler = self.engine_handlers['sherpa']
+                handler.set_model_path(self.onnx_cache_path)
+                handler.initialize({'model_path': self.onnx_cache_path})
+                logging.info("Successfully initialized sherpa TTS engine")
+        except Exception as e:
+            logging.error(f"Error initializing Sherpa ONNX: {e}")
+            
+    def initialize_azure(self):
+        """Initialize Azure TTS engine"""
+        try:
+            # Get credentials from UI
+            key = self.ui.lineEdit_key.text()
+            region = self.ui.lineEdit_region.text()
+            
+            # Initialize the Azure engine handler
+            if 'microsoft' in self.engine_handlers:
+                handler = self.engine_handlers['microsoft']
+                handler.initialize({'key': key, 'region': region})
+                logging.info("Successfully initialized Azure TTS engine")
+        except Exception as e:
+            logging.error(f"Error initializing Azure TTS: {e}")
+            
+    def initialize_google(self):
+        """Initialize Google TTS engine"""
+        try:
+            # Get credentials path from UI
+            creds_path = self.ui.credsFilePathEdit.text()
+            
+            # Initialize the Google engine handler
+            if 'google' in self.engine_handlers:
+                handler = self.engine_handlers['google']
+                handler.initialize({'creds_path': creds_path})
+                logging.info("Successfully initialized Google TTS engine")
+                
+            # Also initialize Google Trans
+            if 'google_trans' in self.engine_handlers:
+                handler = self.engine_handlers['google_trans']
+                handler.initialize({})
+                logging.info("Successfully initialized Google Trans TTS engine")
+        except Exception as e:
+            logging.error(f"Error initializing Google TTS: {e}")
 
     @Slot(str)
     def update_loading_progress(self, message):
@@ -2626,15 +2759,31 @@ class Widget(QWidget):
             lambda text: self.on_search_changed(text, "onnx"))
         self.ui.search_language_googleTrans.textChanged.connect(
             lambda text: self.on_search_changed(text, "google_trans"))
-        self.ui.search_language_elevenlabs.textChanged.connect(
-            lambda text: self.on_search_changed(text, "elevenlabs"))
-        self.ui.search_language_playht.textChanged.connect(
-            lambda text: self.on_search_changed(text, "playht"))
         
-        # Connect credential change signals
-        self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
-        self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
-        self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+        # Connect ElevenLabs and PlayHT search boxes if they exist
+        try:
+            self.ui.search_language_elevenlabs.textChanged.connect(
+                lambda text: self.on_search_changed(text, "elevenlabs"))
+        except AttributeError:
+            logging.warning("ElevenLabs search box not found in UI")
+            
+        try:
+            self.ui.search_language_playht.textChanged.connect(
+                lambda text: self.on_search_changed(text, "playht"))
+        except AttributeError:
+            logging.warning("PlayHT search box not found in UI")
+        
+        # Connect credential change signals if they exist
+        try:
+            self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
+        except AttributeError:
+            logging.warning("ElevenLabs key field not found in UI")
+            
+        try:
+            self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
+            self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
+        except AttributeError:
+            logging.warning("PlayHT credential fields not found in UI")
 
     def setup_tts_engines(self):
         """Set up TTS engine handlers"""
