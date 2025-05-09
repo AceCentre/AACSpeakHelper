@@ -18,9 +18,11 @@ from PySide6.QtCore import (
     QMetaObject, Slot, Q_ARG
 )
 from PySide6.QtWidgets import (
-    QWidget, QListWidgetItem, QMessageBox, QApplication,
-    QPushButton, QLabel, QHBoxLayout, QDialogButtonBox, 
-    QFileDialog, QVBoxLayout, QAbstractItemView, QLineEdit  # Add this import
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
+    QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
+    QCheckBox, QGroupBox, QProgressBar, QMessageBox, QFileDialog,
+    QDialogButtonBox, QSizePolicy, QScrollArea, QFrame,
+    QAbstractItemView
 )
 from PySide6.QtGui import QIcon, QMovie, QFont
 from typing import Dict
@@ -281,6 +283,11 @@ class Widget(QWidget):
             QApplication.processEvents()
             self.config = configparser.ConfigParser()
             self.load_existing_config()
+            
+            # Create missing UI elements for ElevenLabs and PlayHT
+            self.splash.loading_label.setText("Creating UI elements...")
+            QApplication.processEvents()
+            self.create_missing_ui_elements()
             
             # Initialize voice models
             self.splash.loading_label.setText("Loading voice models...")
@@ -1820,6 +1827,357 @@ class Widget(QWidget):
         except Exception as e:
             logging.error(f"Error loading ONNX voice models: {e}")
 
+    def get_onnx_voices(self):
+        """Get list of available ONNX voices."""
+        try:
+            client = SherpaOnnxClient()
+            tts = SherpaOnnxTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                    'gender': voice.get('gender', ''),
+                    'downloaded': voice.get('is_downloaded', False)
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting ONNX voices: {e}")
+            return []
+
+    def get_azure_voices(self):
+        """Get list of available Azure voices."""
+        try:
+            key = os.environ.get('MICROSOFT_TOKEN', '')
+            region = os.environ.get('MICROSOFT_REGION', '')
+            if not key or not region:
+                logging.warning("Azure TTS credentials not found in environment variables")
+                return []
+                
+            client = MicrosoftClient(credentials=(key, region))
+            tts = MicrosoftTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                    'gender': voice.get('gender', '')
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting Azure voices: {e}")
+            return []
+
+    def get_google_trans_voices(self):
+        """Get list of available Google Translate voices."""
+        try:
+            client = GoogleTransClient()
+            tts = GoogleTransTTS(client)
+            voices = tts.get_voices()  
+            voice_list = []
+            for voice in voices:
+                voice_list.append({
+                    'id': voice['id'],
+                    'name': voice['name'],
+                    'language': voice.get('language', ''),
+                })
+            return voice_list
+        except Exception as e:
+            logging.error(f"Error getting Google Translate voices: {e}")
+            return []
+
+    def create_missing_ui_elements(self):
+        """Create UI elements for ElevenLabs and PlayHT that might be missing from the form.ui file"""
+        try:
+            # Create ElevenLabs UI elements if they don't exist
+            if not hasattr(self.ui, "elevenlabs_page"):
+                # Create the page
+                self.ui.elevenlabs_page = QWidget()
+                self.ui.elevenlabs_page.setObjectName("elevenlabs_page")
+                self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
+                
+                # Create layout
+                layout = QVBoxLayout(self.ui.elevenlabs_page)
+                
+                # Create API Key group
+                api_group = QGroupBox("ElevenLabs Credentials", self.ui.elevenlabs_page)
+                api_layout = QGridLayout(api_group)
+                
+                # API Key input
+                api_key_label = QLabel("API Key:", api_group)
+                self.ui.elevenlabs_key = QLineEdit(api_group)
+                self.ui.elevenlabs_key.setEchoMode(QLineEdit.Password)
+                self.ui.elevenlabs_key.setPlaceholderText("Enter your ElevenLabs API key")
+                
+                # Save audio file checkbox
+                self.ui.elevenlabs_save_audio = QCheckBox("Save Audio File", api_group)
+                self.ui.elevenlabs_save_audio.setChecked(True)
+                
+                # Validate button
+                self.ui.elevenlabs_validate = QPushButton("Validate Credentials", api_group)
+                
+                # Add widgets to layout
+                api_layout.addWidget(api_key_label, 0, 0)
+                api_layout.addWidget(self.ui.elevenlabs_key, 0, 1)
+                api_layout.addWidget(self.ui.elevenlabs_save_audio, 1, 0, 1, 2)
+                api_layout.addWidget(self.ui.elevenlabs_validate, 2, 0, 1, 2)
+                
+                # Create voice models group
+                self.ui.elevenlabs_voice_models = QGroupBox("Voice Models", self.ui.elevenlabs_page)
+                voice_layout = QVBoxLayout(self.ui.elevenlabs_voice_models)
+                
+                # Create progress bar
+                self.ui.elevenlabs_progressBar = QProgressBar(self.ui.elevenlabs_voice_models)
+                self.ui.elevenlabs_progressBar.setVisible(False)
+                
+                # Create search box
+                self.ui.search_language_elevenlabs = QLineEdit(self.ui.elevenlabs_voice_models)
+                self.ui.search_language_elevenlabs.setPlaceholderText("Search voices...")
+                
+                # Create list widget
+                self.ui.elevenlabs_listWidget = QListWidget(self.ui.elevenlabs_voice_models)
+                
+                # Create no credentials label
+                self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key and validate to see available voices.", self.ui.elevenlabs_voice_models)
+                self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
+                self.ui.elevenlabs_no_creds_label.setWordWrap(True)
+                
+                # Add widgets to layout
+                voice_layout.addWidget(self.ui.elevenlabs_progressBar)
+                voice_layout.addWidget(self.ui.search_language_elevenlabs)
+                voice_layout.addWidget(self.ui.elevenlabs_listWidget)
+                voice_layout.addWidget(self.ui.elevenlabs_no_creds_label)
+                
+                # Initially hide the search box and list widget
+                self.ui.search_language_elevenlabs.hide()
+                self.ui.elevenlabs_listWidget.hide()
+                
+                # Add groups to main layout
+                layout.addWidget(api_group)
+                layout.addWidget(self.ui.elevenlabs_voice_models)
+                
+                # Connect signals
+                self.ui.validate_elevenlabs.clicked.connect(self.validate_elevenlabs_credentials)
+                self.ui.search_language_elevenlabs.textChanged.connect(lambda text: self.filter_voice_list(self.ui.elevenlabs_listWidget, text))
+            
+            # Create PlayHT UI elements if they don't exist
+            if not hasattr(self.ui, "playht_page"):
+                # Create the page
+                self.ui.playht_page = QWidget()
+                self.ui.playht_page.setObjectName("playht_page")
+                self.ui.stackedWidget.addWidget(self.ui.playht_page)
+                
+                # Create layout
+                layout = QVBoxLayout(self.ui.playht_page)
+                
+                # Create API Key group
+                api_group = QGroupBox("PlayHT Credentials", self.ui.playht_page)
+                api_layout = QGridLayout(api_group)
+                
+                # API Key input
+                api_key_label = QLabel("API Key:", api_group)
+                self.ui.playht_key = QLineEdit(api_group)
+                self.ui.playht_key.setEchoMode(QLineEdit.Password)
+                self.ui.playht_key.setPlaceholderText("Enter your PlayHT API key")
+                
+                # User ID input
+                user_id_label = QLabel("User ID:", api_group)
+                self.ui.playht_userid = QLineEdit(api_group)
+                self.ui.playht_userid.setPlaceholderText("Enter your PlayHT User ID")
+                
+                # Save audio file checkbox
+                self.ui.playht_save_audio = QCheckBox("Save Audio File", api_group)
+                self.ui.playht_save_audio.setChecked(True)
+                
+                # Validate button
+                self.ui.playht_validate = QPushButton("Validate Credentials", api_group)
+                
+                # Add widgets to layout
+                api_layout.addWidget(api_key_label, 0, 0)
+                api_layout.addWidget(self.ui.playht_key, 0, 1)
+                api_layout.addWidget(user_id_label, 1, 0)
+                api_layout.addWidget(self.ui.playht_userid, 1, 1)
+                api_layout.addWidget(self.ui.playht_save_audio, 2, 0, 1, 2)
+                api_layout.addWidget(self.ui.playht_validate, 3, 0, 1, 2)
+                
+                # Create voice models group
+                self.ui.playht_voice_models = QGroupBox("Voice Models", self.ui.playht_page)
+                voice_layout = QVBoxLayout(self.ui.playht_voice_models)
+                
+                # Create progress bar
+                self.ui.playht_progressBar = QProgressBar(self.ui.playht_voice_models)
+                self.ui.playht_progressBar.setVisible(False)
+                
+                # Create search box
+                self.ui.search_language_playht = QLineEdit(self.ui.playht_voice_models)
+                self.ui.search_language_playht.setPlaceholderText("Search voices...")
+                
+                # Create list widget
+                self.ui.playht_listWidget = QListWidget(self.ui.playht_voice_models)
+                
+                # Create no credentials label
+                self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID and validate to see available voices.", self.ui.playht_voice_models)
+                self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
+                self.ui.playht_no_creds_label.setWordWrap(True)
+                
+                # Add widgets to layout
+                voice_layout.addWidget(self.ui.playht_progressBar)
+                voice_layout.addWidget(self.ui.search_language_playht)
+                voice_layout.addWidget(self.ui.playht_listWidget)
+                voice_layout.addWidget(self.ui.playht_no_creds_label)
+                
+                # Initially hide the search box and list widget
+                self.ui.search_language_playht.hide()
+                self.ui.playht_listWidget.hide()
+                
+                # Add groups to main layout
+                layout.addWidget(api_group)
+                layout.addWidget(self.ui.playht_voice_models)
+                
+                # Connect signals
+                self.ui.validate_playht.clicked.connect(self.validate_playht_credentials)
+                self.ui.search_language_playht.textChanged.connect(lambda text: self.filter_voice_list(self.ui.playht_listWidget, text))
+                
+        except Exception as e:
+            logging.error(f"Error creating UI elements: {e}")
+            
+    def validate_elevenlabs_credentials(self):
+        """Validate ElevenLabs credentials and load voices if valid"""
+        try:
+            api_key = self.ui.elevenlabs_key.text()
+            
+            if not api_key:
+                QMessageBox.warning(self, "Validation Error", "Please enter your ElevenLabs API key.")
+                return
+            
+            # Show progress
+            self.ui.elevenlabs_progressBar.setVisible(True)
+            self.ui.elevenlabs_progressBar.setValue(10)
+            QApplication.processEvents()
+            
+            # Try to initialize client and get voices
+            try:
+                client = ElevenLabsClient(api_key=api_key)
+                self.ui.elevenlabs_progressBar.setValue(50)
+                QApplication.processEvents()
+                
+                voices = client.get_voices()
+                self.ui.elevenlabs_progressBar.setValue(90)
+                QApplication.processEvents()
+                
+                if voices:
+                    # Save credentials to config
+                    if not self.config.has_section("ElevenLabsTTS"):
+                        self.config.add_section("ElevenLabsTTS")
+                    self.config.set("ElevenLabsTTS", "api_key", api_key)
+                    
+                    # Show success message
+                    QMessageBox.information(self, "Validation Success", f"Successfully validated ElevenLabs credentials. Found {len(voices)} voices.")
+                    
+                    # Update UI
+                    self.ui.elevenlabs_no_creds_label.hide()
+                    self.ui.search_language_elevenlabs.show()
+                    self.ui.elevenlabs_listWidget.show()
+                    
+                    # Generate voice models
+                    self.generate_elevenlabs_voice_models()
+                else:
+                    QMessageBox.warning(self, "Validation Warning", "Credentials validated but no voices were found.")
+            except Exception as e:
+                QMessageBox.critical(self, "Validation Error", f"Failed to validate ElevenLabs credentials: {str(e)}")
+                logging.error(f"ElevenLabs validation error: {e}")
+            
+            # Hide progress
+            self.ui.elevenlabs_progressBar.setVisible(False)
+            
+        except Exception as e:
+            logging.error(f"Error validating ElevenLabs credentials: {e}")
+            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            self.ui.elevenlabs_progressBar.setVisible(False)
+    
+    def validate_playht_credentials(self):
+        """Validate PlayHT credentials and load voices if valid"""
+        try:
+            api_key = self.ui.playht_key.text()
+            user_id = self.ui.playht_userid.text()
+            
+            if not api_key or not user_id:
+                QMessageBox.warning(self, "Validation Error", "Please enter both your PlayHT API key and User ID.")
+                return
+            
+            # Show progress
+            self.ui.playht_progressBar.setVisible(True)
+            self.ui.playht_progressBar.setValue(10)
+            QApplication.processEvents()
+            
+            # Try to initialize client and get voices
+            try:
+                client = PlayHTClient(api_key=api_key, user_id=user_id)
+                self.ui.playht_progressBar.setValue(50)
+                QApplication.processEvents()
+                
+                voices = client.get_voices()
+                self.ui.playht_progressBar.setValue(90)
+                QApplication.processEvents()
+                
+                if voices:
+                    # Save credentials to config
+                    if not self.config.has_section("PlayHTTTS"):
+                        self.config.add_section("PlayHTTTS")
+                    self.config.set("PlayHTTTS", "api_key", api_key)
+                    self.config.set("PlayHTTTS", "user_id", user_id)
+                    
+                    # Show success message
+                    QMessageBox.information(self, "Validation Success", f"Successfully validated PlayHT credentials. Found {len(voices)} voices.")
+                    
+                    # Update UI
+                    self.ui.playht_no_creds_label.hide()
+                    self.ui.search_language_playht.show()
+                    self.ui.playht_listWidget.show()
+                    
+                    # Generate voice models
+                    self.generate_playht_voice_models()
+                else:
+                    QMessageBox.warning(self, "Validation Warning", "Credentials validated but no voices were found.")
+            except Exception as e:
+                QMessageBox.critical(self, "Validation Error", f"Failed to validate PlayHT credentials: {str(e)}")
+                logging.error(f"PlayHT validation error: {e}")
+            
+            # Hide progress
+            self.ui.playht_progressBar.setVisible(False)
+            
+        except Exception as e:
+            logging.error(f"Error validating PlayHT credentials: {e}")
+            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+            self.ui.playht_progressBar.setVisible(False)
+    
+    def filter_voice_list(self, list_widget, search_text):
+        """Filter a list widget based on search text"""
+        search_text = search_text.lower()
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+            if search_text in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+    
+    def select_voice_in_list(self, list_widget, voice_id):
+        """Select a voice in a list widget by its ID"""
+        try:
+            for i in range(list_widget.count()):
+                item = list_widget.item(i)
+                if item.data(Qt.UserRole) and item.data(Qt.UserRole).get('id', '') == voice_id:
+                    list_widget.setCurrentItem(item)
+                    return True
+            return False
+        except Exception as e:
+            logging.error(f"Error selecting voice in list: {e}")
+            return False
+
     def download_voice(self, voice_id):
         """Download a voice model using SherpaOnnxClient's check_and_download_model."""
         try:
@@ -2695,6 +3053,8 @@ class Widget(QWidget):
         self.generate_azure_voice_models()
         self.generate_google_voice_models()
         self.generate_google_trans_voice_models()
+        self.generate_elevenlabs_voice_models()
+        self.generate_playht_voice_models()
         
         # Load saved credentials and voices
         self.load_config()
@@ -2729,30 +3089,400 @@ class Widget(QWidget):
         self.config.set("TTS", "volume", "100")
         self.config.set("TTS", "voice_id", "eng")
 
+    def create_missing_ui_elements(self):
+        """Create missing UI elements for ElevenLabs and PlayHT"""
+        # Fix the Sherpa-ONNX layout to prevent squashing
+        if hasattr(self.ui, "onnx_page"):
+            # Fix the ONNX list widget layout
+            if hasattr(self.ui, "onnx_listWidget"):
+                # Set minimum size for the list widget
+                self.ui.onnx_listWidget.setMinimumHeight(300)
+                self.ui.onnx_listWidget.setMinimumWidth(400)
+                
+                # Set fixed row height to prevent squashing
+                self.ui.onnx_listWidget.setStyleSheet("""
+                    QListWidget {
+                        background-color: white;
+                        border: 1px solid #cccccc;
+                        border-radius: 4px;
+                    }
+                    QListWidget::item {
+                        border-bottom: 1px solid #eeeeee;
+                        padding: 5px;
+                        min-height: 30px;
+                    }
+                    QListWidget::item:selected {
+                        background-color: #e6f3ff;
+                        color: black;
+                    }
+                """)
+                
+                # Adjust item delegate to ensure proper sizing
+                for i in range(self.ui.onnx_listWidget.count()):
+                    item = self.ui.onnx_listWidget.item(i)
+                    if item:
+                        item.setSizeHint(QSize(item.sizeHint().width(), 40))
+        
+        # Add ElevenLabs and PlayHT to the ttsEngineBox if not already there
+        # Use the exact names from TTS_ENGINES dictionary
+        from tts_engine_manager import TTS_ENGINES
+        
+        # Add ElevenLabs
+        elevenlabs_ui_name = TTS_ENGINES["elevenlabs"].ui_name
+        if self.ui.ttsEngineBox.findText(elevenlabs_ui_name) == -1:
+            self.ui.ttsEngineBox.addItem(elevenlabs_ui_name)
+            
+        # Add PlayHT
+        playht_ui_name = TTS_ENGINES["playht"].ui_name
+        if self.ui.ttsEngineBox.findText(playht_ui_name) == -1:
+            self.ui.ttsEngineBox.addItem(playht_ui_name)
+
+        # Create ElevenLabs UI elements if they don't exist
+        if not hasattr(self.ui, "elevenlabs_page"):
+            # Create the page
+            self.ui.elevenlabs_page = QWidget()
+            self.ui.elevenlabs_page.setObjectName("elevenlabs_page")
+            self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
+            
+            # Create layout
+            layout = QVBoxLayout(self.ui.elevenlabs_page)
+            layout.setContentsMargins(10, 10, 10, 10)
+            layout.setSpacing(10)
+            
+            # Create ElevenLabs credentials frame
+            elevenlabs_creds_frame = QFrame(self.ui.elevenlabs_page)
+            elevenlabs_creds_frame.setFrameShape(QFrame.StyledPanel)
+            elevenlabs_creds_frame.setFrameShadow(QFrame.Raised)
+            elevenlabs_creds_layout = QGridLayout(elevenlabs_creds_frame)
+            
+            # Create ElevenLabs API key label and input
+            elevenlabs_key_label = QLabel("API Key:")
+            elevenlabs_key_label.setFont(QFont("MS Shell Dlg 2", 10))
+            elevenlabs_creds_layout.addWidget(elevenlabs_key_label, 0, 0)
+            
+            self.ui.elevenlabs_key = QLineEdit()
+            self.ui.elevenlabs_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+            elevenlabs_creds_layout.addWidget(self.ui.elevenlabs_key, 0, 1)
+            
+            # Create ElevenLabs save audio checkbox
+            self.ui.checkBox_saveAudio_elevenlabs = QCheckBox("Save Audio File")
+            self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("MS Shell Dlg 2", 10))
+            self.ui.checkBox_saveAudio_elevenlabs.setChecked(True)
+            elevenlabs_creds_layout.addWidget(self.ui.checkBox_saveAudio_elevenlabs, 0, 2)
+            
+            # Create ElevenLabs validate button
+            self.ui.validate_elevenlabs = QPushButton("Validate Credentials")
+            self.ui.validate_elevenlabs.setMinimumHeight(30)
+            elevenlabs_creds_layout.addWidget(self.ui.validate_elevenlabs, 1, 1)
+            
+            # Add credentials frame to layout
+            layout.addWidget(elevenlabs_creds_frame)
+            
+            # Create ElevenLabs voice models group box
+            elevenlabs_voice_models = QGroupBox("Voice Models", self.ui.elevenlabs_page)
+            elevenlabs_voice_models.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+            elevenlabs_voice_models.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            elevenlabs_voice_models_layout = QVBoxLayout(elevenlabs_voice_models)
+            
+            # Create ElevenLabs progress bar
+            elevenlabs_progress_bar = QProgressBar(elevenlabs_voice_models)
+            elevenlabs_progress_bar.setObjectName("elevenlabs_progressBar")
+            elevenlabs_progress_bar.setVisible(False)
+            elevenlabs_voice_models_layout.addWidget(elevenlabs_progress_bar)
+            
+            # Create ElevenLabs list widget
+            elevenlabs_list_widget = QListWidget(elevenlabs_voice_models)
+            elevenlabs_list_widget.setObjectName("elevenlabs_listWidget")
+            elevenlabs_voice_models_layout.addWidget(elevenlabs_list_widget)
+            
+            # Add these to the UI object so they can be accessed elsewhere
+            self.ui.elevenlabs_progressBar = elevenlabs_progress_bar
+            self.ui.elevenlabs_listWidget = elevenlabs_list_widget
+            
+            # Create ElevenLabs search box
+            self.ui.search_language_elevenlabs = QLineEdit()
+            self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+            self.ui.search_language_elevenlabs.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+            elevenlabs_voice_models_layout.addWidget(self.ui.search_language_elevenlabs)
+            
+            # Add the voice models group box to the UI object and layout
+            self.ui.elevenlabs_voice_models = elevenlabs_voice_models
+            layout.addWidget(elevenlabs_voice_models)
+            
+            # Style the ElevenLabs list widget
+            self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
+            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.elevenlabs_listWidget.setSortingEnabled(True)
+            self.ui.elevenlabs_listWidget.setMinimumHeight(200)
+            
+            # Create ElevenLabs no credentials label
+            self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key to access voices")
+            self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
+            self.ui.elevenlabs_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
+            self.ui.elevenlabs_no_creds_label.setStyleSheet("color: #666;")
+            elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_no_creds_label)
+            
+            # Add voice models group box to layout
+            layout.addWidget(self.ui.elevenlabs_voice_models)
+        
+        # Create PlayHT UI elements if they don't exist
+        if not hasattr(self.ui, "playht_page"):
+            # Create the page
+            self.ui.playht_page = QWidget()
+            self.ui.playht_page.setObjectName("playht_page")
+            self.ui.stackedWidget.addWidget(self.ui.playht_page)
+            
+            # Create layout
+            layout = QVBoxLayout(self.ui.playht_page)
+            layout.setContentsMargins(10, 10, 10, 10)
+            layout.setSpacing(10)
+            
+            # Create PlayHT credentials frame
+            playht_creds_frame = QFrame(self.ui.playht_page)
+            playht_creds_frame.setFrameShape(QFrame.StyledPanel)
+            playht_creds_frame.setFrameShadow(QFrame.Raised)
+            playht_creds_layout = QGridLayout(playht_creds_frame)
+            
+            # Create PlayHT API key label and input
+            playht_key_label = QLabel("API Key:")
+            playht_key_label.setFont(QFont("MS Shell Dlg 2", 10))
+            playht_creds_layout.addWidget(playht_key_label, 0, 0)
+            
+            self.ui.playht_key = QLineEdit()
+            self.ui.playht_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+            playht_creds_layout.addWidget(self.ui.playht_key, 0, 1)
+            
+            # Create PlayHT User ID label and input
+            playht_userid_label = QLabel("User ID:")
+            playht_userid_label.setFont(QFont("MS Shell Dlg 2", 10))
+            playht_creds_layout.addWidget(playht_userid_label, 1, 0)
+            
+            self.ui.playht_userid = QLineEdit()
+            self.ui.playht_userid.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+            playht_creds_layout.addWidget(self.ui.playht_userid, 1, 1)
+            
+            # Create PlayHT save audio checkbox
+            self.ui.checkBox_saveAudio_playht = QCheckBox("Save Audio File")
+            self.ui.checkBox_saveAudio_playht.setFont(QFont("MS Shell Dlg 2", 10))
+            self.ui.checkBox_saveAudio_playht.setChecked(True)
+            playht_creds_layout.addWidget(self.ui.checkBox_saveAudio_playht, 0, 2)
+            
+            # Create PlayHT validate button
+            self.ui.validate_playht = QPushButton("Validate Credentials")
+            self.ui.validate_playht.setMinimumHeight(30)
+            playht_creds_layout.addWidget(self.ui.validate_playht, 1, 2)
+            
+            # Add credentials frame to layout
+            layout.addWidget(playht_creds_frame)
+            
+            # Create PlayHT voice models group box
+            playht_voice_models = QGroupBox("Voice Models", self.ui.playht_page)
+            playht_voice_models.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+            playht_voice_models.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            playht_voice_models_layout = QVBoxLayout(playht_voice_models)
+            
+            # Create PlayHT progress bar
+            playht_progress_bar = QProgressBar(playht_voice_models)
+            playht_progress_bar.setObjectName("playht_progressBar")
+            playht_progress_bar.setVisible(False)
+            playht_voice_models_layout.addWidget(playht_progress_bar)
+            
+            # Create PlayHT list widget
+            playht_list_widget = QListWidget(playht_voice_models)
+            playht_list_widget.setObjectName("playht_listWidget")
+            playht_voice_models_layout.addWidget(playht_list_widget)
+            
+            # Add these to the UI object so they can be accessed elsewhere
+            self.ui.playht_progressBar = playht_progress_bar
+            self.ui.playht_listWidget = playht_list_widget
+            
+            # Create PlayHT search box
+            self.ui.search_language_playht = QLineEdit()
+            self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
+            playht_voice_models_layout.addWidget(self.ui.search_language_playht)
+            
+            # Style the PlayHT list widget
+            self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
+            self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.playht_listWidget.setSortingEnabled(True)
+            self.ui.playht_listWidget.setMinimumHeight(200)
+            
+            # Create PlayHT no credentials label
+            self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID to access voices")
+            self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
+            self.ui.playht_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
+            self.ui.playht_no_creds_label.setStyleSheet("color: #666;")
+            playht_voice_models_layout.addWidget(self.ui.playht_no_creds_label)
+            
+            # Add the voice models group box to the UI object and layout
+            self.ui.playht_voice_models = playht_voice_models
+            layout.addWidget(playht_voice_models)
+        
+
+        
+        # Create ElevenLabs save audio checkbox
+        self.ui.checkBox_saveAudio_elevenlabs = QCheckBox("Save Audio File")
+        self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("MS Shell Dlg 2", 10))
+        self.ui.checkBox_saveAudio_elevenlabs.setChecked(True)
+        elevenlabs_creds_layout.addWidget(self.ui.checkBox_saveAudio_elevenlabs, 0, 2)
+        
+        # Create ElevenLabs validate button
+        self.ui.validate_elevenlabs = QPushButton("Validate Credentials")
+        self.ui.validate_elevenlabs.setMinimumHeight(30)
+        elevenlabs_creds_layout.addWidget(self.ui.validate_elevenlabs, 1, 1)
+        
+        # Add credentials frame to layout
+        layout.addWidget(elevenlabs_creds_frame)
+        
+        # Create ElevenLabs voice models group box
+        self.ui.elevenlabs_voice_models = QGroupBox("Voice Models")
+        self.ui.elevenlabs_voice_models.setFont(QFont("MS Shell Dlg 2", 10, QFont.Bold))
+        self.ui.elevenlabs_voice_models.setAlignment(Qt.AlignCenter)
+        elevenlabs_voice_models_layout = QVBoxLayout(self.ui.elevenlabs_voice_models)
+        elevenlabs_voice_models_layout.setContentsMargins(2, 2, 2, 2)
+        elevenlabs_voice_models_layout.setSpacing(0)
+        
+        # Create ElevenLabs progress bar
+        self.ui.elevenlabs_progressBar = QProgressBar()
+        self.ui.elevenlabs_progressBar.setMaximumHeight(15)
+        self.ui.elevenlabs_progressBar.setValue(0)
+        self.ui.elevenlabs_progressBar.setAlignment(Qt.AlignCenter)
+        elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_progressBar)
+        
+        # Create ElevenLabs search box
+        self.ui.search_language_elevenlabs = QLineEdit()
+        self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+        elevenlabs_voice_models_layout.addWidget(self.ui.search_language_elevenlabs)
+        
+        # Create ElevenLabs list widget
+        self.ui.elevenlabs_listWidget = QListWidget()
+        self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: blue; color: white; }")
+        self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.ui.elevenlabs_listWidget.setSortingEnabled(True)
+        elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_listWidget)
+        
+        # Create ElevenLabs no credentials label
+        self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key to access voices")
+        self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
+        self.ui.elevenlabs_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
+        self.ui.elevenlabs_no_creds_label.setStyleSheet("color: #666;")
+        elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_no_creds_label)
+        
+        # Add voice models group box to layout
+        layout.addWidget(self.ui.elevenlabs_voice_models)
+        
+        # Add ElevenLabs page to stacked widget
+        self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
+        
+        # Create PlayHT page
+        self.ui.playht_page = QWidget()
+        self.ui.playht_page.setObjectName("playht_page")
+        playht_layout = QVBoxLayout(self.ui.playht_page)
+        
+        # Create PlayHT credentials frame
+        playht_creds_frame = QFrame(self.ui.playht_page)
+        playht_creds_frame.setFrameShape(QFrame.StyledPanel)
+        playht_creds_frame.setFrameShadow(QFrame.Raised)
+        playht_creds_layout = QGridLayout(playht_creds_frame)
+        
+        # Create PlayHT API key label and input
+        playht_key_label = QLabel("API Key:")
+        playht_key_label.setFont(QFont("MS Shell Dlg 2", 10))
+        playht_creds_layout.addWidget(playht_key_label, 0, 0)
+        
+        self.ui.playht_key = QLineEdit()
+        self.ui.playht_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+        playht_creds_layout.addWidget(self.ui.playht_key, 0, 1)
+        
+        # Create PlayHT User ID label and input
+        playht_userid_label = QLabel("User ID:")
+        playht_userid_label.setFont(QFont("MS Shell Dlg 2", 10))
+        playht_creds_layout.addWidget(playht_userid_label, 1, 0)
+        
+        self.ui.playht_userid = QLineEdit()
+        self.ui.playht_userid.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+        playht_creds_layout.addWidget(self.ui.playht_userid, 1, 1)
+        
+        # Create PlayHT save audio checkbox
+        self.ui.checkBox_saveAudio_playht = QCheckBox("Save Audio File")
+        self.ui.checkBox_saveAudio_playht.setFont(QFont("MS Shell Dlg 2", 10))
+        self.ui.checkBox_saveAudio_playht.setChecked(True)
+        playht_creds_layout.addWidget(self.ui.checkBox_saveAudio_playht, 0, 2)
+        
+        # Create PlayHT validate button
+        self.ui.validate_playht = QPushButton("Validate Credentials")
+        self.ui.validate_playht.setMinimumHeight(30)
+        playht_creds_layout.addWidget(self.ui.validate_playht, 1, 2)
+        
+        # Add credentials frame to layout
+        layout.addWidget(playht_creds_frame)
+        
+        # Create PlayHT voice models group box
+        self.ui.playht_voice_models = QGroupBox("Voice Models")
+        self.ui.playht_voice_models.setFont(QFont("MS Shell Dlg 2", 10, QFont.Bold))
+        self.ui.playht_voice_models.setAlignment(Qt.AlignCenter)
+        playht_voice_models_layout = QVBoxLayout(self.ui.playht_voice_models)
+        playht_voice_models_layout.setContentsMargins(2, 2, 2, 2)
+        playht_voice_models_layout.setSpacing(0)
+        
+        # Create PlayHT progress bar
+        self.ui.playht_progressBar = QProgressBar()
+        self.ui.playht_progressBar.setMaximumHeight(15)
+        self.ui.playht_progressBar.setValue(0)
+        self.ui.playht_progressBar.setAlignment(Qt.AlignCenter)
+        playht_voice_models_layout.addWidget(self.ui.playht_progressBar)
+        
+        # Create PlayHT search box
+        self.ui.search_language_playht = QLineEdit()
+        self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
+        playht_voice_models_layout.addWidget(self.ui.search_language_playht)
+        
+        # Create PlayHT list widget
+        self.ui.playht_listWidget = QListWidget()
+        self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: blue; color: white; }")
+        self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.ui.playht_listWidget.setSortingEnabled(True)
+        playht_voice_models_layout.addWidget(self.ui.playht_listWidget)
+        
+        # Create PlayHT no credentials label
+        self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID to access voices")
+        self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
+        self.ui.playht_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
+        self.ui.playht_no_creds_label.setStyleSheet("color: #666;")
+        playht_voice_models_layout.addWidget(self.ui.playht_no_creds_label)
+        
+        # Add voice models group box to layout
+        layout.addWidget(self.ui.playht_voice_models)
+        
+        # Add PlayHT page to stacked widget
+        self.ui.stackedWidget.addWidget(self.ui.playht_page)
+        
+        # Initially hide the list widgets and show the no credentials labels
+        self.ui.elevenlabs_listWidget.hide()
+        self.ui.search_language_elevenlabs.hide()
+        self.ui.playht_listWidget.hide()
+        self.ui.search_language_playht.hide()
+
     def setup_ui_connections(self):
         """Set up all UI signal/slot connections"""
-        # Connect TTS engine changes
+        # Connect basic UI elements
         self.ui.ttsEngineBox.currentTextChanged.connect(self.on_tts_engine_toggled)
-        
-        # Connect save/discard buttons
         self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
             lambda: self.on_save_pressed(True)
         )
         self.ui.buttonBox.button(QDialogButtonBox.Discard).clicked.connect(
             self.on_discard_pressed
         )
-        
-        # Connect browse and file path changes
         self.ui.browseButton.clicked.connect(self.on_browse_button_pressed)
         self.ui.credsFilePathEdit.textChanged.connect(self.on_creds_file_path_changed)
         
-        # Connect cache buttons
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
         
         # Connect search boxes
         self.ui.search_language_azure.textChanged.connect(
-            lambda text: self.on_search_changed(text, "azure"))
+            lambda text: self.on_search_changed(text, "azure")
+        )
         self.ui.search_language_google.textChanged.connect(
             lambda text: self.on_search_changed(text, "google"))
         self.ui.search_language.textChanged.connect(
