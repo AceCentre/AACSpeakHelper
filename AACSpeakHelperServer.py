@@ -1,3 +1,33 @@
+"""
+AACSpeakHelperServer.py - Windows Named Pipe Server for AACSpeakHelper
+
+This server provides text-to-speech (TTS) and translation services through a Windows named pipe.
+It runs as a system tray application and processes requests from client applications.
+
+The server:
+1. Creates a named pipe (\\\\.\\pipe\\AACSpeakHelper) to receive requests
+2. Processes incoming JSON messages containing text to speak/translate
+3. Performs translation if requested
+4. Converts text to speech using the configured TTS engine
+5. Optionally replaces clipboard content with translated text
+
+Credentials:
+- All API keys and credentials are read from the settings.cfg file
+- No environment variables are required for normal operation
+- The configuration file is typically located in the user's AppData folder
+
+Usage:
+- Run this script to start the server
+- Use client.py to send requests to the server
+- Configure settings using the GUI or CLI configuration tools
+
+Note for developers:
+- During development, credentials can be stored in .envrc
+- These are used by test scripts, not by the server itself
+
+Author: Ace Centre
+"""
+
 import logging
 import os
 import sys
@@ -103,6 +133,28 @@ class SystemTrayIcon(QSystemTrayIcon):
 
 
 class PipeServerThread(QThread):
+    """
+    Thread that handles the Windows named pipe communication.
+
+    This thread:
+    1. Creates a named pipe (\\\\.\\pipe\\AACSpeakHelper)
+    2. Waits for client connections
+    3. Reads data from clients
+    4. Emits a signal with the received message
+    5. Optionally returns voice list data to the client
+
+    The pipe accepts JSON-formatted messages containing:
+    - args: Command-line arguments from the client
+    - config: Configuration settings
+    - clipboard_text: Text to process
+
+    Required Credentials (from settings.cfg):
+    - For Azure TTS: key, location in [azureTTS] section
+    - For Google TTS: creds in [googleTTS] section
+    - For Microsoft Translator: microsoft_translator_secret_key in [translate] section
+    - For Microsoft Translator: region in [translate] section
+    """
+
     message_received = Signal(str)
     voices = None
 
@@ -111,6 +163,7 @@ class PipeServerThread(QThread):
         while True:
             pipe = None
             try:
+                # Create the named pipe
                 pipe = win32pipe.CreateNamedPipe(
                     pipe_name,
                     win32pipe.PIPE_ACCESS_DUPLEX,
@@ -125,18 +178,25 @@ class PipeServerThread(QThread):
                 )
 
                 logging.info("Waiting for client connection...")
+                # Wait for a client to connect
                 win32pipe.ConnectNamedPipe(pipe, None)
                 logging.info("Client connected.")
 
+                # Read data from the client
                 result, data = win32file.ReadFile(pipe, 64 * 1024)
                 get_voices = False
                 if result == 0:
+                    # Decode and process the message
                     message = data.decode()
                     logging.info(f"Received data: {message[:50]}...")
+                    # Emit signal to process the message in the main thread
                     self.message_received.emit(message)
                     try:
+                        # Check if client is requesting voice list
                         parsed_message = json.loads(message)
-                        get_voices = parsed_message.get("args", {}).get("listvoices", False)
+                        get_voices = parsed_message.get("args", {}).get(
+                            "listvoices", False
+                        )
                     except Exception as e:
                         logging.error(f"Error parsing message: {e}")
                         get_voices = False
@@ -145,11 +205,13 @@ class PipeServerThread(QThread):
                 logging.error(f"Pipe server error: {e}", exc_info=True)
             finally:
                 if pipe:
+                    # If client requested voices and we have them, send them back
                     while get_voices:
                         if self.voices:
                             win32file.WriteFile(pipe, json.dumps(self.voices).encode())
                             self.voices = None
                             break
+                    # Close the pipe handle
                     win32file.CloseHandle(pipe)
                 logging.info("Pipe closed. Reopening for next connection.")
 
@@ -200,7 +262,10 @@ class MainWindow(QWidget):
         size_limit_bytes = size_limit_mb * 1024 * 1024  # Convert MB to bytes
 
         try:
-            if os.path.isfile(log_file) and os.path.getsize(log_file) > size_limit_bytes:
+            if (
+                os.path.isfile(log_file)
+                and os.path.getsize(log_file) > size_limit_bytes
+            ):
                 with open(log_file, "w"):  # Truncate the log file
                     logging.info("Log file exceeded size limit; log file truncated.")
         except Exception as e:
@@ -208,7 +273,22 @@ class MainWindow(QWidget):
 
     @Slot(str)
     def handle_message(self, message):
+        """
+        Process a message received from a client.
+
+        This method:
+        1. Parses the JSON message
+        2. Extracts configuration and text data
+        3. Initializes the TTS and translation engines
+        4. Translates the text if requested
+        5. Speaks the text using the configured TTS engine
+        6. Optionally updates the clipboard with translated text
+
+        Args:
+            message (str): JSON-formatted message from the client
+        """
         try:
+            # Parse the JSON message
             data = json.loads(message)
 
             # Extract data from the received message
@@ -221,7 +301,11 @@ class MainWindow(QWidget):
             for section, options in config_dict.items():
                 config[section] = options
 
-            logging.info(config["googleTTS"]["creds"])
+            # Log the Google credentials path (if available)
+            if "googleTTS" in config and "creds" in config["googleTTS"]:
+                logging.info(
+                    f"Using Google credentials: {config['googleTTS']['creds']}"
+                )
 
             # Get the config path from the received config
             config_path = config.get("App", "config_path", fallback=None)
