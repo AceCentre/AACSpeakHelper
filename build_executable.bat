@@ -17,6 +17,8 @@ uv run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole
 
 uv run python -m PyInstaller client.py --noupx --noconsole --onedir --clean -i .\assets\translate.ico -y
 
+uv run python -m PyInstaller cli_config_creator.py --noupx --console --name "Configure AACSpeakHelper CLI" --onedir --clean -i .\assets\configure.ico -y
+
 uv run python -m PyInstaller CreateGridset.py --noupx --noconsole --onedir --clean -y
 
 REM Run Inno Setup

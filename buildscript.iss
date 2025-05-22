@@ -2,11 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AACSpeakHelper"
-#define MyAppVersion GetEnv('MYAPP_VERSION') 
+#define MyAppVersion GetEnv('MYAPP_VERSION')
 
 #if MyAppVersion == ""
   #undef MyAppVersion
-  #define MyAppVersion "2.4.0"  
+  #define MyAppVersion "2.4.0"
 #endif
 
 #define MyAppPublisher "Ace Centre"
@@ -54,6 +54,8 @@ Source: "config.enc"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags:
 Source: "google_creds.enc"; DestDir: "{userappdata}\Ace Centre\AACSpeakHelper"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\Configure AACSpeakHelper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\Configure AACSpeakHelper\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\Configure AACSpeakHelper CLI\Configure AACSpeakHelper CLI.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Configure AACSpeakHelper CLI\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\CreateGridset\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "assets\translate.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 Source: "assets\translate_loading.ico"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
@@ -63,10 +65,12 @@ Source: "assets\TranslateAndTTS DemoGridset.gridset"; DestDir: "{userappdata}\Ac
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\Configure {#MyAppName}"; Filename: "{app}\Configure AACSpeakHelper.exe"
+Name: "{group}\Configure {#MyAppName} (CLI)"; Filename: "{app}\Configure AACSpeakHelper CLI.exe"
 Name: "{group}\Settings File"; Filename: "{userappdata}\AACSpeakHelper\settings.cfg"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{autodesktop}\Configure AACSpeakHelper"; Filename: "{app}\Configure AACSpeakHelper.exe"; Tasks: desktopicon
+Name: "{autodesktop}\Configure AACSpeakHelper (CLI)"; Filename: "{app}\Configure AACSpeakHelper CLI.exe"; Tasks: desktopicon
 Name: "{userstartup}\AACSpeakHelperServer.exe"; Filename: "{app}\AACSpeakHelperServer.exe"; WorkingDir: "{app}"
 
 [Run]
@@ -74,4 +78,5 @@ Filename: "{app}\CreateGridset.exe"
 Filename: "{cmd}"; Parameters: "start""/b""cmd""/c""echo|set /p=Hello World|clip"; Flags: nowait skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent unchecked
 Filename: "{app}\AACSpeakHelperServer.exe"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\Configure AACSpeakHelper.exe"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Configure AACSpeakHelper.exe"; Description: "Launch GUI Configuration Tool"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{app}\Configure AACSpeakHelper CLI.exe"; Description: "Launch CLI Configuration Tool"; Flags: nowait postinstall skipifsilent unchecked

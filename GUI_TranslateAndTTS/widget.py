@@ -3109,13 +3109,16 @@ class Widget(QWidget):
                     QListWidget::item {
                         border-bottom: 1px solid #eeeeee;
                         padding: 5px;
-                        min-height: 30px;
+                        min-height: 40px;
                     }
                     QListWidget::item:selected {
                         background-color: #e6f3ff;
                         color: black;
                     }
                 """)
+                
+                # Set uniform item size to prevent squashing
+                self.ui.onnx_listWidget.setUniformItemSizes(True)
                 
                 # Adjust item delegate to ensure proper sizing
                 for i in range(self.ui.onnx_listWidget.count()):
@@ -3149,30 +3152,42 @@ class Widget(QWidget):
             layout.setContentsMargins(10, 10, 10, 10)
             layout.setSpacing(10)
             
+            # Create ElevenLabs list widget directly on the UI object
+            self.ui.elevenlabs_listWidget = QListWidget(self.ui.elevenlabs_page)
+            self.ui.elevenlabs_listWidget.setObjectName("elevenlabs_listWidget")
+            self.ui.elevenlabs_listWidget.setMinimumHeight(200)
+            self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
+            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.elevenlabs_listWidget.setSortingEnabled(True)
+            
             # Create ElevenLabs credentials frame
             elevenlabs_creds_frame = QFrame(self.ui.elevenlabs_page)
-            elevenlabs_creds_frame.setFrameShape(QFrame.StyledPanel)
-            elevenlabs_creds_frame.setFrameShadow(QFrame.Raised)
+            elevenlabs_creds_frame.setFrameShape(QFrame.Shape.StyledPanel)
+            elevenlabs_creds_frame.setFrameShadow(QFrame.Shadow.Raised)
             elevenlabs_creds_layout = QGridLayout(elevenlabs_creds_frame)
+            elevenlabs_creds_layout.setContentsMargins(10, 10, 10, 10)
+            elevenlabs_creds_layout.setSpacing(10)
             
             # Create ElevenLabs API key label and input
-            elevenlabs_key_label = QLabel("API Key:")
-            elevenlabs_key_label.setFont(QFont("MS Shell Dlg 2", 10))
-            elevenlabs_creds_layout.addWidget(elevenlabs_key_label, 0, 0)
+            elevenlabs_api_key_label = QLabel("API Key:")
+            elevenlabs_api_key_label.setFont(QFont("Arial", 10))
+            elevenlabs_creds_layout.addWidget(elevenlabs_api_key_label, 0, 0)
             
-            self.ui.elevenlabs_key = QLineEdit()
-            self.ui.elevenlabs_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
-            elevenlabs_creds_layout.addWidget(self.ui.elevenlabs_key, 0, 1)
+            self.ui.elevenlabs_api_key = QLineEdit()
+            self.ui.elevenlabs_api_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
+            self.ui.elevenlabs_api_key.setPlaceholderText("Enter your ElevenLabs API key here")
+            elevenlabs_creds_layout.addWidget(self.ui.elevenlabs_api_key, 0, 1)
             
             # Create ElevenLabs save audio checkbox
             self.ui.checkBox_saveAudio_elevenlabs = QCheckBox("Save Audio File")
-            self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("MS Shell Dlg 2", 10))
+            self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("Arial", 10))
             self.ui.checkBox_saveAudio_elevenlabs.setChecked(True)
             elevenlabs_creds_layout.addWidget(self.ui.checkBox_saveAudio_elevenlabs, 0, 2)
             
             # Create ElevenLabs validate button
             self.ui.validate_elevenlabs = QPushButton("Validate Credentials")
             self.ui.validate_elevenlabs.setMinimumHeight(30)
+            self.ui.validate_elevenlabs.setStyleSheet("background-color: #0078d7; color: white; border-radius: 5px;")
             elevenlabs_creds_layout.addWidget(self.ui.validate_elevenlabs, 1, 1)
             
             # Add credentials frame to layout
@@ -3209,6 +3224,9 @@ class Widget(QWidget):
             self.ui.elevenlabs_voice_models = elevenlabs_voice_models
             layout.addWidget(elevenlabs_voice_models)
             
+            # Add the list widget to the layout
+            layout.addWidget(self.ui.elevenlabs_listWidget)
+            
             # Style the ElevenLabs list widget
             self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
             self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
@@ -3237,39 +3255,52 @@ class Widget(QWidget):
             layout.setContentsMargins(10, 10, 10, 10)
             layout.setSpacing(10)
             
+            # Create PlayHT list widget directly on the UI object
+            self.ui.playht_listWidget = QListWidget(self.ui.playht_page)
+            self.ui.playht_listWidget.setObjectName("playht_listWidget")
+            self.ui.playht_listWidget.setMinimumHeight(200)
+            self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
+            self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.playht_listWidget.setSortingEnabled(True)
+            
             # Create PlayHT credentials frame
             playht_creds_frame = QFrame(self.ui.playht_page)
-            playht_creds_frame.setFrameShape(QFrame.StyledPanel)
-            playht_creds_frame.setFrameShadow(QFrame.Raised)
+            playht_creds_frame.setFrameShape(QFrame.Shape.StyledPanel)
+            playht_creds_frame.setFrameShadow(QFrame.Shadow.Raised)
             playht_creds_layout = QGridLayout(playht_creds_frame)
+            playht_creds_layout.setContentsMargins(10, 10, 10, 10)
+            playht_creds_layout.setSpacing(10)
             
             # Create PlayHT API key label and input
-            playht_key_label = QLabel("API Key:")
-            playht_key_label.setFont(QFont("MS Shell Dlg 2", 10))
-            playht_creds_layout.addWidget(playht_key_label, 0, 0)
+            playht_api_key_label = QLabel("API Key:")
+            playht_api_key_label.setFont(QFont("Arial", 10))
+            playht_creds_layout.addWidget(playht_api_key_label, 0, 0)
             
-            self.ui.playht_key = QLineEdit()
-            self.ui.playht_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
-            playht_creds_layout.addWidget(self.ui.playht_key, 0, 1)
+            self.ui.playht_api_key = QLineEdit()
+            self.ui.playht_api_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
+            self.ui.playht_api_key.setPlaceholderText("Enter your PlayHT API key here")
+            playht_creds_layout.addWidget(self.ui.playht_api_key, 0, 1)
             
             # Create PlayHT User ID label and input
             playht_userid_label = QLabel("User ID:")
-            playht_userid_label.setFont(QFont("MS Shell Dlg 2", 10))
+            playht_userid_label.setFont(QFont("Arial", 10))
             playht_creds_layout.addWidget(playht_userid_label, 1, 0)
             
-            self.ui.playht_userid = QLineEdit()
-            self.ui.playht_userid.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
-            playht_creds_layout.addWidget(self.ui.playht_userid, 1, 1)
+            self.ui.playht_user_id = QLineEdit()
+            self.ui.playht_user_id.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
+            self.ui.playht_user_id.setPlaceholderText("Enter your PlayHT User ID here")
+            playht_creds_layout.addWidget(self.ui.playht_user_id, 1, 1)
             
             # Create PlayHT save audio checkbox
             self.ui.checkBox_saveAudio_playht = QCheckBox("Save Audio File")
-            self.ui.checkBox_saveAudio_playht.setFont(QFont("MS Shell Dlg 2", 10))
+            self.ui.checkBox_saveAudio_playht.setFont(QFont("Arial", 10))
             self.ui.checkBox_saveAudio_playht.setChecked(True)
             playht_creds_layout.addWidget(self.ui.checkBox_saveAudio_playht, 0, 2)
             
             # Create PlayHT validate button
             self.ui.validate_playht = QPushButton("Validate Credentials")
             self.ui.validate_playht.setMinimumHeight(30)
+            self.ui.validate_playht.setStyleSheet("background-color: #0078d7; color: white; border-radius: 5px;")
             playht_creds_layout.addWidget(self.ui.validate_playht, 1, 2)
             
             # Add credentials frame to layout
@@ -3317,6 +3348,9 @@ class Widget(QWidget):
             # Add the voice models group box to the UI object and layout
             self.ui.playht_voice_models = playht_voice_models
             layout.addWidget(playht_voice_models)
+            
+            # Add the list widget to the layout
+            layout.addWidget(self.ui.playht_listWidget)
         
 
         
