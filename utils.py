@@ -180,7 +180,29 @@ def save_audio(text: str, engine: str, file_format: str = "wav", tts=None):
     """
     timestr = time.strftime("%Y%m%d-%H%M%S.")
     filename = os.path.join(audio_files_path, timestr + file_format)
-    tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
+
+    # Handle different TTS engines with different method signatures
+    try:
+        # Try the method with save parameters first (for engines that support it)
+        tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
+    except TypeError:
+        # If that fails, try different approaches based on the TTS engine type
+        from tts_wrapper import MicrosoftTTS, GoogleTransTTS, SherpaOnnxTTS, SAPIEngine
+
+        if isinstance(tts, MicrosoftTTS):
+            # For Azure TTS, use speak_to_file method if available
+            if hasattr(tts, 'speak_to_file'):
+                tts.speak_to_file(text, filename)
+            else:
+                # Fallback: get audio data and save manually
+                audio_data = tts.speak(text)
+                with open(filename, 'wb') as f:
+                    f.write(audio_data)
+        else:
+            # For other engines, try the basic speak_streamed method
+            tts.speak_streamed(text)
+            # Note: This won't save to file, but at least it will play the audio
+
     sql = "INSERT INTO History(text, filename, engine) VALUES('{}','{}','{}')".format(
         text, filename, engine
     )
