@@ -213,18 +213,35 @@ def load_config(custom_config_path=None):
 def create_default_config(config):
     """Create a default configuration"""
     # Add default sections and values
-    config["App"] = {"collectstats": "True"}
+    config["App"] = {"collectstats": "True", "uuid": ""}
 
     config["translate"] = {
         "no_translate": "False",
+        "notranslate": "False",
         "start_lang": "en",
+        "startlang": "en",
         "end_lang": "en",
+        "endlang": "en",
         "replace_pb": "True",
         "provider": "GoogleTranslator",
+        "microsoft_translator_secret_key": "",
+        "papago_translator_client_id": "",
+        "papago_translator_secret_key": "",
+        "my_memory_translator_secret_key": "",
+        "email": "",
+        "libre_translator_secret_key": "",
+        "url": "",
+        "deep_l_translator_secret_key": "",
+        "deepl_pro": "false",
+        "region": "",
+        "yandex_translator_secret_key": "",
+        "qcri_translator_secret_key": "",
+        "baidu_translator_appid": "",
+        "baidu_translator_secret_key": "",
     }
 
     config["TTS"] = {
-        "engine": "Sherpa-ONNX",
+        "engine": "SherpaOnnxTTS",
         "bypass_tts": "False",
         "save_audio_file": "True",
         "rate": "0",
@@ -237,6 +254,10 @@ def create_default_config(config):
     config["googleTTS"] = {"creds": "", "voice_id": "en-US-Wavenet-C"}
 
     config["googleTransTTS"] = {"voice_id": ""}
+
+    config["sapi5TTS"] = {
+        "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
+    }
 
     config["SherpaOnnxTTS"] = {"voice_id": "eng"}
 
@@ -261,17 +282,18 @@ def print_menu(config):
     tts_voice = "Not configured"
 
     # Get the voice ID from the appropriate section based on the engine
-    if tts_engine == "Azure TTS":
+    # The engine name in config is now the section name, so use it directly
+    if tts_engine in ["azureTTS", "Azure TTS"]:
         tts_voice = config.get("azureTTS", "voice_id", fallback="Not configured")
-    elif tts_engine == "Google TTS":
+    elif tts_engine in ["googleTTS", "Google TTS"]:
         tts_voice = config.get("googleTTS", "voice_id", fallback="Not configured")
-    elif tts_engine == "Sherpa-ONNX":
+    elif tts_engine in ["SherpaOnnxTTS", "Sherpa-ONNX"]:
         tts_voice = config.get("SherpaOnnxTTS", "voice_id", fallback="Not configured")
-    elif tts_engine == "Google Trans":
+    elif tts_engine in ["googleTransTTS", "Google Trans"]:
         tts_voice = config.get("googleTransTTS", "voice_id", fallback="Not configured")
-    elif tts_engine == "ElevenLabs":
+    elif tts_engine in ["ElevenLabsTTS", "ElevenLabs"]:
         tts_voice = config.get("ElevenLabsTTS", "voice_id", fallback="Not configured")
-    elif tts_engine == "PlayHT":
+    elif tts_engine in ["PlayHTTTS", "PlayHT"]:
         tts_voice = config.get("PlayHTTTS", "voice_id", fallback="Not configured")
 
     # Display current translation configuration
@@ -318,9 +340,11 @@ def configure_tts(config):
             print("Please enter a number.")
 
     # Update the main TTS engine setting
+    # Use the config section name instead of display name for the engine
+    engine_section = TTS_ENGINES[selected_engine]["config_section"]
     engine_name = TTS_ENGINES[selected_engine]["name"]
-    config.set("TTS", "engine", engine_name)
-    print(f"Selected TTS engine: {engine_name}")
+    config.set("TTS", "engine", engine_section)
+    print(f"Selected TTS engine: {engine_name} (config: {engine_section})")
 
     # Configure engine-specific settings
     engine_config = TTS_ENGINES[selected_engine]
