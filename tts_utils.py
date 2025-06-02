@@ -91,7 +91,7 @@ def init_azure_tts():
     location = utils.config.get("azureTTS", "location")
     if location == "":
         location = config.get("azureTTS")["location"]
-    voiceid = utils.config.get("azureTTS", "voiceid")
+    voiceid = utils.config.get("azureTTS", "voice_id")
     parts = voiceid.split("-")
     lang = parts[0] + "-" + parts[1]
     client = MicrosoftClient((key, location))
@@ -114,7 +114,7 @@ def init_google_tts():
     logging.info(f"Google TTS credentials file location: {path}")
     if not isinstance(gcreds, dict) and os.path.isfile(gcreds):
         logging.info(f"Google TTS credentials file: {gcreds}")
-    voiceid = utils.config.get("googleTTS", "voiceid")
+    voiceid = utils.config.get("googleTTS", "voice_id")
     client = GoogleClient(credentials=gcreds)
     tts = GoogleTTS(client=client, voice=voiceid)
     return tts
@@ -125,7 +125,7 @@ def init_sapi_tts():
 
     Returns: SAPIEngine
     """
-    voiceid = utils.config.get("sapi5TTS", "voiceid")
+    voiceid = utils.config.get("sapi5TTS", "voice_id")
     client = SAPIClient()
     client._client.setProperty("voice", voiceid)
     client._client.setProperty("rate", utils.config.get("TTS", "rate"))
@@ -138,7 +138,7 @@ def init_onnx_tts():
 
     Returns: SherpaOnnxTTS
     """
-    voiceid = utils.config.get("SherpaOnnxTTS", "voiceid")
+    voiceid = utils.config.get("SherpaOnnxTTS", "voice_id")
     if getattr(sys, "frozen", False):
         home_directory = os.path.expanduser("~")
         onnx_cache_path = os.path.join(
@@ -165,7 +165,7 @@ def init_googleTrans_tts():
 
     Returns: GoogleTransTTS
     """
-    voiceid = utils.config.get("googleTransTTS", "voiceid")
+    voiceid = utils.config.get("googleTransTTS", "voice_id")
     client = GoogleTransClient(voiceid)
     return GoogleTransTTS(client)
 
@@ -186,9 +186,9 @@ def speak(text="", list_voices=False):
 
     try:
         ttsengine = utils.config.get("TTS", "engine")
-        voice_id = utils.config.get(ttsengine, "voiceid")
+        voice_id = utils.config.get(ttsengine, "voice_id")
         if not voice_id:
-            voice_id = utils.config.get("TTS", "voiceid")
+            voice_id = utils.config.get("TTS", "voice_id")
     except Exception as e:
         logging.error(f"Error getting TTS engine or voice ID: {e}")
         return
@@ -278,7 +278,7 @@ def speak(text="", list_voices=False):
             case "googleTransTTS":
                 googleTransSpeak(text, ttsengine, tts_client)
             case _:
-                tts_client.setProperty("voice", utils.config.get("TTS", "voiceid"))
+                tts_client.setProperty("voice", utils.config.get("TTS", "voice_id"))
                 tts_client.setProperty("rate", utils.config.get("TTS", "rate"))
                 tts_client.setProperty("volume", utils.config.get("TTS", "volume"))
                 tts_client.say(text)

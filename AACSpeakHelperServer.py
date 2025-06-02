@@ -332,7 +332,7 @@ class MainWindow(QWidget):
             self.tray_icon.setToolTip("Handling new message ...")
             self.tray_icon.setIcon(self.icon_loading)
             logging.info(f"Handling new message: {message[:50]}...")
-            if config.getboolean("translate", "noTranslate"):
+            if config.getboolean("translate", "no_translate"):
                 text_to_process = clipboard_text
             else:
                 text_to_process = translate_clipboard(clipboard_text, config)
@@ -344,7 +344,7 @@ class MainWindow(QWidget):
                 self.pipe_thread.voices = tts_utils.voices
             # Replace clipboard if specified
             if (
-                config.getboolean("translate", "replacepb")
+                config.getboolean("translate", "replace_pb")
                 and text_to_process is not None
             ):
                 pyperclip.copy(text_to_process)
@@ -398,70 +398,70 @@ def translate_clipboard(text, config):
         match translator:
             case "GoogleTranslator":
                 translate_instance = GoogleTranslator(
-                    source="auto", target=config.get("translate", "endLang")
+                    source="auto", target=config.get("translate", "end_lang")
                 )
             case "PonsTranslator":
                 translate_instance = PonsTranslator(
-                    source="auto", target=config.get("translate", "endLang")
+                    source="auto", target=config.get("translate", "end_lang")
                 )
             case "LingueeTranslator":
                 translate_instance = LingueeTranslator(
-                    source="auto", target=config.get("translate", "endLang")
+                    source="auto", target=config.get("translate", "end_lang")
                 )
             case "MyMemoryTranslator":
                 translate_instance = MyMemoryTranslator(
-                    source=config.get("translate", "startLang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     email=email,
                 )
             case "YandexTranslator":
                 translate_instance = YandexTranslator(
-                    source=config.get("translate", "startLang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     api_key=key,
                 )
             case "MicrosoftTranslator":
                 translate_instance = MicrosoftTranslator(
                     api_key=key,
-                    source=config.get("translate", "startLang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     region=region,
                 )
             case "QcriTranslator":
                 translate_instance = QcriTranslator(
                     source="auto",
-                    target=config.get("translate", "endLang"),
+                    target=config.get("translate", "end_lang"),
                     api_key=key,
                 )
             case "DeeplTranslator":
                 translate_instance = DeeplTranslator(
-                    source=config.get("translate", "startlang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     api_key=key,
                     use_free_api=not pro,
                 )
             case "LibreTranslator":
                 translate_instance = LibreTranslator(
-                    source=config.get("translate", "startlang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     api_key=key,
                     custom_url=url,
                 )
             case "PapagoTranslator":
                 translate_instance = PapagoTranslator(
                     source="auto",
-                    target=config.get("translate", "endLang"),
+                    target=config.get("translate", "end_lang"),
                     client_id=client_id,
                     secret_key=key,
                 )
             case "ChatGptTranslator":
                 translate_instance = ChatGptTranslator(
-                    source="auto", target=config.get("translate", "endLang")
+                    source="auto", target=config.get("translate", "end_lang")
                 )
             case "BaiduTranslator":
                 translate_instance = BaiduTranslator(
-                    source=config.get("translate", "startlang"),
-                    target=config.get("translate", "endLang"),
+                    source=config.get("translate", "start_lang"),
+                    target=config.get("translate", "end_lang"),
                     appid=appid,
                     appkey=key,
                 )
@@ -471,8 +471,8 @@ def translate_clipboard(text, config):
         #                                          appid=appid,
         #                                          appkey=key)
         logging.info("Translation Provider is {}".format(translator))
-        logging.info(f'Text [{config.get("translate", "startLang")}]: {text}')
-        if config.get("translate", "endLang") in [
+        logging.info(f'Text [{config.get("translate", "start_lang")}]: {text}')
+        if config.get("translate", "end_lang") in [
             "ckb" "ku",
             "kmr",
             "kmr-TR",
@@ -481,7 +481,7 @@ def translate_clipboard(text, config):
             text = normalize_text(text)
         translation = translate_instance.translate(text)
         logging.info(
-            f'Translation [{config.get("translate", "endLang")}]: {translation}'
+            f'Translation [{config.get("translate", "end_lang")}]: {translation}'
         )
         return translation
     except Exception as e:

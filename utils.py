@@ -356,8 +356,8 @@ def init(input_config, args):
             "uuid": distinct_id,
             "source": "helperApp",
             "version": 2.4,
-            "fromLang": config.get("translate", "startlang"),
-            "toLang": config.get("translate", "endlang"),
+            "fromLang": config.get("translate", "start_lang"),
+            "toLang": config.get("translate", "end_lang"),
             "ttsengine": config.get("TTS", "engine"),
         }
         notify_posthog(distinct_id, event_name, event_properties)

@@ -110,66 +110,148 @@ def get_config_dir():
 def create_default_config():
     """Create a default configuration"""
     config = configparser.ConfigParser()
-    
-    # Add default sections and values
+
+    # App section
+    config["App"] = {
+        "collectstats": "True"
+    }
+
+    # Translate section
+    config["translate"] = {
+        "no_translate": "False",
+        "start_lang": "en",
+        "end_lang": "en",
+        "replace_pb": "True",
+        "provider": "GoogleTranslator",
+        "microsoft_translator_secret_key": "",
+        "papago_translator_client_id": "",
+        "papago_translator_secret_key": "",
+        "my_memory_translator_secret_key": "",
+        "email": "",
+        "libre_translator_secret_key": "",
+        "url": "",
+        "deep_l_translator_secret_key": "",
+        "deepl_pro": "false",
+        "region": "",
+        "yandex_translator_secret_key": "",
+        "qcri_translator_secret_key": "",
+        "baidu_translator_appid": "",
+        "baidu_translator_secret_key": ""
+    }
+
+    # TTS section
+    config["TTS"] = {
+        "engine": "Sherpa-ONNX",
+        "bypass_tts": "False",
+        "save_audio_file": "True",
+        "rate": "0",
+        "volume": "100",
+        "voice_id": "eng"
+    }
+
+    # Azure TTS section
     config["azureTTS"] = {
         "key": "",
         "location": "",
-        "voiceid": ""
+        "voice_id": "en-US-JennyNeural"
     }
-    
+
+    # Google TTS section
     config["googleTTS"] = {
         "creds": "",
-        "voiceid": ""
+        "voice_id": "en-US-Wavenet-C"
     }
-    
-    config["translate"] = {
-        "microsofttranslator_secret_key": "",
-        "papagotranslator_client_id": "",
-        "papagotranslator_client_secret": ""
+
+    # Google Trans TTS section
+    config["googleTransTTS"] = {
+        "voice_id": ""
     }
-    
-    config["TTS"] = {
-        "engine": "Azure TTS"
+
+    # SAPI5 TTS section
+    config["sapi5TTS"] = {
+        "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
     }
-    
+
+    # Sherpa ONNX TTS section
+    config["SherpaOnnxTTS"] = {
+        "voice_id": "eng"
+    }
+
+    # App Cache section
+    config["appCache"] = {
+        "threshold": "7"
+    }
+
     return config
 
 
-def load_config():
+def load_config(custom_config_path=None):
+    """Load configuration from file, supporting both plain text and encrypted formats.
+
+    Args:
+        custom_config_path (str, optional): Path to a custom configuration file.
+                                          If not provided, uses default location.
+
+    Returns:
+        configparser.ConfigParser: Loaded configuration object.
+    """
     try:
-        key_file = os.path.join(get_config_dir(), ".key")
-        config_file = os.path.join(get_config_dir(), "settings.cfg")
-        
-        # If no key exists, generate one
-        if not os.path.exists(key_file):
-            logging.info("No encryption key found, generating new key")
-            encryption_key = generate_key()
+        # Determine config file path
+        if custom_config_path and os.path.exists(custom_config_path):
+            config_file = custom_config_path
+            logging.info(f"Using custom config path: {config_file}")
         else:
-            with open(key_file, "rb") as f:
-                encryption_key = f.read()
-        
-        fernet = Fernet(encryption_key)
-        
+            config_file = os.path.join(get_config_dir(), "settings.cfg")
+            logging.info(f"Using default config path: {config_file}")
+
         # If no config exists, create default
         if not os.path.exists(config_file):
             logging.info("No configuration found, creating default")
             config = create_default_config()
             return config
-            
-        # Try to load existing encrypted config
+
+        # First, try to load as plain text configuration
         try:
+            config = configparser.ConfigParser()
+            config.read(config_file)
+
+            # Verify it's a valid config by checking if it has sections
+            if config.sections():
+                logging.info(f"Successfully loaded plain text configuration from {config_file}")
+                return config
+            else:
+                logging.info("Config file appears to be empty or invalid, trying encrypted format")
+        except Exception as e:
+            logging.info(f"Failed to load as plain text config: {e}, trying encrypted format")
+
+        # If plain text loading failed, try encrypted format
+        try:
+            key_file = os.path.join(get_config_dir(), ".key")
+
+            # If no key exists, generate one
+            if not os.path.exists(key_file):
+                logging.info("No encryption key found, generating new key")
+                encryption_key = generate_key()
+            else:
+                with open(key_file, "rb") as f:
+                    encryption_key = f.read()
+
+            fernet = Fernet(encryption_key)
+
+            # Try to load existing encrypted config
             with open(config_file, "rb") as f:
                 encrypted_data = f.read()
             decrypted_data = fernet.decrypt(encrypted_data)
             config = configparser.ConfigParser()
             config.read_string(decrypted_data.decode())
+            logging.info(f"Successfully loaded encrypted configuration from {config_file}")
             return config
+
         except Exception as e:
             logging.error(f"Failed to load encrypted configuration: {e}")
             logging.info("Creating new default configuration")
             return create_default_config()
-            
+
     except Exception as e:
         logging.error(f"Failed to load configuration: {e}")
         raise

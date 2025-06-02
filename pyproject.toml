@@ -29,7 +29,8 @@ dependencies = [
     "py3-tts-wrapper[google,googletrans,microsoft,elevenlabs,playht,sherpaonnx]>=0.9.32",
     "python-dotenv",
     "cryptography",
-    "pyinstaller",  # Move to main dependencies since it's needed for distribution
+    "pyinstaller", # Move to main dependencies since it's needed for distribution
+    "pywin32>=310",
 ]
 
 [project.optional-dependencies]
