@@ -21,5 +21,18 @@ uv run python -m PyInstaller cli_config_creator.py --noupx --console --name "Con
 
 uv run python -m PyInstaller CreateGridset.py --noupx --noconsole --onedir --clean -y
 
-REM Run Inno Setup
-"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" buildscript.iss
+REM Run Inno Setup (if available)
+if exist "C:\Users\admin.will\AppData\Local\Programs\Inno Setup 6\ISCC.exe" (
+    echo Running Inno Setup to create installer...
+    "C:\Users\admin.will\AppData\Local\Programs\Inno Setup 6\ISCC.exe" buildscript.iss
+) else if exist "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" (
+    echo Running Inno Setup to create installer...
+    "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" buildscript.iss
+) else if exist "C:\Program Files\Inno Setup 6\ISCC.exe" (
+    echo Running Inno Setup to create installer...
+    "C:\Program Files\Inno Setup 6\ISCC.exe" buildscript.iss
+) else (
+    echo Inno Setup not found. Skipping installer creation.
+    echo To create an installer, please install Inno Setup from: https://jrsoftware.org/isdl.php
+    echo Then re-run this build script.
+)
