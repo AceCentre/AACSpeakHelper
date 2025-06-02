@@ -5,7 +5,6 @@ import sys
 import time
 from pathlib import Path
 
-import pyttsx3
 from gtts import gTTS
 from tts_wrapper import (
     AbstractTTS,
