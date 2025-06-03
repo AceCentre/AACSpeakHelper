@@ -366,17 +366,130 @@ def configure_tts(config):
     return config
 
 
+def get_voices_from_engine(engine_key, config):
+    """Get voices from the actual TTS engine using py3-tts-wrapper"""
+    try:
+        from tts_wrapper import (
+            MicrosoftClient, MicrosoftTTS,
+            GoogleClient, GoogleTTS,
+            SherpaOnnxClient, SherpaOnnxTTS,
+            GoogleTransClient, GoogleTransTTS
+        )
+
+        engine_config = TTS_ENGINES[engine_key]
+        section_name = engine_config["config_section"]
+
+        if engine_key == "azure":
+            # Get Azure TTS credentials
+            key = config.get(section_name, "key", fallback="")
+            location = config.get(section_name, "location", fallback="")
+            if not key or not location:
+                print("Azure TTS credentials not configured. Please configure them first.")
+                return None
+
+            client = MicrosoftClient(credentials=(key, location))
+            tts = MicrosoftTTS(client)
+            voices = tts.get_voices()
+
+            # Convert to our format
+            voice_list = []
+            for voice in voices:
+                # Handle both dict and object formats
+                if isinstance(voice, dict):
+                    voice_list.append({
+                        'id': voice.get('id', voice.get('voice_id', '')),
+                        'name': voice.get('name', voice.get('display_name', '')),
+                        'language': voice.get('language', voice.get('locale', '')),
+                        'gender': voice.get('gender', '')
+                    })
+                else:
+                    voice_list.append({
+                        'id': getattr(voice, 'id', getattr(voice, 'voice_id', '')),
+                        'name': getattr(voice, 'name', getattr(voice, 'display_name', '')),
+                        'language': getattr(voice, 'language', getattr(voice, 'locale', '')),
+                        'gender': getattr(voice, 'gender', '')
+                    })
+            return voice_list
+
+        elif engine_key == "sherpa":
+            # Get Sherpa ONNX voices
+            client = SherpaOnnxClient()
+            tts = SherpaOnnxTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "google_trans":
+            # Google Trans TTS doesn't need credentials
+            client = GoogleTransClient()
+            tts = GoogleTransTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        # Add other engines as needed
+        return None
+
+    except Exception as e:
+        print(f"Error getting voices from {engine_key}: {e}")
+        return None
+
+
 def configure_voice(config, engine_key):
     """Configure voice for the selected TTS engine"""
     engine_config = TTS_ENGINES[engine_key]
     section_name = engine_config["config_section"]
+
+    # Try to get voices from the actual TTS engine first
+    print("Getting available voices from TTS engine...")
+    voices = get_voices_from_engine(engine_key, config)
+
+    if voices:
+        # Allow searching by language
+        search_term = input(
+            "Search for a voice by language name (or press Enter to see all): "
+        ).lower()
+
+        matching_voices = []
+        for voice in voices:
+            voice_name = voice.get('name', voice.get('id', ''))
+            voice_id = voice.get('id', voice.get('voice_id', ''))
+            if search_term in voice_name.lower():
+                matching_voices.append((voice_name, voice_id))
+
+        if not matching_voices:
+            print("No matching voices found.")
+            return config
+
+        print("\nMatching voices:")
+        for i, (voice_name, voice_id) in enumerate(matching_voices):
+            print(f"{i+1}. {voice_name} ({voice_id})")
+
+        # Get user selection
+        while True:
+            try:
+                choice = int(input("\nSelect voice (number): ")) - 1
+                if 0 <= choice < len(matching_voices):
+                    selected_voice = matching_voices[choice]
+                    break
+                else:
+                    print("Invalid selection. Please try again.")
+            except ValueError:
+                print("Please enter a number.")
+
+        # Update the voice ID
+        voice_name, voice_id = selected_voice
+        config.set(section_name, "voice_id", voice_id)
+        print(f"Selected voice: {voice_name} ({voice_id})")
+        return config
+
+    # Fallback to hardcoded voice list
+    print("Using fallback voice list...")
     voice_list = engine_config["voice_list"]
 
     if not voice_list:
         print("Voice list not available for this engine.")
         voice_id = input("Enter voice ID manually: ")
         config.set(section_name, "voice_id", voice_id)
-        return
+        return config
 
     # Allow searching by language
     search_term = input(
@@ -390,7 +503,7 @@ def configure_voice(config, engine_key):
 
     if not matching_voices:
         print("No matching voices found.")
-        return
+        return config
 
     print("\nMatching voices:")
     for i, (voice_name, voice_id) in enumerate(matching_voices):
