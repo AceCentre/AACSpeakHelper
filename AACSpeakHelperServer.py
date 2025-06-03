@@ -68,6 +68,50 @@ def setup_logging():
 
 logfile = setup_logging()
 
+def log_debug_info():
+    """Log comprehensive debug information for frozen vs development differences"""
+    logging.info("=== AACSpeakHelper Server Debug Information ===")
+    logging.info(f"Python executable: {sys.executable}")
+    logging.info(f"Python version: {sys.version}")
+    logging.info(f"Current working directory: {os.getcwd()}")
+    logging.info(f"Script location: {__file__}")
+    logging.info(f"Frozen executable: {getattr(sys, 'frozen', False)}")
+    if hasattr(sys, '_MEIPASS'):
+        logging.info(f"PyInstaller temp dir: {sys._MEIPASS}")
+    logging.info(f"Python path: {sys.path}")
+
+    # Log file system information
+    current_dir = os.getcwd()
+    try:
+        files_in_dir = os.listdir(current_dir)
+        logging.info(f"Files in current directory: {files_in_dir}")
+    except Exception as e:
+        logging.error(f"Error listing current directory: {e}")
+
+    # Check for config files
+    config_files = ['settings.cfg', 'config.cfg', '.envrc']
+    for config_file in config_files:
+        config_path = os.path.join(current_dir, config_file)
+        if os.path.exists(config_path):
+            try:
+                size = os.path.getsize(config_path)
+                logging.info(f"Found config file: {config_path} (size: {size} bytes)")
+            except Exception as e:
+                logging.error(f"Error checking config file {config_path}: {e}")
+        else:
+            logging.info(f"Config file not found: {config_path}")
+
+    # Check environment variables
+    important_env_vars = ['PATH', 'PYTHONPATH', 'APPDATA', 'USERPROFILE']
+    for var in important_env_vars:
+        value = os.environ.get(var, 'Not set')
+        logging.info(f"Environment {var}: {value}")
+
+    logging.info("=== End Debug Information ===")
+
+# Call debug logging immediately
+log_debug_info()
+
 import json
 import sys
 import time
