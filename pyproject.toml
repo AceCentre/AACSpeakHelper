@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.10,<3.13"
 
 dependencies = [
     "PyAudio",
@@ -26,12 +26,13 @@ dependencies = [
     "translate",
     "configparser",
     "pyperclip",
-    "py3-tts-wrapper[elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]>=0.10.6",
+    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]>=0.10.4",
     "python-dotenv",
     "cryptography",
     "pyinstaller", # Move to main dependencies since it's needed for distribution
     "pywin32>=310",
     "openai>=1.0.0",
+    "aiohttp>=3.12.7",
 ]
 
 [project.optional-dependencies]
