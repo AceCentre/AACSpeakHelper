@@ -11,7 +11,7 @@ uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/form.ui -o GUI_TranslateA
 uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/item.ui -o GUI_TranslateAndTTS/item.py
 
 REM Build Python executables with PyInstaller
-uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --add-binary "%site_packages%\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll;." --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz -y
+uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --add-binary "%site_packages%\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll;." --add-binary "C:\Windows\System32\winmm.dll;." --add-binary "C:\Windows\System32\dsound.dll;." --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz --collect-all sounddevice --collect-all pyaudio -y
 
 uv run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole --name "Configure AACSpeakHelper" --onedir -i .\assets\configure.ico --clean --add-binary "%site_packages%\azure\cognitiveservices\speech\Microsoft.CognitiveServices.Speech.core.dll;." --collect-all language_data --collect-all language_tags --collect-all pytz --collect-all comtypes -y
 
