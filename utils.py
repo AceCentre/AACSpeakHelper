@@ -362,6 +362,30 @@ def init(input_config, args):
     global audio_files_path
     global config
 
+    # Enhanced debug logging for frozen executable issues
+    logging.info("=== Utils.init() Debug Information ===")
+    logging.info(f"Input config type: {type(input_config)}")
+    logging.info(f"Input config sections: {list(input_config.keys()) if hasattr(input_config, 'keys') else 'Not dict-like'}")
+    logging.info(f"Args: {args}")
+
+    # Log App section details
+    if "App" in input_config:
+        logging.info(f"App section contents: {dict(input_config['App'])}")
+    else:
+        logging.error("No 'App' section found in input_config!")
+
+    # Log TTS section details
+    if "TTS" in input_config:
+        logging.info(f"TTS section contents: {dict(input_config['TTS'])}")
+    else:
+        logging.error("No 'TTS' section found in input_config!")
+
+    # Log azureTTS section details
+    if "azureTTS" in input_config:
+        logging.info(f"azureTTS section contents: {dict(input_config['azureTTS'])}")
+    else:
+        logging.error("No 'azureTTS' section found in input_config!")
+
     config_path = input_config["App"]["config_path"]
     audio_files_path = input_config["App"]["audio_files_path"]
     config = (
@@ -370,6 +394,7 @@ def init(input_config, args):
 
     logging.info(f"Initialized utils with config path: {config_path}")
     logging.info(f"Audio files path: {audio_files_path}")
+    logging.info("=== End Utils.init() Debug Information ===")
 
     if config.getboolean("App", "collectstats"):
         distinct_id = get_uuid()

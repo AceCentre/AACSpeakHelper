@@ -18,6 +18,17 @@ from tts_wrapper import (
     SherpaOnnxTTS,
     GoogleTransTTS,
     GoogleTransClient,
+    ElevenLabsClient,
+    ElevenLabsTTS,
+    PlayHTClient,
+    PlayHTTTS,
+    PollyClient,
+    PollyTTS,
+    WatsonClient,
+    WatsonTTS,
+    OpenAIClient,
+    WitAiClient,
+    WitAiTTS,
 )
 import warnings
 from threading import Thread
@@ -84,18 +95,51 @@ def init_azure_tts():
 
     Returns: MicrosoftTTS
     """
+    logging.info("=== init_azure_tts() Debug Information ===")
+
+    # Debug: Check if utils.config exists and has azureTTS section
+    if not hasattr(utils, 'config'):
+        logging.error("utils.config is not available!")
+        return None
+
+    if not utils.config.has_section("azureTTS"):
+        logging.error("azureTTS section not found in utils.config!")
+        logging.info(f"Available sections: {utils.config.sections()}")
+        return None
+
+    # Get configuration values with debug logging
     key = utils.config.get("azureTTS", "key")
+    logging.info(f"Azure TTS key: {key[:10]}... (length: {len(key)})")
+
     config = load_config()
     if key == "":
         key = config.get("azureTTS")["key"]
+        logging.info(f"Using fallback key from load_config: {key[:10]}...")
+
     location = utils.config.get("azureTTS", "location")
+    logging.info(f"Azure TTS location: {location}")
     if location == "":
         location = config.get("azureTTS")["location"]
+        logging.info(f"Using fallback location from load_config: {location}")
+
     voiceid = utils.config.get("azureTTS", "voice_id")
-    parts = voiceid.split("-")
-    lang = parts[0] + "-" + parts[1]
-    client = MicrosoftClient((key, location))
-    return MicrosoftTTS(client=client, voice=voiceid, lang=lang)
+    logging.info(f"Azure TTS voice_id: {voiceid}")
+
+    # Create TTS directly with credentials
+    logging.info("Creating MicrosoftTTS instance...")
+    try:
+        tts = MicrosoftTTS(credentials=(key, location))
+        logging.info("MicrosoftTTS instance created successfully")
+
+        logging.info(f"Setting voice to: {voiceid}")
+        tts.set_voice(voiceid)
+        logging.info("Voice set successfully")
+
+        logging.info("=== init_azure_tts() completed successfully ===")
+        return tts
+    except Exception as e:
+        logging.error(f"Error creating MicrosoftTTS: {e}", exc_info=True)
+        return None
 
 
 def init_google_tts():
@@ -170,6 +214,112 @@ def init_googleTrans_tts():
     return GoogleTransTTS(client)
 
 
+def init_elevenlabs_tts():
+    """Initialize unique instance of ElevenLabsTTS based on the changes in voiceid.
+
+    Returns: ElevenLabsTTS
+    """
+    import os
+    api_key = utils.config.get("ElevenLabsTTS", "api_key", fallback="")
+    if not api_key:
+        api_key = os.getenv("ELEVENLABS_API_KEY", "")
+    voiceid = utils.config.get("ElevenLabsTTS", "voice_id")
+    client = ElevenLabsClient(credentials=(api_key,))
+    tts = ElevenLabsTTS(client=client, voice=voiceid)
+    return tts
+
+
+def init_playht_tts():
+    """Initialize unique instance of PlayHTTTS based on the changes in voiceid.
+
+    Returns: PlayHTTTS
+    """
+    import os
+    api_key = utils.config.get("PlayHTTTS", "api_key", fallback="")
+    user_id = utils.config.get("PlayHTTTS", "user_id", fallback="")
+    if not api_key:
+        api_key = os.getenv("PLAYHT_API_KEY", "")
+    if not user_id:
+        user_id = os.getenv("PLAYHT_USER_ID", "")
+    voiceid = utils.config.get("PlayHTTTS", "voice_id")
+    client = PlayHTClient(credentials=(api_key, user_id))
+    tts = PlayHTTTS(client=client, voice=voiceid)
+    return tts
+
+
+def init_polly_tts():
+    """Initialize unique instance of PollyTTS based on the changes in voiceid.
+
+    Returns: PollyTTS
+    """
+    import os
+    region = utils.config.get("PollyTTS", "region", fallback="")
+    aws_key_id = utils.config.get("PollyTTS", "aws_key_id", fallback="")
+    aws_access_key = utils.config.get("PollyTTS", "aws_access_key", fallback="")
+    if not region:
+        region = os.getenv("POLLY_REGION", "us-east-1")
+    if not aws_key_id:
+        aws_key_id = os.getenv("POLLY_AWS_KEY_ID", "")
+    if not aws_access_key:
+        aws_access_key = os.getenv("POLLY_AWS_ACCESS_KEY", "")
+    voiceid = utils.config.get("PollyTTS", "voice_id")
+    client = PollyClient(credentials=(region, aws_key_id, aws_access_key))
+    tts = PollyTTS(client=client, voice=voiceid)
+    return tts
+
+
+def init_watson_tts():
+    """Initialize unique instance of WatsonTTS based on the changes in voiceid.
+
+    Returns: WatsonTTS
+    """
+    import os
+    api_key = utils.config.get("WatsonTTS", "api_key", fallback="")
+    region = utils.config.get("WatsonTTS", "region", fallback="")
+    instance_id = utils.config.get("WatsonTTS", "instance_id", fallback="")
+    if not api_key:
+        api_key = os.getenv("WATSON_API_KEY", "")
+    if not region:
+        region = os.getenv("WATSON_REGION", "eu-gb")
+    if not instance_id:
+        instance_id = os.getenv("WATSON_INSTANCE_ID", "")
+    voiceid = utils.config.get("WatsonTTS", "voice_id")
+    client = WatsonClient(credentials=(api_key, region, instance_id))
+    tts = WatsonTTS(client=client, voice=voiceid)
+    return tts
+
+
+def init_openai_tts():
+    """Initialize unique instance of OpenAIClient based on the changes in voiceid.
+
+    Returns: OpenAIClient
+    """
+    import os
+    api_key = utils.config.get("OpenAITTS", "api_key", fallback="")
+    if not api_key:
+        api_key = os.getenv("OPENAI_API_KEY", "")
+    voiceid = utils.config.get("OpenAITTS", "voice_id")
+    client = OpenAIClient(api_key=api_key)
+    if voiceid:
+        client.set_voice(voiceid)
+    return client
+
+
+def init_witai_tts():
+    """Initialize unique instance of WitAiTTS based on the changes in voiceid.
+
+    Returns: WitAiTTS
+    """
+    import os
+    token = utils.config.get("WitAiTTS", "token", fallback="")
+    if not token:
+        token = os.getenv("WITAI_TOKEN", "")
+    voiceid = utils.config.get("WitAiTTS", "voice_id")
+    client = WitAiClient(credentials=(token,))
+    tts = WitAiTTS(client=client, voice=voiceid)
+    return tts
+
+
 def speak(text="", list_voices=False):
     """Speak function convert text parameter to speech. This function decides which TTS Engine will be used
     base on the config file received.
@@ -184,16 +334,32 @@ def speak(text="", list_voices=False):
     global ready
     ready = False
 
+    logging.info("=== speak() Debug Information ===")
+    logging.info(f"Text to speak: {text}")
+    logging.info(f"List voices: {list_voices}")
+
+    # Debug: Check if utils.config exists
+    if not hasattr(utils, 'config'):
+        logging.error("utils.config is not available in speak()!")
+        ready = True
+        return
+
+    logging.info(f"Available config sections: {utils.config.sections()}")
+
     try:
         ttsengine = utils.config.get("TTS", "engine")
+        logging.info(f"TTS engine from config: {ttsengine}")
+
         voice_id = utils.config.get(ttsengine, "voice_id")
+        logging.info(f"Voice ID from {ttsengine} section: {voice_id}")
+
         if not voice_id:
             voice_id = utils.config.get("TTS", "voice_id")
+            logging.info(f"Fallback voice ID from TTS section: {voice_id}")
     except Exception as e:
-        logging.error(f"Error getting TTS engine or voice ID: {e}")
-        return
-    finally:
+        logging.error(f"Error getting TTS engine or voice ID: {e}", exc_info=True)
         ready = True
+        return
 
     try:
         file = utils.check_history(text)
@@ -230,6 +396,18 @@ def speak(text="", list_voices=False):
                     tts_client = init_onnx_tts()
                 case "googleTransTTS":
                     tts_client = init_googleTrans_tts()
+                case "ElevenLabsTTS":
+                    tts_client = init_elevenlabs_tts()
+                case "PlayHTTTS":
+                    tts_client = init_playht_tts()
+                case "PollyTTS":
+                    tts_client = init_polly_tts()
+                case "WatsonTTS":
+                    tts_client = init_watson_tts()
+                case "OpenAITTS":
+                    tts_client = init_openai_tts()
+                case "WitAiTTS":
+                    tts_client = init_witai_tts()
                 case _:
                     tts_client = pyttsx3.init(ttsengine)
     except Exception as e:
@@ -277,6 +455,18 @@ def speak(text="", list_voices=False):
                 onnxSpeak(text, ttsengine, tts_client)
             case "googleTransTTS":
                 googleTransSpeak(text, ttsengine, tts_client)
+            case "ElevenLabsTTS":
+                elevenlabsSpeak(text, ttsengine, tts_client)
+            case "PlayHTTTS":
+                playhtSpeak(text, ttsengine, tts_client)
+            case "PollyTTS":
+                pollySpeak(text, ttsengine, tts_client)
+            case "WatsonTTS":
+                watsonSpeak(text, ttsengine, tts_client)
+            case "OpenAITTS":
+                openaiSpeak(text, ttsengine, tts_client)
+            case "WitAiTTS":
+                witaiSpeak(text, ttsengine, tts_client)
             case _:
                 tts_client.setProperty("voice", utils.config.get("TTS", "voice_id"))
                 tts_client.setProperty("rate", utils.config.get("TTS", "rate"))
@@ -361,6 +551,84 @@ def googleTransSpeak(text: str, engine, tts_client):
 
 
 def sapiSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def elevenlabsSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def playhtSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def pollySpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def watsonSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def openaiSpeak(text: str, engine, tts_client):
+    """This function received the input parameters and make necessary modification (if needed). Then, those parameter
+    will be pass to ttsWrapperSpeak.
+
+    Args:
+        text (str): String to be spoken by the TTS Engine.
+        engine (str): Name of the TTS Engine.
+        tts_client: Instance of TTS Engine.
+    Returns: None
+    """
+    ttsWrapperSpeak(text, tts_client, engine)
+
+
+def witaiSpeak(text: str, engine, tts_client):
     """This function received the input parameters and make necessary modification (if needed). Then, those parameter
     will be pass to ttsWrapperSpeak.
 

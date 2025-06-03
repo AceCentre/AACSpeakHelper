@@ -109,6 +109,30 @@ TTS_ENGINES = {
         "credential_fields": ["api_key", "user_id"],
         "voice_list": {},  # PlayHT voices are fetched from API
     },
+    "polly": {
+        "name": "AWS Polly",
+        "config_section": "PollyTTS",
+        "credential_fields": ["region", "aws_key_id", "aws_access_key"],
+        "voice_list": {},  # Polly voices are fetched from API
+    },
+    "watson": {
+        "name": "IBM Watson",
+        "config_section": "WatsonTTS",
+        "credential_fields": ["api_key", "region", "instance_id"],
+        "voice_list": {},  # Watson voices are fetched from API
+    },
+    "openai": {
+        "name": "OpenAI TTS",
+        "config_section": "OpenAITTS",
+        "credential_fields": ["api_key"],
+        "voice_list": {},  # OpenAI voices are fetched from API
+    },
+    "witai": {
+        "name": "Wit.AI",
+        "config_section": "WitAiTTS",
+        "credential_fields": ["token"],
+        "voice_list": {},  # WitAI voices are fetched from API
+    },
 }
 
 # Define translation providers
@@ -261,6 +285,18 @@ def create_default_config(config):
 
     config["SherpaOnnxTTS"] = {"voice_id": "eng"}
 
+    config["ElevenLabsTTS"] = {"api_key": "", "voice_id": ""}
+
+    config["PlayHTTTS"] = {"api_key": "", "user_id": "", "voice_id": ""}
+
+    config["PollyTTS"] = {"region": "us-east-1", "aws_key_id": "", "aws_access_key": "", "voice_id": ""}
+
+    config["WatsonTTS"] = {"api_key": "", "region": "eu-gb", "instance_id": "", "voice_id": ""}
+
+    config["OpenAITTS"] = {"api_key": "", "voice_id": ""}
+
+    config["WitAiTTS"] = {"token": "", "voice_id": ""}
+
     config["appCache"] = {"threshold": "7"}
 
     return config
@@ -295,6 +331,14 @@ def print_menu(config):
         tts_voice = config.get("ElevenLabsTTS", "voice_id", fallback="Not configured")
     elif tts_engine in ["PlayHTTTS", "PlayHT"]:
         tts_voice = config.get("PlayHTTTS", "voice_id", fallback="Not configured")
+    elif tts_engine in ["PollyTTS", "AWS Polly"]:
+        tts_voice = config.get("PollyTTS", "voice_id", fallback="Not configured")
+    elif tts_engine in ["WatsonTTS", "IBM Watson"]:
+        tts_voice = config.get("WatsonTTS", "voice_id", fallback="Not configured")
+    elif tts_engine in ["OpenAITTS", "OpenAI TTS"]:
+        tts_voice = config.get("OpenAITTS", "voice_id", fallback="Not configured")
+    elif tts_engine in ["WitAiTTS", "Wit.AI"]:
+        tts_voice = config.get("WitAiTTS", "voice_id", fallback="Not configured")
 
     # Display current translation configuration
     trans_provider = config.get("translate", "provider", fallback="Not configured")
@@ -373,7 +417,13 @@ def get_voices_from_engine(engine_key, config):
             MicrosoftClient, MicrosoftTTS,
             GoogleClient, GoogleTTS,
             SherpaOnnxClient, SherpaOnnxTTS,
-            GoogleTransClient, GoogleTransTTS
+            GoogleTransClient, GoogleTransTTS,
+            ElevenLabsClient, ElevenLabsTTS,
+            PlayHTClient, PlayHTTTS,
+            PollyClient, PollyTTS,
+            WatsonClient, WatsonTTS,
+            OpenAIClient,
+            WitAiClient, WitAiTTS
         )
 
         engine_config = TTS_ENGINES[engine_key]
@@ -422,6 +472,111 @@ def get_voices_from_engine(engine_key, config):
             # Google Trans TTS doesn't need credentials
             client = GoogleTransClient()
             tts = GoogleTransTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "elevenlabs":
+            # Get ElevenLabs credentials
+            import os
+            api_key = config.get(section_name, "api_key", fallback="")
+            if not api_key:
+                api_key = os.getenv("ELEVENLABS_API_KEY", "")
+            if not api_key:
+                print("ElevenLabs API key not configured. Please configure it first.")
+                return None
+
+            client = ElevenLabsClient(credentials=(api_key,))
+            tts = ElevenLabsTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "playht":
+            # Get PlayHT credentials
+            import os
+            api_key = config.get(section_name, "api_key", fallback="")
+            user_id = config.get(section_name, "user_id", fallback="")
+            if not api_key:
+                api_key = os.getenv("PLAYHT_API_KEY", "")
+            if not user_id:
+                user_id = os.getenv("PLAYHT_USER_ID", "")
+            if not api_key or not user_id:
+                print("PlayHT credentials not configured. Please configure them first.")
+                return None
+
+            client = PlayHTClient(credentials=(api_key, user_id))
+            tts = PlayHTTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "polly":
+            # Get Polly credentials
+            import os
+            region = config.get(section_name, "region", fallback="")
+            aws_key_id = config.get(section_name, "aws_key_id", fallback="")
+            aws_access_key = config.get(section_name, "aws_access_key", fallback="")
+            if not region:
+                region = os.getenv("POLLY_REGION", "us-east-1")
+            if not aws_key_id:
+                aws_key_id = os.getenv("POLLY_AWS_KEY_ID", "")
+            if not aws_access_key:
+                aws_access_key = os.getenv("POLLY_AWS_ACCESS_KEY", "")
+            if not aws_key_id or not aws_access_key:
+                print("Polly credentials not configured. Please configure them first.")
+                return None
+
+            client = PollyClient(credentials=(region, aws_key_id, aws_access_key))
+            tts = PollyTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "watson":
+            # Get Watson credentials
+            import os
+            api_key = config.get(section_name, "api_key", fallback="")
+            region = config.get(section_name, "region", fallback="")
+            instance_id = config.get(section_name, "instance_id", fallback="")
+            if not api_key:
+                api_key = os.getenv("WATSON_API_KEY", "")
+            if not region:
+                region = os.getenv("WATSON_REGION", "eu-gb")
+            if not instance_id:
+                instance_id = os.getenv("WATSON_INSTANCE_ID", "")
+            if not api_key:
+                print("Watson credentials not configured. Please configure them first.")
+                return None
+
+            client = WatsonClient(credentials=(api_key, region, instance_id))
+            tts = WatsonTTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "openai":
+            # Get OpenAI credentials
+            import os
+            api_key = config.get(section_name, "api_key", fallback="")
+            if not api_key:
+                api_key = os.getenv("OPENAI_API_KEY", "")
+            if not api_key:
+                print("OpenAI API key not configured. Please configure it first.")
+                return None
+
+            client = OpenAIClient(credentials=(api_key,))
+            tts = OpenAITTS(client)
+            voices = tts.get_voices()
+            return voices
+
+        elif engine_key == "witai":
+            # Get WitAI credentials
+            import os
+            token = config.get(section_name, "token", fallback="")
+            if not token:
+                token = os.getenv("WITAI_TOKEN", "")
+            if not token:
+                print("WitAI token not configured. Please configure it first.")
+                return None
+
+            client = WitAiClient(credentials=(token,))
+            tts = WitAiTTS(client)
             voices = tts.get_voices()
             return voices
 
