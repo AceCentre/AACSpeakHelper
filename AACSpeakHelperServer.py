@@ -115,10 +115,14 @@ log_debug_info()
 import json
 import sys
 import time
+import threading
 import pyperclip
 import win32file
 import win32pipe
-from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
+import win32event
+import win32api
+import pywintypes
+from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QMessageBox
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import QThread, Signal, Slot, QTimer
 from deep_translator import *
@@ -126,6 +130,33 @@ import utils
 import tts_utils
 import subprocess
 import configparser
+
+
+def check_single_instance():
+    """
+    Check if another instance of AACSpeakHelper server is already running.
+    Uses a named mutex to ensure only one instance can run at a time.
+
+    Returns:
+        bool: True if this is the only instance, False if another instance is already running
+    """
+    mutex_name = "Global\\AACSpeakHelperServerMutex"
+
+    try:
+        # Try to create a named mutex
+        mutex = win32event.CreateMutex(None, True, mutex_name)
+
+        if win32api.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+            logging.warning("Another instance of AACSpeakHelper server is already running!")
+            return False
+        else:
+            logging.info("Single instance check passed - this is the only server instance")
+            return True
+
+    except Exception as e:
+        logging.error(f"Error checking single instance: {e}")
+        # If we can't check, assume it's safe to continue
+        return True
 
 
 class SystemTrayIcon(QSystemTrayIcon):
@@ -232,7 +263,8 @@ class PipeServerThread(QThread):
                 if result == 0:
                     # Decode and process the message
                     message = data.decode()
-                    logging.info(f"Received data: {message[:50]}...")
+                    logging.info(f"PipeServerThread: Received data: {message[:50]}...")
+                    logging.info(f"PipeServerThread: Processing message in thread {threading.current_thread().name}")
                     # Emit signal to process the message in the main thread
                     self.message_received.emit(message)
                     try:
@@ -331,6 +363,7 @@ class MainWindow(QWidget):
         Args:
             message (str): JSON-formatted message from the client
         """
+        logging.info(f"MainWindow.handle_message: Starting to process message in thread {threading.current_thread().name}")
         try:
             # Parse the JSON message
             data = json.loads(message)
@@ -588,6 +621,25 @@ def clearCache():
 
 
 if __name__ == "__main__":
+    # Check if another instance is already running
+    if not check_single_instance():
+        logging.error("Exiting: Another instance of AACSpeakHelper server is already running")
+
+        # Show a message box if we're not in frozen mode (development)
+        if not getattr(sys, "frozen", False):
+            try:
+                app = QApplication(sys.argv)
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setWindowTitle("AACSpeakHelper Server")
+                msg.setText("Another instance of AACSpeakHelper server is already running.")
+                msg.setInformativeText("Please close the existing instance before starting a new one.")
+                msg.exec()
+            except Exception as e:
+                logging.error(f"Error showing message box: {e}")
+
+        sys.exit(1)
+
     clearCache()
     app = QApplication(sys.argv)
     window = MainWindow()
