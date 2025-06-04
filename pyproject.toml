@@ -57,3 +57,6 @@ py-modules = [
     "tts_utils"
 ]
 packages = ["GUI_TranslateAndTTS"]
+
+[tool.uv.sources]
+py3-tts-wrapper = { git = "https://github.com/willwade/tts-wrapper.git", rev = "v0.10.11" }

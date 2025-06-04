@@ -1,19 +1,47 @@
 @echo off
+echo Building AACSpeakHelper with TTS-Wrapper v0.10.11 PyInstaller utilities...
 
-REM Get site-packages path
-for /f "tokens=*" %%i in ('uv run python -c "import site; print(site.getsitepackages()[0])"') do set site_packages=%%i\Lib\site-packages
+REM Kill any running AACSpeakHelper processes to avoid permission errors
+echo Stopping any running AACSpeakHelper processes...
+taskkill /f /im AACSpeakHelperServer.exe 2>nul
+taskkill /f /im "Configure AACSpeakHelper.exe" 2>nul
+taskkill /f /im client.exe 2>nul
 
-REM Echo the site-packages path for debugging
-echo Site packages path: %site_packages%
+REM Wait a moment for processes to fully terminate
+timeout /t 2 /nobreak >nul
+
+REM Clean up any locked directories
+echo Cleaning up previous build directories...
+rmdir /s /q "dist\AACSpeakHelperServer" 2>nul
+rmdir /s /q "dist\Configure AACSpeakHelper" 2>nul
+rmdir /s /q "dist\client" 2>nul
+
+REM Get the TTS-Wrapper PyInstaller hooks directory
+for /f "tokens=*" %%i in ('uv run python -c "import tts_wrapper; import os; print(os.path.join(os.path.dirname(tts_wrapper.__file__), '_pyinstaller'))"') do set tts_hooks_dir=%%i
+
+REM Echo the paths for debugging
+echo TTS-Wrapper hooks directory: %tts_hooks_dir%
+
+REM Show what TTS-Wrapper will automatically include
+echo.
+echo TTS-Wrapper PyInstaller utilities will automatically handle:
+echo - PyAudio and PortAudio DLLs
+echo - SoundDevice audio binaries
+echo - Azure Speech SDK DLLs
+echo - ONNX Runtime DLLs
+echo - All other TTS engine dependencies
 
 REM Convert UI files using Python module
 uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/form.ui -o GUI_TranslateAndTTS/ui_form.py
 uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/item.ui -o GUI_TranslateAndTTS/item.py
 
-REM Build Python executables with PyInstaller
-uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --collect-binaries azure.cognitiveservices.speech --add-binary "C:\Windows\System32\winmm.dll;." --add-binary "C:\Windows\System32\dsound.dll;." --add-binary "C:\Windows\System32\AudioEng.dll;." --add-binary "C:\Windows\System32\AudioSes.dll;." --add-binary "C:\Windows\System32\AUDIOKSE.dll;." --add-binary "C:\Windows\System32\mf.dll;." --add-binary "C:\Windows\System32\mfplat.dll;." --add-binary "C:\Windows\System32\MMDevAPI.dll;." --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz --collect-all sounddevice --collect-all pyaudio -y
+REM Build Python executables with PyInstaller using TTS-Wrapper optimized configuration
+echo.
+echo Building AACSpeakHelperServer with TTS-Wrapper PyInstaller hooks...
+uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --additional-hooks-dir="%tts_hooks_dir%" --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz -y
 
-uv run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole --name "Configure AACSpeakHelper" --onedir -i .\assets\configure.ico --clean --collect-binaries azure.cognitiveservices.speech --collect-all language_data --collect-all language_tags --collect-all pytz --collect-all comtypes -y
+echo Building Configure AACSpeakHelper GUI with TTS-Wrapper hooks...
+uv run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole --name "Configure AACSpeakHelper" --onedir -i .\assets\configure.ico --clean --additional-hooks-dir="%tts_hooks_dir%" --collect-all language_data --collect-all language_tags --collect-all pytz --collect-all comtypes -y
 
 uv run python -m PyInstaller client.py --noupx --console --onedir --clean -i .\assets\translate.ico -y
 
