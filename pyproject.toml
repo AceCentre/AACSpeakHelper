@@ -26,13 +26,14 @@ dependencies = [
     "translate",
     "configparser",
     "pyperclip",
-    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]>=0.10.4",
+    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.10",
     "python-dotenv",
     "cryptography",
     "pyinstaller", # Move to main dependencies since it's needed for distribution
     "pywin32>=310",
     "openai>=1.0.0",
     "aiohttp>=3.12.7",
+    "azure-cognitiveservices-speech>=1.44.0",
 ]
 
 [project.optional-dependencies]
