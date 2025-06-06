@@ -33,7 +33,6 @@ import os
 import sys
 import warnings
 import unicodedata
-import base64
 
 warnings.filterwarnings("ignore")
 
@@ -113,7 +112,6 @@ def log_debug_info():
 log_debug_info()
 
 import json
-import sys
 import time
 import threading
 import pyperclip
@@ -121,7 +119,6 @@ import win32file
 import win32pipe
 import win32event
 import win32api
-import pywintypes
 from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QMessageBox
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import QThread, Signal, Slot, QTimer
@@ -144,7 +141,7 @@ def check_single_instance():
 
     try:
         # Try to create a named mutex
-        mutex = win32event.CreateMutex(None, True, mutex_name)
+        win32event.CreateMutex(None, True, mutex_name)
 
         if win32api.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
             logging.warning("Another instance of AACSpeakHelper server is already running!")
@@ -611,7 +608,6 @@ def clearCache():
             if file.startswith("tmp"):
                 file_path = os.path.join(root, file)
                 if os.path.getsize(file_path) < size_limit:
-                    config = utils.config
                     current_time = time.time()
                     day = 7
                     time_threshold = current_time - day * 24 * 60 * 60

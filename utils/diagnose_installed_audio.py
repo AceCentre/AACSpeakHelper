@@ -4,7 +4,6 @@ Diagnostic script to check audio functionality in the installed AACSpeakHelper.
 This script should be run in the same directory as the installed AACSpeakHelperServer.exe
 """
 
-import sys
 import os
 import subprocess
 
@@ -76,7 +75,7 @@ def test_server_audio():
         # Check if the server is still running
         if server_process.poll() is not None:
             stdout, stderr = server_process.communicate()
-            print(f"❌ Server exited immediately")
+            print("❌ Server exited immediately")
             print(f"STDOUT: {stdout.decode()}")
             print(f"STDERR: {stderr.decode()}")
             return False
@@ -85,7 +84,6 @@ def test_server_audio():
         
         # Try to connect and send a test message
         try:
-            import win32pipe
             import win32file
             
             pipe_name = r'\\.\pipe\AACSpeakHelper'

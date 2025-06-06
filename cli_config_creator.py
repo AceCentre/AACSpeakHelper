@@ -6,8 +6,6 @@ import os
 import sys
 import configparser
 import argparse
-from pathlib import Path
-import json
 
 # Import language dictionaries
 try:
@@ -412,7 +410,6 @@ def get_voices_from_engine(engine_key, config):
     try:
         from tts_wrapper import (
             MicrosoftClient, MicrosoftTTS,
-            GoogleClient, GoogleTTS,
             SherpaOnnxClient, SherpaOnnxTTS,
             GoogleTransClient, GoogleTransTTS,
             ElevenLabsClient, ElevenLabsTTS,

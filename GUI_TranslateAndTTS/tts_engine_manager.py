@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 import logging
-from configure_enc_utils import load_credentials
 import os
 import base64
 import tempfile

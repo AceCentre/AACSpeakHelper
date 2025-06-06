@@ -12,8 +12,6 @@ import sqlite3
 import wave
 import pyaudio
 import warnings
-from GUI_TranslateAndTTS import resources_rc
-import tempfile
 
 warnings.filterwarnings("ignore")
 args = {
@@ -187,7 +185,7 @@ def save_audio(text: str, engine: str, file_format: str = "wav", tts=None):
         tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
     except TypeError:
         # If that fails, try different approaches based on the TTS engine type
-        from tts_wrapper import MicrosoftTTS, GoogleTransTTS, SherpaOnnxTTS, SAPIEngine
+        from tts_wrapper import MicrosoftTTS
 
         if isinstance(tts, MicrosoftTTS):
             # For Azure TTS, use speak_to_file method if available
@@ -291,8 +289,8 @@ def check_history(text: str):
         else:
             create_Database()
             return None
-    except Exception as error:
-        logging.error("Failed to connect to database: ".format(error), exc_info=True)
+    except Exception:
+        logging.error("Failed to connect to database: ", exc_info=True)
         return None
 
 
@@ -316,8 +314,8 @@ def clear_history(files: list):
                 connection.execute(sql)
             connection.commit()
             connection.close()
-    except Exception as error:
-        logging.error("Failed to connect to database: ".format(error), exc_info=True)
+    except Exception:
+        logging.error("Failed to connect to database: ", exc_info=True)
         return None
 
 
@@ -346,8 +344,8 @@ def create_Database():
             logging.info("Cache database is created.")
         else:
             logging.info("Cache database is found")
-    except Exception as error:
-        logging.error("Failed to create database: ".format(error), exc_info=True)
+    except Exception:
+        logging.error("Failed to create database: ", exc_info=True)
 
 
 def init(input_config, args):

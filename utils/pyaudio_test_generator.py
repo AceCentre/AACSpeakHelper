@@ -7,7 +7,6 @@ It will generate a simple tone and try to play it through the audio system.
 
 import sys
 import os
-import time
 import traceback
 import logging
 from datetime import datetime
@@ -49,7 +48,7 @@ def test_pyaudio_import():
     try:
         logger.debug("Attempting to import pyaudio...")
         import pyaudio
-        logger.info(f"[OK] PyAudio imported successfully")
+        logger.info("[OK] PyAudio imported successfully")
         logger.info(f"PyAudio version: {pyaudio.__version__}")
         logger.info(f"PyAudio location: {pyaudio.__file__}")
 
@@ -102,7 +101,7 @@ def test_pyaudio_initialization(pyaudio):
                 
                 if device_info['maxOutputChannels'] > 0:
                     output_devices.append(i)
-                    logger.info(f"  [OK] Output device available")
+                    logger.info("  [OK] Output device available")
                 
             except Exception as e:
                 logger.error(f"  [ERROR] Error getting device {i} info: {e}")

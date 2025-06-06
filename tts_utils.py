@@ -1,14 +1,11 @@
 import logging
-import io
 import os.path
 import sys
 import time
 from pathlib import Path
 
-from gtts import gTTS
 from tts_wrapper import (
     AbstractTTS,
-    MicrosoftClient,
     MicrosoftTTS,
     GoogleClient,
     GoogleTTS,

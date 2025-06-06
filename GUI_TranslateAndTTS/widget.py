@@ -11,7 +11,6 @@ import subprocess
 import platform
 import base64
 from pathlib import Path
-import threading
 from threading import Thread, Lock
 from PySide6.QtCore import (
     Qt, QSize, QObject, Signal, QRunnable, QThreadPool, 
@@ -21,7 +20,7 @@ from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
     QCheckBox, QGroupBox, QProgressBar, QMessageBox, QFileDialog,
-    QDialogButtonBox, QSizePolicy, QScrollArea, QFrame,
+    QDialogButtonBox, QFrame,
     QAbstractItemView
 )
 from PySide6.QtGui import QIcon, QMovie, QFont
@@ -637,7 +636,7 @@ class Widget(QWidget):
             # Initialize Sherpa client
             if not hasattr(self, 'sherpa_client') or self.sherpa_client is None:
                 self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
-                logging.info(f"Sample rate set to 16000")
+                logging.info("Sample rate set to 16000")
                 logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
             
             # Initialize the Sherpa engine handler
@@ -1365,7 +1364,7 @@ class Widget(QWidget):
         self.currentButton.setIcon(icon)
         self.temp_config_file.close()
         os.unlink(self.temp_config_file.name)
-        self.ui.statusBar.setText(f"")
+        self.ui.statusBar.setText("")
         self.temp_config_file = None
 
     def print_data(self, item):
@@ -1378,7 +1377,7 @@ class Widget(QWidget):
                 self.ui.onnx_listWidget.setCurrentItem(item)
             elif self.ui.stackedWidget.currentWidget() == self.ui.gspeak_page:
                 self.ui.listWidget_voicegoogleTrans.setCurrentItem(item)
-        except Exception as error:
+        except Exception:
             pass
 
     def update_row(self, row):
@@ -1557,7 +1556,7 @@ class Widget(QWidget):
                     self.ui.onnx_listWidget.addItem(list_item)
                     self.ui.onnx_listWidget.setItemWidget(list_item, item_widget)
             
-            logging.debug(f"Finished filtering voices for onnx")
+            logging.debug("Finished filtering voices for onnx")
             
         except Exception as e:
             logging.error(f"Error filtering ONNX voices: {e}")
@@ -2429,7 +2428,7 @@ class Widget(QWidget):
             os.startfile(self.audio_path)
         else:
             self.ui.statusBar.setText(
-                f"No cached detected. Try using main application first."
+                "No cached detected. Try using main application first."
             )
 
     def open_onnx_cache(self):
@@ -2441,7 +2440,7 @@ class Widget(QWidget):
             os.makedirs(self.onnx_cache_path)
             os.startfile(self.onnx_cache_path)
             self.ui.statusBar.setText(
-                f"No cached detected. Creating model directory..."
+                "No cached detected. Creating model directory..."
             )
 
     def cache_clear(self):
@@ -2933,7 +2932,7 @@ class Widget(QWidget):
                             "elevenlabs"
                         )
                 
-                logging.debug(f"Finished filtering ElevenLabs voices")
+                logging.debug("Finished filtering ElevenLabs voices")
                 
         except Exception as e:
             logging.error(f"Error filtering ElevenLabs voices: {e}")
@@ -2968,7 +2967,7 @@ class Widget(QWidget):
                             "playht"
                         )
                 
-                logging.debug(f"Finished filtering PlayHT voices")
+                logging.debug("Finished filtering PlayHT voices")
                 
         except Exception as e:
             logging.error(f"Error filtering PlayHT voices: {e}")
@@ -3411,7 +3410,7 @@ class Widget(QWidget):
         # Create PlayHT page
         self.ui.playht_page = QWidget()
         self.ui.playht_page.setObjectName("playht_page")
-        playht_layout = QVBoxLayout(self.ui.playht_page)
+        QVBoxLayout(self.ui.playht_page)
         
         # Create PlayHT credentials frame
         playht_creds_frame = QFrame(self.ui.playht_page)
@@ -3552,11 +3551,6 @@ class Widget(QWidget):
     def setup_tts_engines(self):
         """Set up TTS engine handlers"""
         # Common icons
-        icons = {
-            'preview': self.iconPlayed,
-            'download': self.iconDownload,
-            'downloaded': self.iconTick
-        }
         
         # Configure all engines
         self.engine_handlers = {
@@ -3652,7 +3646,7 @@ class Player(QRunnable):
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
-            cache_location = os.path.join(
+            os.path.join(
                 os.path.dirname(self.temp_config_file.name), "Audio Files"
             )
             process = subprocess.Popen(
@@ -3664,7 +3658,7 @@ class Player(QRunnable):
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, "client.py")
             print(GUI_script_path)
-            cache_location = os.path.join(
+            os.path.join(
                 os.path.dirname(self.temp_config_file.name), "Audio Files"
             )
             process = subprocess.Popen(

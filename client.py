@@ -9,7 +9,6 @@ import win32file
 import pywintypes
 import time
 import json
-from pathlib import Path
 
 from configure_enc_utils import load_config
 

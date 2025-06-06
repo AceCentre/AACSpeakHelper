@@ -18,7 +18,6 @@ import sys
 import shutil
 import datetime
 import argparse
-from pathlib import Path
 
 
 def get_target_config_directory():

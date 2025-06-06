@@ -8,21 +8,15 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QAbstractSpinBox, QApplication, QCheckBox,
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, Qt)
+from PySide6.QtGui import (QFont, QIcon)
+from PySide6.QtWidgets import (QAbstractSpinBox, QCheckBox,
     QComboBox, QDialogButtonBox, QFormLayout, QFrame,
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QProgressBar,
+    QLineEdit, QListWidget, QProgressBar,
     QPushButton, QSizePolicy, QSlider, QSpacerItem,
     QSpinBox, QStackedWidget, QTabWidget, QVBoxLayout,
     QWidget)
-import resources_rc
 
 class Ui_Widget(object):
     def setupUi(self, Widget):
@@ -951,7 +945,7 @@ class Ui_Widget(object):
         try:
             import GUI_TranslateAndTTS.resources_rc
         except ImportError:
-            import resources_rc
+            pass
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Configure TranslateAndTTS", None))
         self.statusBar.setText("")
         self.ttsEngineBox.setItemText(0, QCoreApplication.translate("Widget", u"Sherpa-ONNX", None))
