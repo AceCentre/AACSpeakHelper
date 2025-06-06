@@ -124,14 +124,54 @@ It will now have a config.enc file created. Our code will use that. If keys are 
     uv run python client.py
     ```
 
-    And GUI (development only - excluded from final build)
-
+    And CLI Configuration Tool (for development):
 
     ```sh
-    uv run python GUI_TranslateAndTTS/widget.py
+    uv run python cli_config_creator.py
     ```
-    
-    
+
+    Note: The GUI configuration tool has been excluded from builds due to reliability issues. Use the CLI configuration tool instead.
+
+## Configuration
+
+Before using AACSpeakHelper, you need to configure it. There are two main approaches:
+
+### 1. CLI Configuration Tool (Recommended)
+
+For development:
+```sh
+uv run python cli_config_creator.py
+```
+
+For installed versions, use the "Configure AACSpeakHelper CLI" application from your start menu.
+
+The CLI tool provides an interactive menu to:
+- Configure TTS engines (Sherpa-ONNX, Azure TTS, Google TTS, etc.)
+- Set up translation providers (Google Translator, Microsoft Translator, etc.)
+- Configure language pairs and voice settings
+- Save and manage multiple configuration files
+
+### 2. Manual Configuration
+
+Edit the `settings.cfg` file directly:
+- **Development**: Located in the project root directory
+- **Installed**: Located in `%AppData%\Ace Centre\AACSpeakHelper\settings.cfg`
+
+You can also create custom configuration files and use them with:
+```sh
+uv run python client.py --config path/to/your/settings.cfg
+```
+
+### API Keys and Credentials
+
+For cloud-based TTS and translation services, you'll need API keys:
+- **Azure TTS**: Requires Azure Speech Services subscription
+- **Google TTS**: Requires Google Cloud TTS API credentials
+- **Microsoft Translator**: Requires Azure Translator subscription
+- **Other services**: See individual provider documentation
+
+Store credentials in your `settings.cfg` file or use environment variables during development.
+
 ## Additional Tips
 
 - **Adding Dependencies**: To add new dependencies:

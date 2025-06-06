@@ -1,65 +1,180 @@
 # Configure
 
-After installation, you need to configure the application. You can edit the settings file by hand or use our GUI application **`Configure TranslateAndTTS`**, which you can find in your start menu and Desktop. It looks like this
+After installation, you need to configure the application. There are two main ways to configure AACSpeakHelper:
 
-It has 3 Tab areas
+1. **CLI Configuration Tool** - Use our command-line configuration tool `Configure AACSpeakHelper CLI` (recommended)
+2. **Manual Editing** - Edit the settings file by hand using a text editor
 
-### TTS Engine
+## Using the CLI Configuration Tool
 
-#### Drop Down for Engine
+The easiest way to configure AACSpeakHelper is using our CLI configuration tool. You can find **`Configure AACSpeakHelper CLI`** in your start menu after installation, or run it directly from the installation directory.
 
-This means the "Text to Speech Engine" - voice system. We have several to choose from. The most likely one is sherpa-onnx. Its Offline and supports a large range of languages not supported by other systems. The quality may not be perfect however and it may be too slow for your needs but we find its a good balance.&#x20;
+The CLI tool provides an interactive menu with the following options:
+
+1. **Configure TTS Engine** - Set up your Text-to-Speech engine and voice
+2. **Configure Translation** - Set up translation settings and language pairs
+3. **View Current Configuration** - Review your current settings
+4. **Save and Exit** - Save your changes and exit
+5. **Exit without Saving** - Exit without saving changes
+
+### Configuring TTS Engine
+
+When you select option 1, you'll be able to choose from several Text-to-Speech engines:
+
+#### Available TTS Engines
+
+**Sherpa-ONNX** (Recommended for most users)
+- Offline TTS engine that works without internet
+- Supports a large range of languages not supported by other systems
+- Good balance of quality and performance
+- No API keys required
+
+**Azure TTS** (High quality, requires API key)
+- Microsoft's cloud-based TTS service
+- Excellent voice quality and natural speech
+- Requires Azure Speech Services subscription and API key
+- Supports many languages and voices
+
+**Google TTS** (High quality, requires API key)
+- Google's cloud-based TTS service
+- High-quality voices with natural intonation
+- Requires Google Cloud TTS API credentials
+- Wide language support
+
+**Google Trans TTS** (Free, limited quality)
+- Free TTS using Google Translate
+- No API key required but limited quality
+- May have usage restrictions
+
+**Other Premium Engines Available:**
+- **ElevenLabs** - Premium quality voices, requires subscription
+- **PlayHT** - High quality voices, requires subscription
+- **AWS Polly** - Good quality, requires AWS account
+- **IBM Watson** - Good quality, requires IBM Cloud account
+- **OpenAI TTS** - High quality, requires OpenAI API key
 
 {% hint style="info" %}
-Sherpa-onnx does work offline but you must be online when configuring it as it may need to download the voice model
+**Important Notes:**
+- Sherpa-ONNX works offline but requires internet during initial setup to download voice models
+- Each Sherpa-ONNX model is around 250MB and may take time to download
+- First-time speech generation may be slower as models initialize
+- TTS voices work best with text in the correct script/language (e.g., Arabic voices need Arabic text)
 {% endhint %}
 
-You can choose the engine in the dropdown. We also have Google, Microsoft Azure or Google Translate. All these options require you to be online all the time.  For Google or Azure you have the option to add your own keys. **We recommend adding your own keys as our keys may stop working.**&#x20;
+#### TTS Configuration Options
 
-**Voices List**
+When configuring a TTS engine, you'll be prompted for:
 
-**Simply look for your language and voice. You can preview a voice by pressing on the play button.**&#x20;
+**Voice ID** - The specific voice to use (varies by engine and language)
+**Rate** - Speech speed (0 = normal, negative values = slower, positive = faster)
+**Volume** - Audio volume (100 = normal, 50 = quieter, 150 = louder)
+**Save Audio File** - Whether to save audio files to disk for caching and reuse
+**Bypass TTS** - Skip text-to-speech entirely (useful for translation-only mode)
 
-{% hint style="info" %}
-**On Sherpa-Onnx you need to first download the model and then press Play but note - please wait a little while before hearing anything. Each model is around 250Mb so it can take a while for the model to be setup.**&#x20;
+### Configuring Translation
 
-**Also note - the first time it speaks may take a while**
+When you select option 2 from the main menu, you can configure translation settings:
 
-**Most importantly TTS voices **_**typically**_**  will only speak reliably if the correct text is provided to it. Latin text (English) wont work for those that are looking for arabic script**
-{% endhint %}
+#### Translation Providers
 
-**Choose a voice by pressing on the voice - you can see what is selected by the text "Current Voice" in the configure screen**
+**GoogleTranslator** (Free, limited usage)
+- Free translation service using Google Translate
+- May have usage limits or temporary blocks with heavy use
+- Good for testing and light usage
 
-<figure><img src=".gitbook/assets/Configure1.png" alt=""><figcaption></figcaption></figure>
+**Microsoft Translator** (Requires API key)
+- High-quality translation service
+- Requires Azure Translator subscription
+- More reliable for production use
 
-#### **Save Audio**
+**Other Translation Providers Available:**
+- DeepL (Premium quality, requires API key)
+- Yandex Translator
+- Baidu Translator
+- LibreTranslate
+- MyMemory Translator
 
-If you want to cache audio for TTS tick this box. It wills save small wav files for each utterance saving time for further calls.&#x20;
+#### Translation Settings
 
-### **Translate Settings**
+**No Translate** - Disable translation entirely if your text is already in the target language
+**Start Language** - The language of your input text (e.g., "en" for English)
+**End Language** - The target language for translation (e.g., "ps" for Pashto)
+**Replace Pasteboard** - Whether to replace clipboard content with translated text
 
-**Firstly if you DON'T want your system to translate (eg. your client is writing in the correct language for the TTS System) untick the "Translate" box on this page. Otherwise it will assume your writing language and convert it to the Target language**
+## Manual Configuration
 
-You can choose your translation provider. Note that "GoogleTranslator" is free and that seen at translate.google.com - if you use this a lot you may find it stop working. Equally some systems are better at other languages.&#x20;
+If you prefer to edit configuration files directly, you can manually edit the `settings.cfg` file.
 
-#### **Overwrite pasteboard**
+### Location of Settings File
 
-You want this if you want your AAC software to print the translated text
+**For installed versions:**
+Navigate to `%AppData%\Ace Centre\AACSpeakHelper` in File Explorer to find the `settings.cfg` file.
 
-#### **Bypass TTS**
+**For development versions:**
+The `settings.cfg` file is located in the project root directory.
 
-This will mean that TTS isnt done at all and you only want to use our tool for translation
+### Editing the Settings File
 
-<figure><img src=".gitbook/assets/Configure2 (1).png" alt=""><figcaption></figcaption></figure>
+You can edit the configuration file using any plain text editor (Notepad, VS Code, etc.). The file uses INI format with sections and key-value pairs.
 
-### Application Settings
+#### Example Configuration Structure
 
-You generally don't need to edit anything here. We do collect the number of times our app is run and used anonymously. If you want to turn this off do so here. Note too, if you have chosen to save the audio you can choose how long the cache is kept for.&#x20;
+```ini
+[App]
+collectstats = True
 
-<figure><img src=".gitbook/assets/Configure3.png" alt=""><figcaption></figcaption></figure>
+[translate]
+no_translate = False
+start_lang = en
+end_lang = ps
+replace_pb = True
+provider = GoogleTranslator
 
-### **A note for those more adventurous**&#x20;
+[TTS]
+engine = azureTTS
+bypass_tts = False
+save_audio_file = True
+rate = 0
+volume = 100
+voice_id = en-US-JennyNeural
 
-You can edit the settings file by hand if you wish. To do this, navigate to `%AppData%\Ace Centre\AACSpeakHelper` in File Explorer to find the `settings.cfg` file. Edit the configuration using either a plain text editor.
+[azureTTS]
+key = your-azure-key-here
+location = uksouth
+voice_id = en-US-JennyNeural
+```
 
-**Note: You can copy this settings file and have numerous versions of them - or make it and distribute it to an end user. You would use the `--config file path to run the application using a different config file.cfg` parameter**
+### Using Custom Configuration Files
+
+You can create multiple configuration files for different use cases:
+
+**Command Line Usage:**
+```bash
+client.exe --config path/to/your/custom-settings.cfg
+```
+
+**Distribution to End Users:**
+You can create pre-configured settings files and distribute them to users. This is useful for organizations that want to deploy AACSpeakHelper with specific settings.
+
+### Configuration File Sections
+
+**[App]** - Application settings
+- `collectstats` - Whether to collect anonymous usage statistics
+
+**[translate]** - Translation settings
+- `no_translate` - Disable translation (True/False)
+- `start_lang` - Source language code (e.g., "en")
+- `end_lang` - Target language code (e.g., "ps")
+- `replace_pb` - Replace clipboard content (True/False)
+- `provider` - Translation provider name
+
+**[TTS]** - Text-to-Speech settings
+- `engine` - TTS engine name (e.g., "azureTTS", "Sherpa-ONNX")
+- `bypass_tts` - Skip TTS entirely (True/False)
+- `save_audio_file` - Cache audio files (True/False)
+- `rate` - Speech rate (0 = normal)
+- `volume` - Audio volume (100 = normal)
+- `voice_id` - Voice identifier
+
+**Engine-specific sections** (e.g., [azureTTS], [googleTTS])
+- Contains API keys, credentials, and engine-specific settings
