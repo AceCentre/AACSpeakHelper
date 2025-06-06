@@ -358,7 +358,44 @@ def print_menu(config):
 
 def configure_tts(config):
     """Configure TTS settings"""
-    print("\n===== TTS Configuration =====")
+    while True:
+        print("\n===== TTS Configuration =====")
+
+        # Show current TTS settings
+        current_engine = config.get("TTS", "engine", fallback="Not configured")
+        current_bypass = config.get("TTS", "bypass_tts", fallback="False")
+        current_save_audio = config.get("TTS", "save_audio_file", fallback="True")
+        current_rate = config.get("TTS", "rate", fallback="0")
+        current_volume = config.get("TTS", "volume", fallback="100")
+
+        print(f"Current TTS Engine: {current_engine}")
+        print(f"Bypass TTS: {current_bypass}")
+        print(f"Save Audio Files: {current_save_audio}")
+        print(f"Speech Rate: {current_rate}")
+        print(f"Volume: {current_volume}")
+
+        print("\nTTS Configuration Options:")
+        print("1. Select TTS Engine")
+        print("2. Configure TTS Settings (bypass, save audio, rate, volume)")
+        print("3. Back to Main Menu")
+
+        choice = input("\nEnter your choice (1-3): ")
+
+        if choice == "1":
+            config = select_tts_engine(config)
+        elif choice == "2":
+            config = configure_tts_settings(config)
+        elif choice == "3":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    return config
+
+
+def select_tts_engine(config):
+    """Select and configure TTS engine"""
+    print("\n===== Select TTS Engine =====")
     print("Available TTS Engines:")
 
     # Display available engines
@@ -366,11 +403,15 @@ def configure_tts(config):
     for i, engine_key in enumerate(engines):
         print(f"{i+1}. {TTS_ENGINES[engine_key]['name']}")
 
+    print(f"{len(engines)+1}. Cancel")
+
     # Get user selection
     while True:
         try:
             choice = int(input("\nSelect TTS engine (number): ")) - 1
-            if 0 <= choice < len(engines):
+            if choice == len(engines):  # Cancel option
+                return config
+            elif 0 <= choice < len(engines):
                 selected_engine = engines[choice]
                 break
             else:
@@ -402,6 +443,64 @@ def configure_tts(config):
     # Configure voice
     configure_voice(config, selected_engine)
 
+    return config
+
+
+def configure_tts_settings(config):
+    """Configure general TTS settings like bypass, save audio, rate, volume"""
+    print("\n===== TTS Settings =====")
+
+    # Configure bypass TTS
+    current_bypass = config.get("TTS", "bypass_tts", fallback="False")
+    print(f"\nBypass TTS (skip text-to-speech entirely)")
+    print(f"Current value: {current_bypass}")
+    bypass_choice = input("Bypass TTS? (y/n) [current]: ").lower()
+    if bypass_choice == 'y':
+        config.set("TTS", "bypass_tts", "True")
+    elif bypass_choice == 'n':
+        config.set("TTS", "bypass_tts", "False")
+
+    # Configure save audio file
+    current_save = config.get("TTS", "save_audio_file", fallback="True")
+    print(f"\nSave Audio Files (cache audio for faster playback)")
+    print(f"Current value: {current_save}")
+    save_choice = input("Save audio files? (y/n) [current]: ").lower()
+    if save_choice == 'y':
+        config.set("TTS", "save_audio_file", "True")
+    elif save_choice == 'n':
+        config.set("TTS", "save_audio_file", "False")
+
+    # Configure speech rate
+    current_rate = config.get("TTS", "rate", fallback="0")
+    print(f"\nSpeech Rate (0=normal, negative=slower, positive=faster)")
+    print(f"Current value: {current_rate}")
+    rate_input = input("Enter speech rate [-50 to 50] [current]: ")
+    if rate_input:
+        try:
+            rate_value = int(rate_input)
+            if -50 <= rate_value <= 50:
+                config.set("TTS", "rate", str(rate_value))
+            else:
+                print("Rate must be between -50 and 50. Keeping current value.")
+        except ValueError:
+            print("Invalid rate value. Keeping current value.")
+
+    # Configure volume
+    current_volume = config.get("TTS", "volume", fallback="100")
+    print(f"\nVolume (100=normal, 50=quieter, 150=louder)")
+    print(f"Current value: {current_volume}")
+    volume_input = input("Enter volume [0 to 200] [current]: ")
+    if volume_input:
+        try:
+            volume_value = int(volume_input)
+            if 0 <= volume_value <= 200:
+                config.set("TTS", "volume", str(volume_value))
+            else:
+                print("Volume must be between 0 and 200. Keeping current value.")
+        except ValueError:
+            print("Invalid volume value. Keeping current value.")
+
+    print("TTS settings updated.")
     return config
 
 
@@ -611,12 +710,15 @@ def configure_voice(config, engine_key):
         print("\nMatching voices:")
         for i, (voice_name, voice_id) in enumerate(matching_voices):
             print(f"{i+1}. {voice_name} ({voice_id})")
+        print(f"{len(matching_voices)+1}. Cancel")
 
         # Get user selection
         while True:
             try:
                 choice = int(input("\nSelect voice (number): ")) - 1
-                if 0 <= choice < len(matching_voices):
+                if choice == len(matching_voices):  # Cancel option
+                    return config
+                elif 0 <= choice < len(matching_voices):
                     selected_voice = matching_voices[choice]
                     break
                 else:
@@ -636,8 +738,9 @@ def configure_voice(config, engine_key):
 
     if not voice_list:
         print("Voice list not available for this engine.")
-        voice_id = input("Enter voice ID manually: ")
-        config.set(section_name, "voice_id", voice_id)
+        voice_id = input("Enter voice ID manually (or press Enter to cancel): ")
+        if voice_id:
+            config.set(section_name, "voice_id", voice_id)
         return config
 
     # Allow searching by language
@@ -657,12 +760,15 @@ def configure_voice(config, engine_key):
     print("\nMatching voices:")
     for i, (voice_name, voice_id) in enumerate(matching_voices):
         print(f"{i+1}. {voice_name} ({voice_id})")
+    print(f"{len(matching_voices)+1}. Cancel")
 
     # Get user selection
     while True:
         try:
             choice = int(input("\nSelect voice (number): ")) - 1
-            if 0 <= choice < len(matching_voices):
+            if choice == len(matching_voices):  # Cancel option
+                return config
+            elif 0 <= choice < len(matching_voices):
                 selected_voice = matching_voices[choice]
                 break
             else:
@@ -680,7 +786,56 @@ def configure_voice(config, engine_key):
 
 def configure_translation(config):
     """Configure translation settings"""
-    print("\n===== Translation Configuration =====")
+    while True:
+        print("\n===== Translation Configuration =====")
+
+        # Show current translation settings
+        current_provider = config.get("translate", "provider", fallback="Not configured")
+        current_no_translate = config.get("translate", "no_translate", fallback="False")
+        current_replace_pb = config.get("translate", "replace_pb", fallback="True")
+        current_start_lang = config.get("translate", "start_lang", fallback="en")
+        current_end_lang = config.get("translate", "end_lang", fallback="en")
+
+        print(f"Current Translation Provider: {current_provider}")
+        print(f"Translation Disabled: {current_no_translate}")
+        print(f"Replace Clipboard: {current_replace_pb}")
+        print(f"Source Language: {current_start_lang}")
+        print(f"Target Language: {current_end_lang}")
+
+        print("\nTranslation Configuration Options:")
+        print("1. Select Translation Provider")
+        print("2. Configure Translation Settings (enable/disable, clipboard)")
+        print("3. Configure Languages")
+        print("4. Back to Main Menu")
+
+        choice = input("\nEnter your choice (1-4): ")
+
+        if choice == "1":
+            config = select_translation_provider(config)
+        elif choice == "2":
+            config = configure_translation_settings(config)
+        elif choice == "3":
+            # Get current provider for language configuration
+            current_provider_key = None
+            for key, provider in TRANSLATION_PROVIDERS.items():
+                if provider["name"] == config.get("translate", "provider", fallback=""):
+                    current_provider_key = key
+                    break
+            if current_provider_key:
+                configure_languages(config, current_provider_key)
+            else:
+                print("Please select a translation provider first.")
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    return config
+
+
+def select_translation_provider(config):
+    """Select and configure translation provider"""
+    print("\n===== Select Translation Provider =====")
     print("Available Translation Providers:")
 
     # Display available providers
@@ -688,11 +843,15 @@ def configure_translation(config):
     for i, provider_key in enumerate(providers):
         print(f"{i+1}. {TRANSLATION_PROVIDERS[provider_key]['name']}")
 
+    print(f"{len(providers)+1}. Cancel")
+
     # Get user selection
     while True:
         try:
             choice = int(input("\nSelect translation provider (number): ")) - 1
-            if 0 <= choice < len(providers):
+            if choice == len(providers):  # Cancel option
+                return config
+            elif 0 <= choice < len(providers):
                 selected_provider = providers[choice]
                 break
             else:
@@ -720,6 +879,36 @@ def configure_translation(config):
     return config
 
 
+def configure_translation_settings(config):
+    """Configure general translation settings like enable/disable, clipboard replacement"""
+    print("\n===== Translation Settings =====")
+
+    # Configure no_translate (disable translation)
+    current_no_translate = config.get("translate", "no_translate", fallback="False")
+    print(f"\nTranslation Status")
+    print(f"Currently disabled: {current_no_translate}")
+    print("Disable translation if your text is already in the target language")
+    translate_choice = input("Disable translation? (y/n) [current]: ").lower()
+    if translate_choice == 'y':
+        config.set("translate", "no_translate", "True")
+    elif translate_choice == 'n':
+        config.set("translate", "no_translate", "False")
+
+    # Configure replace_pb (replace clipboard)
+    current_replace = config.get("translate", "replace_pb", fallback="True")
+    print(f"\nClipboard Replacement")
+    print(f"Currently enabled: {current_replace}")
+    print("Replace clipboard content with translated text (useful for AAC apps)")
+    replace_choice = input("Replace clipboard with translated text? (y/n) [current]: ").lower()
+    if replace_choice == 'y':
+        config.set("translate", "replace_pb", "True")
+    elif replace_choice == 'n':
+        config.set("translate", "replace_pb", "False")
+
+    print("Translation settings updated.")
+    return config
+
+
 def configure_languages(config, provider_key):
     """Configure source and target languages for translation"""
     provider_config = TRANSLATION_PROVIDERS[provider_key]
@@ -727,23 +916,30 @@ def configure_languages(config, provider_key):
 
     if not language_list:
         print("Language list not available for this provider.")
-        start_lang = input("Enter source language code manually: ")
-        end_lang = input("Enter target language code manually: ")
+        start_lang = input("Enter source language code manually (or press Enter to cancel): ")
+        if not start_lang:
+            return config
+        end_lang = input("Enter target language code manually (or press Enter to cancel): ")
+        if not end_lang:
+            return config
         config.set("translate", "start_lang", start_lang)
         config.set("translate", "end_lang", end_lang)
-        return
+        return config
 
     # Configure source language
     print("\nAvailable source languages:")
     languages = list(language_list.items())
     for i, (lang_name, lang_code) in enumerate(languages):
         print(f"{i+1}. {lang_name} ({lang_code})")
+    print(f"{len(languages)+1}. Cancel")
 
     # Get user selection for source language
     while True:
         try:
             choice = int(input("\nSelect source language (number): ")) - 1
-            if 0 <= choice < len(languages):
+            if choice == len(languages):  # Cancel option
+                return config
+            elif 0 <= choice < len(languages):
                 selected_lang = languages[choice]
                 break
             else:
@@ -760,12 +956,15 @@ def configure_languages(config, provider_key):
     print("\nAvailable target languages:")
     for i, (lang_name, lang_code) in enumerate(languages):
         print(f"{i+1}. {lang_name} ({lang_code})")
+    print(f"{len(languages)+1}. Cancel")
 
     # Get user selection for target language
     while True:
         try:
             choice = int(input("\nSelect target language (number): ")) - 1
-            if 0 <= choice < len(languages):
+            if choice == len(languages):  # Cancel option
+                return config
+            elif 0 <= choice < len(languages):
                 selected_lang = languages[choice]
                 break
             else:
