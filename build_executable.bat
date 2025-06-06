@@ -4,7 +4,6 @@ echo Building AACSpeakHelper with TTS-Wrapper v0.10.11 PyInstaller utilities...
 REM Kill any running AACSpeakHelper processes to avoid permission errors
 echo Stopping any running AACSpeakHelper processes...
 taskkill /f /im AACSpeakHelperServer.exe 2>nul
-taskkill /f /im "Configure AACSpeakHelper.exe" 2>nul
 taskkill /f /im client.exe 2>nul
 
 REM Wait a moment for processes to fully terminate
@@ -13,7 +12,6 @@ timeout /t 2 /nobreak >nul
 REM Clean up any locked directories
 echo Cleaning up previous build directories...
 rmdir /s /q "dist\AACSpeakHelperServer" 2>nul
-rmdir /s /q "dist\Configure AACSpeakHelper" 2>nul
 rmdir /s /q "dist\client" 2>nul
 
 REM Get the TTS-Wrapper PyInstaller hooks directory
@@ -31,17 +29,12 @@ echo - Azure Speech SDK DLLs
 echo - ONNX Runtime DLLs
 echo - All other TTS engine dependencies
 
-REM Convert UI files using Python module
-uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/form.ui -o GUI_TranslateAndTTS/ui_form.py
-uv run python -m PySide6.uic.pyuic GUI_TranslateAndTTS/item.ui -o GUI_TranslateAndTTS/item.py
-
 REM Build Python executables with PyInstaller using TTS-Wrapper optimized configuration
 echo.
 echo Building AACSpeakHelperServer with TTS-Wrapper PyInstaller hooks...
 uv run python -m PyInstaller AACSpeakHelperServer.py --noupx --onedir --noconsole --name "AACSpeakHelperServer" -i .\assets\translate.ico --clean --additional-hooks-dir="%tts_hooks_dir%" --collect-all language_data --collect-all language_tags --collect-all comtypes --collect-all pytz -y
 
-echo Building Configure AACSpeakHelper GUI with TTS-Wrapper hooks...
-uv run python -m PyInstaller .\GUI_TranslateAndTTS\widget.py --noupx --noconsole --name "Configure AACSpeakHelper" --onedir -i .\assets\configure.ico --clean --additional-hooks-dir="%tts_hooks_dir%" --collect-all language_data --collect-all language_tags --collect-all pytz --collect-all comtypes -y
+echo Skipping GUI Configure AACSpeakHelper build (excluded from final build)...
 
 uv run python -m PyInstaller client.py --noupx --console --onedir --clean -i .\assets\translate.ico -y
 

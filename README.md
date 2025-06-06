@@ -124,7 +124,7 @@ It will now have a config.enc file created. Our code will use that. If keys are 
     uv run python client.py
     ```
 
-    And GUI
+    And GUI (development only - excluded from final build)
 
 
     ```sh

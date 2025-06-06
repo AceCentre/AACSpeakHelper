@@ -241,11 +241,8 @@ def create_default_config(config):
 
     config["translate"] = {
         "no_translate": "False",
-        "notranslate": "False",
         "start_lang": "en",
-        "startlang": "en",
         "end_lang": "en",
-        "endlang": "en",
         "replace_pb": "True",
         "provider": "GoogleTranslator",
         "microsoft_translator_secret_key": "",
