@@ -57,7 +57,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "posthog" },
-    { name = "py3-tts-wrapper", extras = ["controlaudio", "elevenlabs", "google", "googletrans", "microsoft", "openai", "playht", "polly", "sherpaonnx", "watson", "witai"], specifier = "==0.10.12" },
+    { name = "py3-tts-wrapper", extras = ["controlaudio", "elevenlabs", "google", "googletrans", "microsoft", "openai", "playht", "polly", "sherpaonnx", "watson", "witai"], specifier = "==0.10.14" },
     { name = "pyaudio" },
     { name = "pyinstaller" },
     { name = "pyinstaller", marker = "extra == 'build'" },
@@ -550,7 +550,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -1313,7 +1313,7 @@ wheels = [
 
 [[package]]
 name = "py3-tts-wrapper"
-version = "0.10.12"
+version = "0.10.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langcodes" },
@@ -1325,9 +1325,9 @@ dependencies = [
     { name = "sounddevice" },
     { name = "soundfile" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/52/b7c269fbcd47e7856ae54a187629f7bc05906e87257e89372b350a7906fb/py3_tts_wrapper-0.10.12.tar.gz", hash = "sha256:69422ccc23b870d77d790f9525ad78eccca053582afaa6dd433721b51a1e53f9", size = 7010267, upload-time = "2025-06-07T07:54:53.291Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/55/f172a8a64c0c1c0f6dcd7e7f783aa8e9452b3d440d921131ecd012aca061/py3_tts_wrapper-0.10.14.tar.gz", hash = "sha256:164d7f905c7e8f232c3ef4e1afb55f0c0e609205b6bc1b58092d3d09b0f5b3d1", size = 7011837, upload-time = "2025-06-07T13:39:55.015Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/c9/57b2b48d3caa296b322b37db280a5e03d89ade9ec73f0078bfc7e1ce94b1/py3_tts_wrapper-0.10.12-py3-none-any.whl", hash = "sha256:6a338dc69f7ee016cb75df94eb6121310db82e68504189882f631890c199b3de", size = 873146, upload-time = "2025-06-07T07:54:51.683Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/12/307abbd63f307312314e266563451321e8448ea019fd55624df1da7275b7/py3_tts_wrapper-0.10.14-py3-none-any.whl", hash = "sha256:fade2eee2678b153caff09de48d686690fa9fdf158f6773b91f9194dae9458b9", size = 873279, upload-time = "2025-06-07T13:39:53.302Z" },
 ]
 
 [package.optional-dependencies]

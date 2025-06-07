@@ -26,7 +26,7 @@ dependencies = [
     "translate",
     "configparser",
     "pyperclip",
-    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.12",
+    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.14",
     "python-dotenv",
     "cryptography",
     "pyinstaller", # Move to main dependencies since it's needed for distribution

@@ -161,3 +161,15 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# AACSpeakHelper specific files
+# Model files for TTS engines (can be large and downloaded automatically)
+models/
+
+# Generated audio files from testing
+*.wav
+Audio Files/
+
+# Configuration files with sensitive data
+.envrc
+settings.cfg
