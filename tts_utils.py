@@ -12,7 +12,6 @@ from tts_wrapper import (
     SAPIClient,
     SAPIEngine,
     SherpaOnnxClient,
-    SherpaOnnxTTS,
     GoogleTransTTS,
     GoogleTransClient,
     ElevenLabsClient,
@@ -175,30 +174,46 @@ def init_sapi_tts():
 
 
 def init_onnx_tts():
-    """Initialize unique instance of SherpaOnnxTTS based on the changes in voiceid.
+    """Initialize unique instance of SherpaOnnxClient based on the changes in voiceid.
 
-    Returns: SherpaOnnxTTS
+    Returns: SherpaOnnxClient
     """
-    voiceid = utils.config.get("SherpaOnnxTTS", "voice_id")
-    if getattr(sys, "frozen", False):
-        home_directory = os.path.expanduser("~")
-        onnx_cache_path = os.path.join(
-            home_directory,
-            "AppData",
-            "Roaming",
-            "Ace Centre",
-            "AACSpeakHelper",
-            "models",
-        )
-    elif __file__:
-        app_data_path = os.path.abspath(os.path.dirname(__file__))
-        onnx_cache_path = os.path.join(app_data_path, "models")
-    if not os.path.isdir(onnx_cache_path):
-        os.mkdir(onnx_cache_path)
-    client = SherpaOnnxClient(model_path=onnx_cache_path, tokens_path=None)
-    tts = SherpaOnnxTTS(client)
-    tts.set_voice(voice_id=voiceid)
-    return tts
+    try:
+        voiceid = utils.config.get("SherpaOnnxTTS", "voice_id")
+        logging.info(f"Initializing SherpaOnnx TTS with voice_id: {voiceid}")
+
+        if getattr(sys, "frozen", False):
+            home_directory = os.path.expanduser("~")
+            onnx_cache_path = os.path.join(
+                home_directory,
+                "AppData",
+                "Roaming",
+                "Ace Centre",
+                "AACSpeakHelper",
+                "models",
+            )
+        elif __file__:
+            app_data_path = os.path.abspath(os.path.dirname(__file__))
+            onnx_cache_path = os.path.join(app_data_path, "models")
+
+        logging.info(f"Using model cache path: {onnx_cache_path}")
+
+        if not os.path.isdir(onnx_cache_path):
+            os.mkdir(onnx_cache_path)
+            logging.info(f"Created model cache directory: {onnx_cache_path}")
+
+        logging.info("Creating SherpaOnnxClient...")
+        client = SherpaOnnxClient(model_path=onnx_cache_path, tokens_path=None)
+        logging.info("SherpaOnnxClient created successfully")
+
+        logging.info(f"Setting voice to: {voiceid}")
+        client.set_voice(voice_id=voiceid)
+        logging.info("Voice set successfully")
+
+        return client
+    except Exception as e:
+        logging.error(f"Error in init_onnx_tts: {e}", exc_info=True)
+        raise
 
 
 def init_googleTrans_tts():
@@ -650,7 +665,7 @@ def ttsWrapperSpeak(text: str, tts, engine):
     """
     fmt = "wav"
     match tts:
-        case SherpaOnnxTTS():
+        case SherpaOnnxClient():
             pass
         case GoogleTransTTS():
             fmt = "mp3"

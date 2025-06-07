@@ -109,11 +109,13 @@ def get_config_dir():
 
 def create_default_config():
     """Create a default configuration"""
+    import uuid
     config = configparser.ConfigParser()
 
     # App section
     config["App"] = {
-        "collectstats": "True"
+        "collectstats": "True",
+        "uuid": str(uuid.uuid4())
     }
 
     # Translate section
@@ -141,7 +143,7 @@ def create_default_config():
 
     # TTS section
     config["TTS"] = {
-        "engine": "Sherpa-ONNX",
+        "engine": "SherpaOnnxTTS",
         "bypass_tts": "False",
         "save_audio_file": "True",
         "rate": "0",

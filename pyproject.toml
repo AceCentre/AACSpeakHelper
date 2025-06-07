@@ -26,7 +26,7 @@ dependencies = [
     "translate",
     "configparser",
     "pyperclip",
-    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.10",
+    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.12",
     "python-dotenv",
     "cryptography",
     "pyinstaller", # Move to main dependencies since it's needed for distribution
@@ -60,5 +60,5 @@ py-modules = [
 # GUI_TranslateAndTTS package excluded from build
 # packages = ["GUI_TranslateAndTTS"]
 
-[tool.uv.sources]
-py3-tts-wrapper = { git = "https://github.com/willwade/tts-wrapper.git", rev = "v0.10.11" }
+
+

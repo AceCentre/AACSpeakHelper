@@ -234,8 +234,9 @@ def load_config(custom_config_path=None):
 
 def create_default_config(config):
     """Create a default configuration"""
+    import uuid
     # Add default sections and values
-    config["App"] = {"collectstats": "True", "uuid": ""}
+    config["App"] = {"collectstats": "True", "uuid": str(uuid.uuid4())}
 
     config["translate"] = {
         "no_translate": "False",
@@ -452,7 +453,7 @@ def configure_tts_settings(config):
 
     # Configure bypass TTS
     current_bypass = config.get("TTS", "bypass_tts", fallback="False")
-    print(f"\nBypass TTS (skip text-to-speech entirely)")
+    print("\nBypass TTS (skip text-to-speech entirely)")
     print(f"Current value: {current_bypass}")
     bypass_choice = input("Bypass TTS? (y/n) [current]: ").lower()
     if bypass_choice == 'y':
@@ -462,7 +463,7 @@ def configure_tts_settings(config):
 
     # Configure save audio file
     current_save = config.get("TTS", "save_audio_file", fallback="True")
-    print(f"\nSave Audio Files (cache audio for faster playback)")
+    print("\nSave Audio Files (cache audio for faster playback)")
     print(f"Current value: {current_save}")
     save_choice = input("Save audio files? (y/n) [current]: ").lower()
     if save_choice == 'y':
@@ -472,7 +473,7 @@ def configure_tts_settings(config):
 
     # Configure speech rate
     current_rate = config.get("TTS", "rate", fallback="0")
-    print(f"\nSpeech Rate (0=normal, negative=slower, positive=faster)")
+    print("\nSpeech Rate (0=normal, negative=slower, positive=faster)")
     print(f"Current value: {current_rate}")
     rate_input = input("Enter speech rate [-50 to 50] [current]: ")
     if rate_input:
@@ -487,7 +488,7 @@ def configure_tts_settings(config):
 
     # Configure volume
     current_volume = config.get("TTS", "volume", fallback="100")
-    print(f"\nVolume (100=normal, 50=quieter, 150=louder)")
+    print("\nVolume (100=normal, 50=quieter, 150=louder)")
     print(f"Current value: {current_volume}")
     volume_input = input("Enter volume [0 to 200] [current]: ")
     if volume_input:
@@ -885,7 +886,7 @@ def configure_translation_settings(config):
 
     # Configure no_translate (disable translation)
     current_no_translate = config.get("translate", "no_translate", fallback="False")
-    print(f"\nTranslation Status")
+    print("\nTranslation Status")
     print(f"Currently disabled: {current_no_translate}")
     print("Disable translation if your text is already in the target language")
     translate_choice = input("Disable translation? (y/n) [current]: ").lower()
@@ -896,7 +897,7 @@ def configure_translation_settings(config):
 
     # Configure replace_pb (replace clipboard)
     current_replace = config.get("translate", "replace_pb", fallback="True")
-    print(f"\nClipboard Replacement")
+    print("\nClipboard Replacement")
     print(f"Currently enabled: {current_replace}")
     print("Replace clipboard content with translated text (useful for AAC apps)")
     replace_choice = input("Replace clipboard with translated text? (y/n) [current]: ").lower()

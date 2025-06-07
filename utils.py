@@ -181,9 +181,22 @@ def save_audio(text: str, engine: str, file_format: str = "wav", tts=None):
 
     # Handle different TTS engines with different method signatures
     try:
-        # Try the method with save parameters first (for engines that support it)
-        tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
-    except TypeError:
+        # Check if this is SherpaOnnx TTS and handle it specially
+        from tts_wrapper import SherpaOnnxClient
+
+        if isinstance(tts, SherpaOnnxClient):
+            # For SherpaOnnx TTS, use the basic speak_streamed method first
+            # and try to save to file separately if supported
+            try:
+                tts.speak_streamed(text, save_to_file_path=filename)
+            except (TypeError, AttributeError):
+                # If save_to_file_path is not supported, just play the audio
+                tts.speak_streamed(text)
+                # Note: This won't save to file, but at least it will play the audio
+        else:
+            # Try the method with save parameters first (for engines that support it)
+            tts.speak_streamed(text, save_to_file_path=filename, audio_format=file_format)
+    except (TypeError, Exception) as e:
         # If that fails, try different approaches based on the TTS engine type
         from tts_wrapper import MicrosoftTTS
 
