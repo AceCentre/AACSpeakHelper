@@ -13,7 +13,6 @@ from tts_wrapper import (
     SAPIEngine,
     SherpaOnnxClient,
     GoogleTransTTS,
-    GoogleTransClient,
     ElevenLabsClient,
     ElevenLabsTTS,
     PlayHTClient,
@@ -29,6 +28,8 @@ from tts_wrapper import (
 import warnings
 from threading import Thread
 from configure_enc_utils import load_config, load_credentials
+
+
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 utils = None
@@ -221,9 +222,23 @@ def init_googleTrans_tts():
 
     Returns: GoogleTransTTS
     """
-    voiceid = utils.config.get("googleTransTTS", "voice_id")
-    client = GoogleTransClient(voiceid)
-    return GoogleTransTTS(client)
+    try:
+        voiceid = utils.config.get("googleTransTTS", "voice_id")
+        logging.info(f"Initializing GoogleTrans TTS with voice: {voiceid}")
+
+        # GoogleTransTTS takes voice_id directly in constructor
+        if voiceid:
+            tts = GoogleTransTTS(voice_id=voiceid)
+            logging.info(f"GoogleTrans TTS initialized with voice: {voiceid}")
+        else:
+            # Use default voice if none specified
+            tts = GoogleTransTTS(voice_id="en")
+            logging.info("GoogleTrans TTS initialized with default voice: en")
+
+        return tts
+    except Exception as e:
+        logging.error(f"Error initializing GoogleTrans TTS: {e}", exc_info=True)
+        raise
 
 
 def init_elevenlabs_tts():
@@ -311,7 +326,7 @@ def init_openai_tts():
     if not api_key:
         api_key = os.getenv("OPENAI_API_KEY", "")
     voiceid = utils.config.get("OpenAITTS", "voice_id")
-    client = OpenAIClient(api_key=api_key)
+    client = OpenAIClient(credentials=(api_key,))
     if voiceid:
         client.set_voice(voiceid)
     return client
@@ -421,7 +436,8 @@ def speak(text="", list_voices=False):
                 case "WitAiTTS":
                     tts_client = init_witai_tts()
                 case _:
-                    tts_client = pyttsx3.init(ttsengine)
+                    logging.error(f"Unsupported TTS engine: {ttsengine}")
+                    return
     except Exception as e:
         logging.error(f"Error initializing TTS client: {e}")
         return
@@ -480,11 +496,8 @@ def speak(text="", list_voices=False):
             case "WitAiTTS":
                 witaiSpeak(text, ttsengine, tts_client)
             case _:
-                tts_client.setProperty("voice", utils.config.get("TTS", "voice_id"))
-                tts_client.setProperty("rate", utils.config.get("TTS", "rate"))
-                tts_client.setProperty("volume", utils.config.get("TTS", "volume"))
-                tts_client.say(text)
-                tts_client.runAndWait()
+                logging.error(f"Unsupported TTS engine in speak function: {ttsengine}")
+                return
     except Exception as e:
         logging.error(f"Error during TTS processing: {e}")
 

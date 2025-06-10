@@ -511,7 +511,7 @@ def get_voices_from_engine(engine_key, config):
         from tts_wrapper import (
             MicrosoftClient, MicrosoftTTS,
             SherpaOnnxClient, SherpaOnnxTTS,
-            GoogleTransClient, GoogleTransTTS,
+            GoogleTransTTS,
             ElevenLabsClient, ElevenLabsTTS,
             PlayHTClient, PlayHTTTS,
             PollyClient, PollyTTS,
@@ -564,10 +564,18 @@ def get_voices_from_engine(engine_key, config):
 
         elif engine_key == "google_trans":
             # Google Trans TTS doesn't need credentials
-            client = GoogleTransClient()
-            tts = GoogleTransTTS(client)
-            voices = tts.get_voices()
-            return voices
+            print("Initializing GoogleTrans TTS...")
+            try:
+                # GoogleTransTTS takes voice_id directly, not a client
+                tts = GoogleTransTTS(voice_id="en")
+                print("Getting voices from GoogleTrans...")
+                voices = tts.get_voices()
+                print(f"Retrieved {len(voices) if voices else 0} voices from GoogleTrans")
+                return voices
+            except Exception as e:
+                print(f"Error initializing GoogleTrans TTS: {e}")
+                print("Falling back to hardcoded voice list...")
+                return None
 
         elif engine_key == "elevenlabs":
             # Get ElevenLabs credentials
@@ -655,8 +663,7 @@ def get_voices_from_engine(engine_key, config):
                 return None
 
             client = OpenAIClient(credentials=(api_key,))
-            tts = OpenAITTS(client)
-            voices = tts.get_voices()
+            voices = client.get_voices()
             return voices
 
         elif engine_key == "witai":
