@@ -217,7 +217,7 @@ def load_config(custom_config_path=None):
     """Load configuration from file"""
     config = configparser.ConfigParser()
 
-    if custom_config_path and os.path.exists(custom_config_path):
+    if custom_config_path:
         config_path = custom_config_path
     else:
         config_path = os.path.join(get_config_dir(), "settings.cfg")
