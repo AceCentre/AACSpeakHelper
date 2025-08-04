@@ -147,8 +147,7 @@ def create_default_config():
         "bypass_tts": "False",
         "save_audio_file": "True",
         "rate": "0",
-        "volume": "100",
-        "voice_id": "eng"
+        "volume": "100"
     }
 
     # Azure TTS section

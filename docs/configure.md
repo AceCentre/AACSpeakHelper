@@ -136,7 +136,6 @@ bypass_tts = False
 save_audio_file = True
 rate = 0
 volume = 100
-voice_id = en-US-JennyNeural
 
 [azureTTS]
 key = your-azure-key-here

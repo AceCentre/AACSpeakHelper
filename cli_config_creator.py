@@ -266,7 +266,6 @@ def create_default_config(config):
         "save_audio_file": "True",
         "rate": "0",
         "volume": "100",
-        "voice_id": "eng",
     }
 
     config["azureTTS"] = {"key": "", "location": "", "voice_id": "en-US-JennyNeural"}

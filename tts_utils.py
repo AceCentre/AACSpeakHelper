@@ -381,8 +381,9 @@ def speak(text="", list_voices=False):
         logging.info(f"Voice ID from {ttsengine} section: {voice_id}")
 
         if not voice_id:
-            voice_id = utils.config.get("TTS", "voice_id")
-            logging.info(f"Fallback voice ID from TTS section: {voice_id}")
+            logging.error(f"No voice_id found in {ttsengine} section. Please configure a voice for this engine.")
+            ready = True
+            return
     except Exception as e:
         logging.error(f"Error getting TTS engine or voice ID: {e}", exc_info=True)
         ready = True
@@ -417,7 +418,7 @@ def speak(text="", list_voices=False):
                     tts_client = init_azure_tts()
                 case "googleTTS":
                     tts_client = init_google_tts()
-                case "sapi5":
+                case "sapi5TTS":
                     tts_client = init_sapi_tts()
                 case "SherpaOnnxTTS":
                     tts_client = init_onnx_tts()
@@ -477,7 +478,7 @@ def speak(text="", list_voices=False):
                     azureSpeak(text, ttsengine, tts_client)
             case "googleTTS":
                 googleSpeak(text, ttsengine, tts_client)
-            case "sapi5":
+            case "sapi5TTS":
                 sapiSpeak(text, ttsengine, tts_client)
             case "SherpaOnnxTTS":
                 onnxSpeak(text, ttsengine, tts_client)
