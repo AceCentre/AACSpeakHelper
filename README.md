@@ -124,19 +124,38 @@ It will now have a config.enc file created. Our code will use that. If keys are 
     uv run python client.py
     ```
 
-    And CLI Configuration Tool (for development):
+    CLI Configuration Tool (for development):
 
     ```sh
     uv run python cli_config_creator.py
     ```
 
-    Note: The GUI configuration tool has been excluded from builds due to reliability issues. Use the CLI configuration tool instead.
+    GUI Configuration & Testing Tool:
+    - **Development**: `uv run python gui_config_tester.py`
+    - **Installed**: Run `Configure AACSpeakHelper GUI.exe` or use Start Menu shortcut
 
 ## Configuration
 
-Before using AACSpeakHelper, you need to configure it. There are two main approaches:
+Before using AACSpeakHelper, you need to configure it. There are three main approaches:
 
-### 1. CLI Configuration Tool (Recommended)
+### 1. GUI Configuration & Testing Tool (Recommended)
+
+For development:
+```sh
+uv run python gui_config_tester.py
+```
+
+For installed version: Run `Configure AACSpeakHelper GUI.exe`
+
+The GUI tool provides a user-friendly interface to:
+- Select and configure TTS engines with dropdown menus
+- Enter credentials with password masking for security
+- Select voices from predefined lists or enter custom voice IDs
+- Test TTS playback with sample text
+- Save audio output as WAV files
+- Real-time configuration validation
+
+### 2. CLI Configuration Tool
 
 For development:
 ```sh
@@ -151,7 +170,7 @@ The CLI tool provides an interactive menu to:
 - Configure language pairs and voice settings
 - Save and manage multiple configuration files
 
-### 2. Manual Configuration
+### 3. Manual Configuration
 
 Edit the `settings.cfg` file directly:
 - **Development**: Located in the project root directory

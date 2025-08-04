@@ -26,7 +26,7 @@ dependencies = [
     "translate",
     "configparser",
     "pyperclip",
-    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.14",
+    "py3-tts-wrapper[controlaudio,elevenlabs,google,googletrans,microsoft,openai,playht,polly,sherpaonnx,watson,witai]==0.10.20",
     "python-dotenv",
     "cryptography",
     "pyinstaller", # Move to main dependencies since it's needed for distribution
@@ -55,7 +55,8 @@ py-modules = [
     "AACSpeakHelperServer",
     "configure_enc_utils",
     "utils",
-    "tts_utils"
+    "tts_utils",
+    "gui_config_tester"
 ]
 # GUI_TranslateAndTTS package excluded from build
 # packages = ["GUI_TranslateAndTTS"]
