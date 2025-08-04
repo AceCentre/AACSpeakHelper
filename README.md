@@ -130,9 +130,9 @@ It will now have a config.enc file created. Our code will use that. If keys are 
     uv run python cli_config_creator.py
     ```
 
-    GUI Configuration & Testing Tool:
+    TTS Preview Tool:
     - **Development**: `uv run python gui_config_tester.py`
-    - **Installed**: Run `Configure AACSpeakHelper GUI.exe` or use Start Menu shortcut
+    - **Installed**: Run `AACSpeakHelper TTS Preview.exe` or use Start Menu shortcut
 
 ## Configuration
 

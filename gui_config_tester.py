@@ -25,8 +25,7 @@ except ImportError:
 # Import existing modules
 try:
     from cli_config_creator import TTS_ENGINES, get_config_dir
-    import tts_utils
-    import utils
+    # Note: This is a standalone preview tool - no utils/tts_utils dependencies
 except ImportError as e:
     print(f"Error importing required modules: {e}")
     print("Make sure you're running from the AACSpeakHelper directory")
@@ -43,53 +42,17 @@ class VoiceFetchWorker(QThread):
         self.temp_config_path = temp_config_path
 
     def run(self):
-        """Fetch voices in background thread using tts_utils.speak with list_voices=True"""
+        """Fetch voices directly from py3-tts-wrapper - this is a PREVIEW tool"""
         try:
             # Load the temporary config file
             temp_config = configparser.ConfigParser()
             temp_config.read(self.temp_config_path)
 
-            # Get paths using utils.get_paths
-            config_path, audio_files_path = utils.get_paths(self.temp_config_path)
+            # Get current engine from temp config
+            engine = temp_config.get("TTS", "engine", fallback="azureTTS")
 
-            # Add App section with required paths
-            if "App" not in temp_config:
-                temp_config["App"] = {}
-            temp_config["App"]["config_path"] = config_path
-            temp_config["App"]["audio_files_path"] = audio_files_path
-
-            # Create args dictionary
-            args = {
-                "config": self.temp_config_path,
-                "listvoices": True,
-                "preview": False,
-                "style": "",
-                "styledegree": None,
-            }
-
-            # Store original state
-            original_config = utils.config if hasattr(utils, 'config') else None
-            original_config_path = utils.config_path if hasattr(utils, 'config_path') else None
-            original_audio_path = utils.audio_files_path if hasattr(utils, 'audio_files_path') else None
-
-            # Initialize utils with proper format
-            utils.init(temp_config, args)
-
-            # Initialize tts_utils with utils
-            tts_utils.init(utils)
-
-            # Call speak with list_voices=True to get voices
-            tts_utils.speak(text="", list_voices=True)
-
-            # Get the voices from the global variable
-            voices_result = tts_utils.voices
-
-            # Restore original state
-            if original_config and original_config_path and original_audio_path:
-                utils.config = original_config
-                utils.config_path = original_config_path
-                utils.audio_files_path = original_audio_path
-                tts_utils.utils = utils
+            # Use py3-tts-wrapper directly to get voices
+            voices_result = self.get_voices_from_engine_direct(engine, temp_config)
 
             if voices_result:
                 self.voices_fetched.emit(voices_result)
@@ -98,6 +61,69 @@ class VoiceFetchWorker(QThread):
 
         except Exception as e:
             self.error_occurred.emit(str(e))
+
+    def get_voices_from_engine_direct(self, engine, config):
+        """Get voices directly from py3-tts-wrapper without using tts_utils"""
+        try:
+            if engine == "azureTTS":
+                from tts_wrapper import MicrosoftClient
+                key = config.get("azureTTS", "key", fallback="")
+                location = config.get("azureTTS", "location", fallback="")
+                if key and location:
+                    client = MicrosoftClient(credentials=(key, location))
+                    return client.get_voices()
+
+            elif engine == "googleTTS":
+                from tts_wrapper import GoogleClient
+                creds = config.get("googleTTS", "creds", fallback="")
+                if creds:
+                    client = GoogleClient(credentials=creds)
+                    return client.get_voices()
+
+            elif engine == "SherpaOnnxTTS":
+                from tts_wrapper import SherpaOnnxClient
+                # SherpaOnnx doesn't need credentials
+                client = SherpaOnnxClient()
+                return client.get_voices()
+
+            elif engine == "ElevenLabsTTS":
+                from tts_wrapper import ElevenLabsClient
+                api_key = config.get("ElevenLabsTTS", "api_key", fallback="")
+                if api_key:
+                    client = ElevenLabsClient(credentials=api_key)
+                    return client.get_voices()
+
+            elif engine == "PlayHTTTS":
+                from tts_wrapper import PlayHTClient
+                api_key = config.get("PlayHTTTS", "api_key", fallback="")
+                user_id = config.get("PlayHTTTS", "user_id", fallback="")
+                if api_key and user_id:
+                    client = PlayHTClient(credentials=(api_key, user_id))
+                    return client.get_voices()
+
+            elif engine == "PollyTTS":
+                from tts_wrapper import PollyClient
+                region = config.get("PollyTTS", "region", fallback="")
+                aws_key_id = config.get("PollyTTS", "aws_key_id", fallback="")
+                aws_access_key = config.get("PollyTTS", "aws_access_key", fallback="")
+                if region and aws_key_id and aws_access_key:
+                    client = PollyClient(credentials=(region, aws_key_id, aws_access_key))
+                    return client.get_voices()
+
+            elif engine == "WatsonTTS":
+                from tts_wrapper import WatsonClient
+                api_key = config.get("WatsonTTS", "api_key", fallback="")
+                region = config.get("WatsonTTS", "region", fallback="")
+                instance_id = config.get("WatsonTTS", "instance_id", fallback="")
+                if api_key and region and instance_id:
+                    client = WatsonClient(credentials=(api_key, region, instance_id))
+                    return client.get_voices()
+
+            return None
+
+        except Exception as e:
+            print(f"Error getting voices for {engine}: {e}")
+            return None
 
 
 class GUIConfigTester(QMainWindow):
@@ -364,7 +390,7 @@ class GUIConfigTester(QMainWindow):
         # Note: Changes are NOT saved to settings.cfg - this is a testing tool only
 
     def auto_fetch_voices_if_configured(self):
-        """Auto-fetch voices if credentials are configured"""
+        """Auto-fetch voices - this is a PREVIEW tool, always try to get real voices"""
         if not self.current_engine:
             return
 
@@ -372,17 +398,25 @@ class GUIConfigTester(QMainWindow):
         config_section = engine_info["config_section"]
         credential_fields = engine_info["credential_fields"]
 
-        # Check if all required credentials are configured
-        if credential_fields:
-            all_configured = True
-            for field in credential_fields:
-                value = self.config.get(config_section, field, fallback="").strip()
-                if not value:
-                    all_configured = False
-                    break
+        # Check if credentials are required
+        if not credential_fields:
+            # No credentials required (like SherpaOnnx), fetch voices immediately
+            self.fetch_dynamic_voices()
+            return
 
-            if all_configured:
-                self.fetch_dynamic_voices()
+        # Check if all required credentials are configured
+        all_configured = True
+        for field in credential_fields:
+            value = self.config.get(config_section, field, fallback="").strip()
+            if not value:
+                all_configured = False
+                break
+
+        if all_configured:
+            self.fetch_dynamic_voices()
+        else:
+            # Show message that credentials are needed for voice fetching
+            self.update_status("Enter credentials and click 'Fetch Voices' to get available voices")
 
     def fetch_dynamic_voices(self):
         """Fetch voices dynamically from TTS API using existing tts_utils"""
@@ -481,37 +515,34 @@ class GUIConfigTester(QMainWindow):
         self.refresh_voices_btn.setEnabled(True)
         self.update_status(f"Voice fetch failed: {error_message}")
 
-        # Fall back to static voices
-        self.refresh_static_voices()
+        # Fall back to minimal voice list
+        self.refresh_static_voices_fallback()
 
     def refresh_static_voices(self):
-        """Refresh voice list with static/predefined voices"""
+        """Always try to fetch voices dynamically - this is a PREVIEW tool, not a config tool"""
+        if not self.current_engine:
+            return
+
+        # Always try to fetch voices dynamically first
+        self.fetch_dynamic_voices()
+
+    def refresh_static_voices_fallback(self):
+        """Fallback method for when dynamic voice fetching fails"""
         if not self.current_engine:
             return
 
         engine_info = TTS_ENGINES[self.current_engine]
         config_section = engine_info["config_section"]
-        voice_list = engine_info["voice_list"]
 
         self.voice_combo.clear()
 
-        if voice_list:
-            # Add predefined voices
-            for name, voice_id in voice_list.items():
-                self.voice_combo.addItem(f"{name} ({voice_id})", voice_id)
-
-            # Set current voice if exists
-            if self.config.has_option(config_section, "voice_id"):
-                current_voice = self.config.get(config_section, "voice_id")
-                for i in range(self.voice_combo.count()):
-                    if self.voice_combo.itemData(i) == current_voice:
-                        self.voice_combo.setCurrentIndex(i)
-                        break
+        # Show current voice if configured
+        if self.config.has_option(config_section, "voice_id"):
+            current_voice = self.config.get(config_section, "voice_id")
+            self.voice_combo.addItem(f"Current: {current_voice}", current_voice)
         else:
-            # For engines without predefined voices, show current value
-            if self.config.has_option(config_section, "voice_id"):
-                current_voice = self.config.get(config_section, "voice_id")
-                self.voice_combo.addItem(current_voice, current_voice)
+            # Show a placeholder
+            self.voice_combo.addItem("No voice configured", "")
 
         # Connect voice selection change (disconnect first to avoid duplicates)
         try:
@@ -720,7 +751,7 @@ class GUIConfigTester(QMainWindow):
         return self.temp_config_path
 
     def test_tts_playback(self, text):
-        """Test TTS playback with current configuration using existing tts_utils"""
+        """Test TTS playback using py3-tts-wrapper directly - this is a PREVIEW tool"""
         # Create temporary config
         temp_config_path = self.create_temp_config()
 
@@ -729,46 +760,21 @@ class GUIConfigTester(QMainWindow):
             temp_config = configparser.ConfigParser()
             temp_config.read(temp_config_path)
 
-            # Get paths using utils.get_paths
-            config_path, audio_files_path = utils.get_paths(temp_config_path)
+            # Get current engine and voice
+            engine = temp_config.get("TTS", "engine", fallback="azureTTS")
+            voice_id = temp_config.get(engine, "voice_id", fallback="")
 
-            # Add App section with required paths
-            if "App" not in temp_config:
-                temp_config["App"] = {}
-            temp_config["App"]["config_path"] = config_path
-            temp_config["App"]["audio_files_path"] = audio_files_path
+            if not voice_id:
+                raise Exception(f"No voice selected for {engine}")
 
-            # Create args dictionary
-            args = {
-                "config": temp_config_path,
-                "listvoices": False,
-                "preview": False,
-                "style": "",
-                "styledegree": None,
-            }
-
-            # Store original state
-            original_config = utils.config if hasattr(utils, 'config') else None
-            original_config_path = utils.config_path if hasattr(utils, 'config_path') else None
-            original_audio_path = utils.audio_files_path if hasattr(utils, 'audio_files_path') else None
-
-            # Initialize utils with proper format
-            utils.init(temp_config, args)
-
-            # Initialize tts_utils with utils
-            tts_utils.init(utils)
-
-            # Use tts_utils.speak to play the text (list_voices=False for playback)
-            tts_utils.speak(text, list_voices=False)
+            # Use py3-tts-wrapper directly for playback
+            tts_client = self.create_tts_client(engine, temp_config)
+            if tts_client:
+                tts_client.speak_streamed(text)
+            else:
+                raise Exception(f"Could not initialize TTS client for {engine}")
 
         finally:
-            # Restore original state
-            if original_config and original_config_path and original_audio_path:
-                utils.config = original_config
-                utils.config_path = original_config_path
-                utils.audio_files_path = original_audio_path
-                tts_utils.utils = utils
-
             # Clean up temp file
             if self.temp_config_path and os.path.exists(self.temp_config_path):
                 try:
@@ -776,6 +782,51 @@ class GUIConfigTester(QMainWindow):
                     self.temp_config_path = None
                 except:
                     pass
+
+    def create_tts_client(self, engine, config):
+        """Create TTS client directly from py3-tts-wrapper"""
+        try:
+            if engine == "azureTTS":
+                from tts_wrapper import MicrosoftTTS
+                key = config.get("azureTTS", "key", fallback="")
+                location = config.get("azureTTS", "location", fallback="")
+                voice_id = config.get("azureTTS", "voice_id", fallback="")
+                if key and location and voice_id:
+                    tts = MicrosoftTTS(credentials=(key, location))
+                    tts.set_voice(voice_id)
+                    return tts
+
+            elif engine == "googleTTS":
+                from tts_wrapper import GoogleTTS
+                creds = config.get("googleTTS", "creds", fallback="")
+                voice_id = config.get("googleTTS", "voice_id", fallback="")
+                if creds and voice_id:
+                    tts = GoogleTTS(credentials=creds)
+                    tts.set_voice(voice_id)
+                    return tts
+
+            elif engine == "SherpaOnnxTTS":
+                from tts_wrapper import SherpaOnnxTTS
+                voice_id = config.get("SherpaOnnxTTS", "voice_id", fallback="")
+                if voice_id:
+                    tts = SherpaOnnxTTS()
+                    tts.set_voice(voice_id)
+                    return tts
+
+            elif engine == "ElevenLabsTTS":
+                from tts_wrapper import ElevenLabsTTS
+                api_key = config.get("ElevenLabsTTS", "api_key", fallback="")
+                voice_id = config.get("ElevenLabsTTS", "voice_id", fallback="")
+                if api_key and voice_id:
+                    tts = ElevenLabsTTS(credentials=api_key)
+                    tts.set_voice(voice_id)
+                    return tts
+
+            return None
+
+        except Exception as e:
+            print(f"Error creating TTS client for {engine}: {e}")
+            return None
 
 
 

@@ -1,6 +1,6 @@
-# AACSpeakHelper GUI Configuration & Testing Tool
+# AACSpeakHelper TTS Preview Tool
 
-The GUI Configuration & Testing Tool provides a user-friendly graphical interface for configuring and testing TTS engines in AACSpeakHelper. This tool complements the existing CLI configuration tool and integrates with the pipe server architecture.
+The TTS Preview Tool provides a user-friendly graphical interface for testing TTS engines and voices with AACSpeakHelper. This is a preview/testing tool that loads settings.cfg as defaults but does not save changes back to the configuration file.
 
 ## Features
 
@@ -32,11 +32,11 @@ uv run python gui_config_tester.py
 ```
 
 ### Installed Version
-After installation, the GUI tool will be available as:
-- **Executable**: `Configure AACSpeakHelper GUI.exe`
-- **Start Menu**: "Configure AACSpeakHelper (GUI)"
-- **Desktop Shortcut**: "Configure AACSpeakHelper (GUI)" (if desktop icons are enabled)
-- **Post-Install Option**: Available as a launch option after installation
+After installation, the TTS Preview Tool will be available as:
+- **Executable**: `AACSpeakHelper TTS Preview.exe`
+- **Start Menu**: "AACSpeakHelper TTS Preview"
+- **Desktop Shortcut**: "AACSpeakHelper TTS Preview" (if desktop icons are enabled)
+- **Post-Install Option**: "Launch TTS Preview Tool" after installation
 
 ## Interface Overview
 

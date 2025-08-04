@@ -40,7 +40,7 @@ uv run python -m PyInstaller client.py --noupx --console --onedir --clean -i .\a
 
 uv run python -m PyInstaller cli_config_creator.py --noupx --console --name "Configure AACSpeakHelper CLI" --onedir --clean -i .\assets\configure.ico -y
 
-uv run python -m PyInstaller gui_config_tester.py --noupx --noconsole --name "Configure AACSpeakHelper GUI" --onedir --clean -i .\assets\configure.ico -y
+uv run python -m PyInstaller gui_config_tester.py --noupx --noconsole --name "AACSpeakHelper TTS Preview" --onedir --clean -i .\assets\configure.ico -y
 
 uv run python -m PyInstaller CreateGridset.py --noupx --noconsole --onedir --clean -y
 
