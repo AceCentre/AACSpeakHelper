@@ -539,18 +539,42 @@ def get_voices_from_engine(engine_key, config):
             for voice in voices:
                 # Handle both dict and object formats
                 if isinstance(voice, dict):
+                    voice_id = voice.get('id', voice.get('voice_id', ''))
+                    voice_name = voice.get('name', voice.get('display_name', ''))
+                    language = voice.get('language', voice.get('locale', ''))
+                    gender = voice.get('gender', '')
+
+                    # Extract language from voice_id if language field is empty
+                    if not language and voice_id and '-' in voice_id:
+                        # Extract language code from voice ID (e.g., 'ps-AF' from 'ps-AF-LatifaNeural')
+                        lang_parts = voice_id.split('-')
+                        if len(lang_parts) >= 2:
+                            language = f"{lang_parts[0]}-{lang_parts[1]}"
+
                     voice_list.append({
-                        'id': voice.get('id', voice.get('voice_id', '')),
-                        'name': voice.get('name', voice.get('display_name', '')),
-                        'language': voice.get('language', voice.get('locale', '')),
-                        'gender': voice.get('gender', '')
+                        'id': voice_id,
+                        'name': voice_name,
+                        'language': language,
+                        'gender': gender
                     })
                 else:
+                    voice_id = getattr(voice, 'id', getattr(voice, 'voice_id', ''))
+                    voice_name = getattr(voice, 'name', getattr(voice, 'display_name', ''))
+                    language = getattr(voice, 'language', getattr(voice, 'locale', ''))
+                    gender = getattr(voice, 'gender', '')
+
+                    # Extract language from voice_id if language field is empty
+                    if not language and voice_id and '-' in voice_id:
+                        # Extract language code from voice ID (e.g., 'ps-AF' from 'ps-AF-LatifaNeural')
+                        lang_parts = voice_id.split('-')
+                        if len(lang_parts) >= 2:
+                            language = f"{lang_parts[0]}-{lang_parts[1]}"
+
                     voice_list.append({
-                        'id': getattr(voice, 'id', getattr(voice, 'voice_id', '')),
-                        'name': getattr(voice, 'name', getattr(voice, 'display_name', '')),
-                        'language': getattr(voice, 'language', getattr(voice, 'locale', '')),
-                        'gender': getattr(voice, 'gender', '')
+                        'id': voice_id,
+                        'name': voice_name,
+                        'language': language,
+                        'gender': gender
                     })
             return voice_list
 
@@ -707,16 +731,39 @@ def configure_voice(config, engine_key):
         for voice in voices:
             voice_name = voice.get('name', voice.get('id', ''))
             voice_id = voice.get('id', voice.get('voice_id', ''))
-            if search_term in voice_name.lower():
+            language = voice.get('language', '')
+            gender = voice.get('gender', '')
+
+            # Create searchable text from all relevant fields
+            searchable_text = f"{voice_name} {voice_id} {language} {gender}".lower()
+
+            if not search_term or search_term in searchable_text:
                 matching_voices.append((voice_name, voice_id))
 
         if not matching_voices:
             print("No matching voices found.")
             return config
 
-        print("\nMatching voices:")
+        print(f"\nFound {len(matching_voices)} matching voices:")
         for i, (voice_name, voice_id) in enumerate(matching_voices):
-            print(f"{i+1}. {voice_name} ({voice_id})")
+            # Find the full voice info for better display
+            voice_info = None
+            for voice in voices:
+                if voice.get('id', voice.get('voice_id', '')) == voice_id:
+                    voice_info = voice
+                    break
+
+            if voice_info:
+                language = voice_info.get('language', '')
+                gender = voice_info.get('gender', '')
+                display_info = f"{voice_name} ({voice_id})"
+                if language:
+                    display_info += f" - {language}"
+                if gender:
+                    display_info += f" - {gender}"
+                print(f"{i+1}. {display_info}")
+            else:
+                print(f"{i+1}. {voice_name} ({voice_id})")
         print(f"{len(matching_voices)+1}. Cancel")
 
         # Get user selection
