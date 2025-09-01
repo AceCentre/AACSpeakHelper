@@ -30,7 +30,8 @@ class ProcessingStep(ABC):
         pass
     
     def should_replace_clipboard(self, config: configparser.ConfigParser) -> bool:
-        """Check if this step should replace the clipboard content."""
+        """Check if this step should replace the clipboard content (deprecated - use global setting)."""
+        # This method is deprecated - clipboard control is now global
         return False
 
 
@@ -41,8 +42,8 @@ class TranslationStep(ProcessingStep):
         super().__init__("translate")
     
     def is_enabled(self, config: configparser.ConfigParser) -> bool:
-        """Check if translation is enabled."""
-        return config.getboolean("translate", "enabled", fallback=False)
+        """Check if translation is enabled (always True if in pipeline)."""
+        return True  # If it's in the pipeline, it's enabled
     
     def process(self, text: str, config: configparser.ConfigParser) -> Optional[str]:
         """Perform translation."""
@@ -67,9 +68,9 @@ class TranslationStep(ProcessingStep):
             return text
     
     def should_replace_clipboard(self, config: configparser.ConfigParser) -> bool:
-        """Check if translation should replace clipboard."""
-        return (self.is_enabled(config) and
-                config.getboolean("translate", "replace_clipboard", fallback=True))
+        """Check if translation should replace clipboard (deprecated - use global setting)."""
+        # This method is deprecated - clipboard control is now global
+        return False
 
 
 class TransliterationStep(ProcessingStep):
@@ -79,8 +80,8 @@ class TransliterationStep(ProcessingStep):
         super().__init__("transliterate")
     
     def is_enabled(self, config: configparser.ConfigParser) -> bool:
-        """Check if transliteration is enabled."""
-        return config.getboolean("transliterate", "enabled", fallback=False)
+        """Check if transliteration is enabled (always True if in pipeline)."""
+        return True  # If it's in the pipeline, it's enabled
     
     def process(self, text: str, config: configparser.ConfigParser) -> Optional[str]:
         """Perform transliteration."""
@@ -105,9 +106,9 @@ class TransliterationStep(ProcessingStep):
             return text
     
     def should_replace_clipboard(self, config: configparser.ConfigParser) -> bool:
-        """Check if transliteration should replace clipboard."""
-        return (self.is_enabled(config) and
-                config.getboolean("transliterate", "replace_clipboard", fallback=True))
+        """Check if transliteration should replace clipboard (deprecated - use global setting)."""
+        # This method is deprecated - clipboard control is now global
+        return False
 
 
 class TTSStep(ProcessingStep):
@@ -117,8 +118,8 @@ class TTSStep(ProcessingStep):
         super().__init__("tts")
     
     def is_enabled(self, config: configparser.ConfigParser) -> bool:
-        """Check if TTS is enabled."""
-        return config.getboolean("tts", "enabled", fallback=True)
+        """Check if TTS is enabled (always True if in pipeline)."""
+        return True  # If it's in the pipeline, it's enabled
     
     def process(self, text: str, config: configparser.ConfigParser) -> Optional[str]:
         """Perform text-to-speech."""
@@ -173,29 +174,21 @@ class ProcessingPipeline:
         """
         steps = []
         
-        # Try new pipeline configuration first
+        # Use pipeline configuration - if it's in the pipeline, it's enabled
         if config.has_option("processing", "pipeline"):
             pipeline_config = config.get("processing", "pipeline", fallback="")
             step_names = [name.strip() for name in pipeline_config.split(",") if name.strip()]
-            
+
             for step_name in step_names:
                 if step_name in self.available_steps:
                     step = self.available_steps[step_name]
-                    if step.is_enabled(config):
-                        steps.append(step)
-                        self.logger.debug(f"Added {step_name} to pipeline")
-                    else:
-                        self.logger.debug(f"Skipped {step_name} (disabled)")
+                    steps.append(step)
+                    self.logger.debug(f"Added {step_name} to pipeline")
                 else:
                     self.logger.warning(f"Unknown processing step: {step_name}")
         else:
-            # Fall back to checking individual enable flags
-            self.logger.debug("No pipeline config found, using individual enable flags")
-            
-            for step_name, step in self.available_steps.items():
-                if step.is_enabled(config):
-                    steps.append(step)
-                    self.logger.debug(f"Added {step_name} to pipeline (individual enable)")
+            # No pipeline config - use empty pipeline
+            self.logger.debug("No pipeline config found, no processing steps will be executed")
         
         return steps
     
@@ -225,29 +218,24 @@ class ProcessingPipeline:
         
         # Process through each step
         current_text = text
-        clipboard_replacement_text = None
-        
+
         for step in steps:
             self.logger.debug(f"Processing with {step.name}")
-            
+
             processed_text = step.process(current_text, config)
-            
+
             if processed_text is not None:
                 current_text = processed_text
-                
-                # Check if this step should replace clipboard
-                if step.should_replace_clipboard(config):
-                    clipboard_replacement_text = current_text
-                    self.logger.debug(f"{step.name} marked for clipboard replacement")
             else:
                 self.logger.warning(f"{step.name} returned None, continuing with previous text")
-        
-        # Handle clipboard replacement
-        if clipboard_replacement_text is not None:
+
+        # Handle global clipboard replacement
+        should_replace_clipboard = config.getboolean("processing", "replace_clipboard", fallback=False)
+        if should_replace_clipboard and current_text != text:
             try:
                 import pyperclip
-                pyperclip.copy(clipboard_replacement_text)
-                self.logger.info("Updated clipboard with processed text")
+                pyperclip.copy(current_text)
+                self.logger.info("Updated clipboard with final processed text")
             except Exception as e:
                 self.logger.error(f"Failed to update clipboard: {e}")
         

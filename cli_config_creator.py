@@ -336,14 +336,13 @@ def create_default_config(config: configparser.ConfigParser) -> None:
 
     # Processing pipeline section
     config["processing"] = {
-        "pipeline": "translate,transliterate,tts"
+        "pipeline": "translate,transliterate,tts",
+        "replace_clipboard": "True"
     }
 
     config["translate"] = {
-        "enabled": "False",
         "source_language": "en",
-        "target_language": "en",
-        "replace_clipboard": "True",
+        "target_language": "ps",
         "provider": "GoogleTranslator",
         "microsoft_translator_secret_key": "",
         "papago_translator_client_id": "",
@@ -362,15 +361,15 @@ def create_default_config(config: configparser.ConfigParser) -> None:
     }
 
     config["transliterate"] = {
-        "enabled": "False",
+        "provider": "MicrosoftTransliterator",
+        "microsoft_transliterator_secret_key": "",
+        "region": "",
         "language": "hi",
         "from_script": "Latn",
         "to_script": "Deva",
-        "replace_clipboard": "True",
     }
 
     config["tts"] = {
-        "enabled": "True",
         "engine": "SherpaOnnxTTS",
         "save_audio": "True",
         "rate": "0",
@@ -485,13 +484,94 @@ def print_menu(config):
         )
 
     print("\nOptions:")
-    print("1. Configure TTS")
-    print("2. Configure Translation")
-    print("3. Configure Transliteration")
-    print("4. View Full Configuration")
-    print("5. Save and Exit")
-    print("6. Exit without Saving")
+    print("1. Configure Processing Pipeline")
+    print("2. Configure TTS")
+    print("3. Configure Translation")
+    print("4. Configure Transliteration")
+    print("5. View Full Configuration")
+    print("6. Save and Exit")
+    print("7. Exit without Saving")
     print("===========================================")
+
+
+def configure_pipeline(config):
+    """Configure the processing pipeline order and steps."""
+    while True:
+        print("\n===== Processing Pipeline Configuration =====")
+
+        # Show current pipeline
+        current_pipeline = config.get("processing", "pipeline", fallback="")
+        print(f"Current pipeline: {current_pipeline}")
+        print("\nAvailable steps:")
+        print("  translate     - Translate text between languages")
+        print("  transliterate - Convert text between scripts (e.g., Latin to Devanagari)")
+        print("  tts           - Convert text to speech")
+
+        print("\nPipeline Configuration Options:")
+        print("1. Set custom pipeline order")
+        print("2. Use preset: Translation + TTS")
+        print("3. Use preset: Transliteration + TTS")
+        print("4. Use preset: All features")
+        print("5. Use preset: TTS only")
+        print("6. Back to main menu")
+
+        choice = input("Enter your choice (1-6): ")
+
+        if choice == "1":
+            print("\nEnter pipeline steps separated by commas.")
+            print("Example: translate,tts")
+            print("Example: translate,transliterate,tts")
+            print("Available: translate, transliterate, tts")
+
+            new_pipeline = input("Enter pipeline: ").strip()
+            if new_pipeline:
+                # Validate pipeline steps
+                valid_steps = {"translate", "transliterate", "tts"}
+                steps = [step.strip() for step in new_pipeline.split(",")]
+                invalid_steps = [step for step in steps if step not in valid_steps]
+
+                if invalid_steps:
+                    print(f"Invalid steps: {', '.join(invalid_steps)}")
+                    print("Please use only: translate, transliterate, tts")
+                else:
+                    config.set("processing", "pipeline", new_pipeline)
+                    print(f"Pipeline set to: {new_pipeline}")
+
+        elif choice == "2":
+            config.set("processing", "pipeline", "translate,tts")
+            print("Pipeline set to: translate,tts")
+
+        elif choice == "3":
+            config.set("processing", "pipeline", "transliterate,tts")
+            print("Pipeline set to: transliterate,tts")
+
+        elif choice == "4":
+            config.set("processing", "pipeline", "translate,transliterate,tts")
+            print("Pipeline set to: translate,transliterate,tts")
+
+        elif choice == "5":
+            config.set("processing", "pipeline", "tts")
+            print("Pipeline set to: tts")
+
+        elif choice == "6":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    # Configure global clipboard replacement
+    print("\n--- Global Clipboard Replacement ---")
+    current_clipboard = config.get("processing", "replace_clipboard", fallback="True")
+    print(f"Currently enabled: {current_clipboard}")
+    print("Replace clipboard with final processed text (useful for AAC apps)")
+    clipboard_choice = input("Replace clipboard with processed text? (y/n) [current]: ").lower()
+    if clipboard_choice == "y":
+        config.set("processing", "replace_clipboard", "True")
+        print("Global clipboard replacement enabled.")
+    elif clipboard_choice == "n":
+        config.set("processing", "replace_clipboard", "False")
+        print("Global clipboard replacement disabled.")
+
+    return config
 
 
 def configure_tts(config):
@@ -1144,22 +1224,8 @@ def configure_translation_settings(config):
         config.set("translate", "enabled", "False")
         print("Translation disabled.")
 
-    # Configure replace_clipboard (replace clipboard)
-    current_replace_clipboard = config.get("translate", "replace_clipboard", fallback="True")
-    print("\nClipboard Replacement")
-    print(f"Currently enabled: {current_replace_clipboard}")
-    print("Replace clipboard content with translated text (useful for AAC apps)")
-    replace_choice = input(
-        "Replace clipboard with translated text? (y/n) [current]: "
-    ).lower()
-    if replace_choice == "y":
-        config.set("translate", "replace_clipboard", "True")
-        print("Clipboard replacement enabled.")
-    elif replace_choice == "n":
-        config.set("translate", "replace_clipboard", "False")
-        print("Clipboard replacement disabled.")
-
     print("Translation settings updated.")
+    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
     return config
 
 
@@ -1262,20 +1328,17 @@ def configure_transliteration(config):
         print(f"  Replace clipboard: {current_replace_pb}")
 
         print("\nOptions:")
-        print("1. Enable/Disable transliteration")
+        print("1. Configure credentials & provider")
         print("2. Configure language and scripts")
-        print("3. Configure clipboard replacement")
-        print("4. Back to main menu")
+        print("3. Back to main menu")
 
-        choice = input("Enter your choice (1-4): ")
+        choice = input("Enter your choice (1-3): ")
 
         if choice == "1":
-            config = configure_transliteration_settings(config)
+            config = configure_transliteration_credentials(config)
         elif choice == "2":
             config = configure_transliteration_language_scripts(config)
         elif choice == "3":
-            config = configure_transliteration_clipboard(config)
-        elif choice == "4":
             break
         else:
             print("Invalid choice. Please try again.")
@@ -1412,30 +1475,49 @@ def configure_transliteration_language_scripts(config):
     return config
 
 
-def configure_transliteration_clipboard(config):
-    """Configure transliteration clipboard replacement settings"""
-    print("\n===== Transliteration Clipboard Settings =====")
+def configure_transliteration_credentials(config):
+    """Configure transliteration provider and credentials"""
+    print("\n===== Transliteration Credentials =====")
 
     # Ensure transliterate section exists
     if not config.has_section("transliterate"):
         config.add_section("transliterate")
 
-    current_replace_clipboard = config.get("transliterate", "replace_clipboard", fallback="True")
-    print(f"Currently replace clipboard: {current_replace_clipboard}")
-    print(
-        "When enabled, transliterated text will replace the original text in clipboard"
-    )
+    # Configure provider
+    current_provider = config.get("transliterate", "provider", fallback="MicrosoftTransliterator")
+    print(f"Current provider: {current_provider}")
+    print("Available providers: MicrosoftTransliterator")
+    provider = input("Enter provider [current]: ").strip()
+    if provider:
+        config.set("transliterate", "provider", provider)
+        print(f"Provider set to: {provider}")
 
-    replace_choice = input(
-        "Replace clipboard with transliterated text? (y/n) [current]: "
-    ).lower()
-    if replace_choice == "y":
-        config.set("transliterate", "replace_clipboard", "True")
-        print("Clipboard replacement enabled.")
-    elif replace_choice == "n":
-        config.set("transliterate", "replace_clipboard", "False")
-        print("Clipboard replacement disabled.")
+    # Configure credentials for Microsoft Transliterator
+    if config.get("transliterate", "provider", fallback="MicrosoftTransliterator") == "MicrosoftTransliterator":
+        print("\n--- Microsoft Transliterator Credentials ---")
 
+        current_key = config.get("transliterate", "microsoft_transliterator_secret_key", fallback="")
+        print(f"Current key: {'*' * len(current_key) if current_key else 'Not set'}")
+        key = input("Enter Microsoft Transliterator secret key [current]: ").strip()
+        if key:
+            config.set("transliterate", "microsoft_transliterator_secret_key", key)
+            print("Microsoft Transliterator key updated.")
+
+        current_region = config.get("transliterate", "region", fallback="")
+        print(f"Current region: {current_region}")
+        region = input("Enter Azure region (e.g., uksouth, eastus) [current]: ").strip()
+        if region:
+            config.set("transliterate", "region", region)
+            print(f"Region set to: {region}")
+
+    return config
+
+
+def configure_transliteration_clipboard(config):
+    """Configure transliteration clipboard replacement settings (deprecated)"""
+    print("\n===== Transliteration Clipboard Settings =====")
+    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
+    print("This setting is deprecated and will be ignored.")
     return config
 
 
@@ -1470,21 +1552,23 @@ def main() -> None:
     # Main menu loop
     while True:
         print_menu(config)
-        choice = input("Enter your choice (1-6): ")
+        choice = input("Enter your choice (1-7): ")
 
         if choice == "1":
-            config = configure_tts(config)
+            config = configure_pipeline(config)
         elif choice == "2":
-            config = configure_translation(config)
+            config = configure_tts(config)
         elif choice == "3":
-            config = configure_transliteration(config)
+            config = configure_translation(config)
         elif choice == "4":
-            view_config(config)
+            config = configure_transliteration(config)
         elif choice == "5":
+            view_config(config)
+        elif choice == "6":
             save_config(config, config_path)
             print("Configuration saved. Exiting...")
             break
-        elif choice == "6":
+        elif choice == "7":
             print("Exiting without saving...")
             break
         else:
