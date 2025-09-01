@@ -150,6 +150,15 @@ def create_default_config():
         "volume": "100"
     }
 
+    # Transliteration section
+    config["transliterate"] = {
+        "no_transliterate": "True",
+        "language": "hi",
+        "from_script": "Latn",
+        "to_script": "Deva",
+        "replace_pb": "True"
+    }
+
     # Azure TTS section
     config["azureTTS"] = {
         "key": "",
