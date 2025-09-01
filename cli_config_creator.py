@@ -513,9 +513,10 @@ def configure_pipeline(config):
         print("3. Use preset: Transliteration + TTS")
         print("4. Use preset: All features")
         print("5. Use preset: TTS only")
-        print("6. Back to main menu")
+        print("6. Configure global clipboard replacement")
+        print("7. Back to main menu")
 
-        choice = input("Enter your choice (1-6): ")
+        choice = input("Enter your choice (1-7): ")
 
         if choice == "1":
             print("\nEnter pipeline steps separated by commas.")
@@ -554,22 +555,23 @@ def configure_pipeline(config):
             print("Pipeline set to: tts")
 
         elif choice == "6":
+            # Configure global clipboard replacement
+            print("\n--- Global Clipboard Replacement ---")
+            current_clipboard = config.get("processing", "replace_clipboard", fallback="True")
+            print(f"Currently enabled: {current_clipboard}")
+            print("Replace clipboard with final processed text (useful for AAC apps)")
+            clipboard_choice = input("Replace clipboard with processed text? (y/n) [current]: ").lower()
+            if clipboard_choice == "y":
+                config.set("processing", "replace_clipboard", "True")
+                print("Global clipboard replacement enabled.")
+            elif clipboard_choice == "n":
+                config.set("processing", "replace_clipboard", "False")
+                print("Global clipboard replacement disabled.")
+
+        elif choice == "7":
             break
         else:
             print("Invalid choice. Please try again.")
-
-    # Configure global clipboard replacement
-    print("\n--- Global Clipboard Replacement ---")
-    current_clipboard = config.get("processing", "replace_clipboard", fallback="True")
-    print(f"Currently enabled: {current_clipboard}")
-    print("Replace clipboard with final processed text (useful for AAC apps)")
-    clipboard_choice = input("Replace clipboard with processed text? (y/n) [current]: ").lower()
-    if clipboard_choice == "y":
-        config.set("processing", "replace_clipboard", "True")
-        print("Global clipboard replacement enabled.")
-    elif clipboard_choice == "n":
-        config.set("processing", "replace_clipboard", "False")
-        print("Global clipboard replacement disabled.")
 
     return config
 
