@@ -414,8 +414,8 @@ def init(input_config, args):
             "uuid": distinct_id,
             "source": "helperApp",
             "version": 2.4,
-            "fromLang": config.get("translate", "start_lang"),
-            "toLang": config.get("translate", "end_lang"),
-            "ttsengine": config.get("TTS", "engine"),
+            "fromLang": config.get("translate", "source_language"),
+            "toLang": config.get("translate", "target_language"),
+            "ttsengine": config.get("tts", "engine"),
         }
         notify_posthog(distinct_id, event_name, event_properties)

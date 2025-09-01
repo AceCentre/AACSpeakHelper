@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""CLI configuration tool for AACSpeakHelper.
+
+A simple command-line interface for configuring AACSpeakHelper settings
+including TTS engines, translation providers, and transliteration options.
+"""
 # cli_config_creator.py
 # A simple CLI configuration tool for AACSpeakHelper
 
@@ -68,6 +73,96 @@ except ImportError:
         Qcri_Translator = {}
         Baidu_Translator = {}
         Yandex_Translator = {}
+
+def get_language_codes_for_search(language_name: str) -> list[str]:
+    """
+    Get language codes for a given language name using langcodes library.
+
+    Args:
+        language_name: Language name in English (e.g., 'marathi', 'hindi')
+
+    Returns:
+        List of language code patterns to search for
+
+    """
+    try:
+        import langcodes
+
+        # Normalize the language name
+        language_name = language_name.lower().strip()
+
+        # Try to find the language by name
+        try:
+            # First try direct lookup by name
+            lang = langcodes.find(language_name)
+            if lang:
+                # Get the main language code
+                main_code = lang.language
+
+                # Generate common patterns for this language code
+                patterns = [
+                    f"{main_code}-",  # e.g., "mr-"
+                    f"{main_code}_",  # e.g., "mr_"
+                ]
+
+                # Add common regional variants if we know them
+                if main_code == "en":
+                    patterns.extend(["en-us", "en-gb", "en-au", "en-ca"])
+                elif main_code == "es":
+                    patterns.extend(["es-es", "es-mx", "es-ar"])
+                elif main_code == "fr":
+                    patterns.extend(["fr-fr", "fr-ca"])
+                elif main_code == "pt":
+                    patterns.extend(["pt-br", "pt-pt"])
+                elif main_code == "zh":
+                    patterns.extend(["zh-cn", "zh-tw", "cmn"])
+                elif main_code == "no":
+                    patterns.extend(["nb-", "nn-"])
+
+                return patterns
+
+        except Exception:
+            pass
+
+        # Fallback: try some common manual mappings for languages that might not be found
+        manual_mappings = {
+            "marathi": ["mr-", "mr_"],
+            "hindi": ["hi-", "hi_"],
+            "tamil": ["ta-", "ta_"],
+            "telugu": ["te-", "te_"],
+            "bengali": ["bn-", "bn_"],
+            "gujarati": ["gu-", "gu_"],
+            "kannada": ["kn-", "kn_"],
+            "malayalam": ["ml-", "ml_"],
+            "punjabi": ["pa-", "pa_"],
+            "urdu": ["ur-", "ur_"],
+            "nepali": ["ne-", "ne_"],
+            "sinhala": ["si-", "si_"],
+            "pashto": ["ps-", "ps_"],
+            "dari": ["prs-", "prs_"],
+            "filipino": ["fil-", "tl-"],
+            "chinese": ["zh-", "zh_", "cmn"],
+            "mandarin": ["zh-", "zh_", "cmn"],
+        }
+
+        if language_name in manual_mappings:
+            return manual_mappings[language_name]
+
+        return []
+
+    except ImportError:
+        # Fallback if langcodes is not available - use minimal manual mapping
+        basic_mappings = {
+            "english": ["en-", "en_"],
+            "spanish": ["es-", "es_"],
+            "french": ["fr-", "fr_"],
+            "german": ["de-", "de_"],
+            "marathi": ["mr-", "mr_"],
+            "hindi": ["hi-", "hi_"],
+            "tamil": ["ta-", "ta_"],
+            "chinese": ["zh-", "zh_", "cmn"],
+        }
+        return basic_mappings.get(language_name, [])
 
 # Define TTS engines
 TTS_ENGINES = {
@@ -196,8 +291,8 @@ TRANSLATION_PROVIDERS = {
 }
 
 
-def get_config_dir():
-    """Get the configuration directory path"""
+def get_config_dir() -> str:
+    """Get the configuration directory path."""
     if getattr(sys, "frozen", False):
         config_dir = os.path.join(
             os.path.expanduser("~"),
@@ -213,8 +308,8 @@ def get_config_dir():
     return config_dir
 
 
-def load_config(custom_config_path=None):
-    """Load configuration from file"""
+def load_config(custom_config_path: str | None = None) -> configparser.ConfigParser:
+    """Load configuration from file."""
     config = configparser.ConfigParser()
 
     if custom_config_path:
@@ -232,18 +327,22 @@ def load_config(custom_config_path=None):
     return config, config_path
 
 
-def create_default_config(config):
-    """Create a default configuration"""
+def create_default_config(config: configparser.ConfigParser) -> None:
+    """Create a default configuration."""
     import uuid
 
     # Add default sections and values
     config["App"] = {"collectstats": "True", "uuid": str(uuid.uuid4())}
 
+    # Processing pipeline section
+    config["processing"] = {
+        "pipeline": "translate,transliterate,tts",
+        "replace_clipboard": "True"
+    }
+
     config["translate"] = {
-        "no_translate": "False",
-        "start_lang": "en",
-        "end_lang": "en",
-        "replace_pb": "True",
+        "source_language": "en",
+        "target_language": "ps",
         "provider": "GoogleTranslator",
         "microsoft_translator_secret_key": "",
         "papago_translator_client_id": "",
@@ -262,17 +361,17 @@ def create_default_config(config):
     }
 
     config["transliterate"] = {
-        "no_transliterate": "True",
+        "provider": "MicrosoftTransliterator",
+        "microsoft_transliterator_secret_key": "",
+        "region": "",
         "language": "hi",
         "from_script": "Latn",
         "to_script": "Deva",
-        "replace_pb": "True",
     }
 
-    config["TTS"] = {
+    config["tts"] = {
         "engine": "SherpaOnnxTTS",
-        "bypass_tts": "False",
-        "save_audio_file": "True",
+        "save_audio": "True",
         "rate": "0",
         "volume": "100",
     }
@@ -316,8 +415,8 @@ def create_default_config(config):
     return config
 
 
-def save_config(config, config_path):
-    """Save configuration to file"""
+def save_config(config: configparser.ConfigParser, config_path: str) -> None:
+    """Save configuration to file."""
     with open(config_path, "w") as configfile:
         config.write(configfile)
     print(f"Configuration saved to {config_path}")
@@ -328,7 +427,7 @@ def print_menu(config):
     print("\n===== AACSpeakHelper Configuration Tool =====")
 
     # Display current TTS configuration
-    tts_engine = config.get("TTS", "engine", fallback="Not configured")
+    tts_engine = config.get("tts", "engine", fallback="Not configured")
     tts_voice = "Not configured"
 
     # Get the voice ID from the appropriate section based on the engine
@@ -356,11 +455,11 @@ def print_menu(config):
 
     # Display current translation configuration
     trans_provider = config.get("translate", "provider", fallback="Not configured")
-    trans_source = config.get("translate", "start_lang", fallback="Not configured")
-    trans_target = config.get("translate", "end_lang", fallback="Not configured")
+    trans_source = config.get("translate", "source_language", fallback="Not configured")
+    trans_target = config.get("translate", "target_language", fallback="Not configured")
 
     # Display current transliteration configuration
-    translit_disabled = config.get("transliterate", "no_transliterate", fallback="True")
+    translit_enabled = config.get("transliterate", "enabled", fallback="False")
     translit_language = config.get(
         "transliterate", "language", fallback="Not configured"
     )
@@ -370,7 +469,7 @@ def print_menu(config):
     translit_to_script = config.get(
         "transliterate", "to_script", fallback="Not configured"
     )
-    translit_status = "Disabled" if translit_disabled == "True" else "Enabled"
+    translit_status = "Enabled" if translit_enabled == "True" else "Disabled"
 
     # Display the configuration summary
     print("\nCurrent Configuration:")
@@ -379,19 +478,100 @@ def print_menu(config):
     print(f"Translation Provider: {trans_provider}")
     print(f"Translation: {trans_source} → {trans_target}")
     print(f"Transliteration: {translit_status}")
-    if translit_disabled == "False":
+    if translit_enabled == "True":
         print(
             f"Transliteration: {translit_language} ({translit_from_script} → {translit_to_script})"
         )
 
     print("\nOptions:")
-    print("1. Configure TTS")
-    print("2. Configure Translation")
-    print("3. Configure Transliteration")
-    print("4. View Full Configuration")
-    print("5. Save and Exit")
-    print("6. Exit without Saving")
+    print("1. Configure Processing Pipeline")
+    print("2. Configure TTS")
+    print("3. Configure Translation")
+    print("4. Configure Transliteration")
+    print("5. View Full Configuration")
+    print("6. Save and Exit")
+    print("7. Exit without Saving")
     print("===========================================")
+
+
+def configure_pipeline(config):
+    """Configure the processing pipeline order and steps."""
+    while True:
+        print("\n===== Processing Pipeline Configuration =====")
+
+        # Show current pipeline
+        current_pipeline = config.get("processing", "pipeline", fallback="")
+        print(f"Current pipeline: {current_pipeline}")
+        print("\nAvailable steps:")
+        print("  translate     - Translate text between languages")
+        print("  transliterate - Convert text between scripts (e.g., Latin to Devanagari)")
+        print("  tts           - Convert text to speech")
+
+        print("\nPipeline Configuration Options:")
+        print("1. Set custom pipeline order")
+        print("2. Use preset: Translation + TTS")
+        print("3. Use preset: Transliteration + TTS")
+        print("4. Use preset: All features")
+        print("5. Use preset: TTS only")
+        print("6. Back to main menu")
+
+        choice = input("Enter your choice (1-6): ")
+
+        if choice == "1":
+            print("\nEnter pipeline steps separated by commas.")
+            print("Example: translate,tts")
+            print("Example: translate,transliterate,tts")
+            print("Available: translate, transliterate, tts")
+
+            new_pipeline = input("Enter pipeline: ").strip()
+            if new_pipeline:
+                # Validate pipeline steps
+                valid_steps = {"translate", "transliterate", "tts"}
+                steps = [step.strip() for step in new_pipeline.split(",")]
+                invalid_steps = [step for step in steps if step not in valid_steps]
+
+                if invalid_steps:
+                    print(f"Invalid steps: {', '.join(invalid_steps)}")
+                    print("Please use only: translate, transliterate, tts")
+                else:
+                    config.set("processing", "pipeline", new_pipeline)
+                    print(f"Pipeline set to: {new_pipeline}")
+
+        elif choice == "2":
+            config.set("processing", "pipeline", "translate,tts")
+            print("Pipeline set to: translate,tts")
+
+        elif choice == "3":
+            config.set("processing", "pipeline", "transliterate,tts")
+            print("Pipeline set to: transliterate,tts")
+
+        elif choice == "4":
+            config.set("processing", "pipeline", "translate,transliterate,tts")
+            print("Pipeline set to: translate,transliterate,tts")
+
+        elif choice == "5":
+            config.set("processing", "pipeline", "tts")
+            print("Pipeline set to: tts")
+
+        elif choice == "6":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    # Configure global clipboard replacement
+    print("\n--- Global Clipboard Replacement ---")
+    current_clipboard = config.get("processing", "replace_clipboard", fallback="True")
+    print(f"Currently enabled: {current_clipboard}")
+    print("Replace clipboard with final processed text (useful for AAC apps)")
+    clipboard_choice = input("Replace clipboard with processed text? (y/n) [current]: ").lower()
+    if clipboard_choice == "y":
+        config.set("processing", "replace_clipboard", "True")
+        print("Global clipboard replacement enabled.")
+    elif clipboard_choice == "n":
+        config.set("processing", "replace_clipboard", "False")
+        print("Global clipboard replacement disabled.")
+
+    return config
 
 
 def configure_tts(config):
@@ -400,14 +580,14 @@ def configure_tts(config):
         print("\n===== TTS Configuration =====")
 
         # Show current TTS settings
-        current_engine = config.get("TTS", "engine", fallback="Not configured")
-        current_bypass = config.get("TTS", "bypass_tts", fallback="False")
-        current_save_audio = config.get("TTS", "save_audio_file", fallback="True")
-        current_rate = config.get("TTS", "rate", fallback="0")
-        current_volume = config.get("TTS", "volume", fallback="100")
+        current_engine = config.get("tts", "engine", fallback="Not configured")
+        current_enabled = config.get("tts", "enabled", fallback="True")
+        current_save_audio = config.get("tts", "save_audio", fallback="True")
+        current_rate = config.get("tts", "rate", fallback="0")
+        current_volume = config.get("tts", "volume", fallback="100")
 
         print(f"Current TTS Engine: {current_engine}")
-        print(f"Bypass TTS: {current_bypass}")
+        print(f"TTS Enabled: {current_enabled}")
         print(f"Save Audio Files: {current_save_audio}")
         print(f"Speech Rate: {current_rate}")
         print(f"Volume: {current_volume}")
@@ -461,7 +641,7 @@ def select_tts_engine(config):
     # Use the config section name instead of display name for the engine
     engine_section = TTS_ENGINES[selected_engine]["config_section"]
     engine_name = TTS_ENGINES[selected_engine]["name"]
-    config.set("TTS", "engine", engine_section)
+    config.set("tts", "engine", engine_section)
     print(f"Selected TTS engine: {engine_name} (config: {engine_section})")
 
     # Configure engine-specific settings
@@ -485,31 +665,38 @@ def select_tts_engine(config):
 
 
 def configure_tts_settings(config):
-    """Configure general TTS settings like bypass, save audio, rate, volume"""
+    """Configure general TTS settings like enable/disable, save audio, rate, volume"""
     print("\n===== TTS Settings =====")
 
-    # Configure bypass TTS
-    current_bypass = config.get("TTS", "bypass_tts", fallback="False")
-    print("\nBypass TTS (skip text-to-speech entirely)")
-    print(f"Current value: {current_bypass}")
-    bypass_choice = input("Bypass TTS? (y/n) [current]: ").lower()
-    if bypass_choice == "y":
-        config.set("TTS", "bypass_tts", "True")
-    elif bypass_choice == "n":
-        config.set("TTS", "bypass_tts", "False")
+    # Ensure tts section exists
+    if not config.has_section("tts"):
+        config.add_section("tts")
+
+    # Configure TTS enabled/disabled
+    current_enabled = config.get("tts", "enabled", fallback="True")
+    print("\nTTS Status")
+    print(f"Currently enabled: {current_enabled}")
+    print("Enable text-to-speech to hear the processed text")
+    tts_choice = input("Enable TTS? (y/n) [current]: ").lower()
+    if tts_choice == "y":
+        config.set("tts", "enabled", "True")
+        print("TTS enabled.")
+    elif tts_choice == "n":
+        config.set("tts", "enabled", "False")
+        print("TTS disabled.")
 
     # Configure save audio file
-    current_save = config.get("TTS", "save_audio_file", fallback="True")
+    current_save = config.get("tts", "save_audio", fallback="True")
     print("\nSave Audio Files (cache audio for faster playback)")
     print(f"Current value: {current_save}")
     save_choice = input("Save audio files? (y/n) [current]: ").lower()
     if save_choice == "y":
-        config.set("TTS", "save_audio_file", "True")
+        config.set("tts", "save_audio", "True")
     elif save_choice == "n":
-        config.set("TTS", "save_audio_file", "False")
+        config.set("tts", "save_audio", "False")
 
     # Configure speech rate
-    current_rate = config.get("TTS", "rate", fallback="0")
+    current_rate = config.get("tts", "rate", fallback="0")
     print("\nSpeech Rate (0=normal, negative=slower, positive=faster)")
     print(f"Current value: {current_rate}")
     rate_input = input("Enter speech rate [-50 to 50] [current]: ")
@@ -517,14 +704,14 @@ def configure_tts_settings(config):
         try:
             rate_value = int(rate_input)
             if -50 <= rate_value <= 50:
-                config.set("TTS", "rate", str(rate_value))
+                config.set("tts", "rate", str(rate_value))
             else:
                 print("Rate must be between -50 and 50. Keeping current value.")
         except ValueError:
             print("Invalid rate value. Keeping current value.")
 
     # Configure volume
-    current_volume = config.get("TTS", "volume", fallback="100")
+    current_volume = config.get("tts", "volume", fallback="100")
     print("\nVolume (100=normal, 50=quieter, 150=louder)")
     print(f"Current value: {current_volume}")
     volume_input = input("Enter volume [0 to 200] [current]: ")
@@ -532,7 +719,7 @@ def configure_tts_settings(config):
         try:
             volume_value = int(volume_input)
             if 0 <= volume_value <= 200:
-                config.set("TTS", "volume", str(volume_value))
+                config.set("tts", "volume", str(volume_value))
             else:
                 print("Volume must be between 0 and 200. Keeping current value.")
         except ValueError:
@@ -785,7 +972,7 @@ def configure_voice(config, engine_key):
     if voices:
         # Allow searching by language
         search_term = input(
-            "Search for a voice by language name (or press Enter to see all): "
+            "Search for a voice by language name (e.g., 'marathi', 'hindi', 'english') or press Enter to see all: "
         ).lower()
 
         matching_voices = []
@@ -798,8 +985,20 @@ def configure_voice(config, engine_key):
             # Create searchable text from all relevant fields
             searchable_text = f"{voice_name} {voice_id} {language} {gender}".lower()
 
-            if not search_term or search_term in searchable_text:
+            # Enhanced search logic
+            if not search_term:
                 matching_voices.append((voice_name, voice_id))
+            else:
+                # Direct text search
+                if search_term in searchable_text:
+                    matching_voices.append((voice_name, voice_id))
+                else:
+                    # Language name to code mapping search
+                    language_codes = get_language_codes_for_search(search_term)
+                    for code in language_codes:
+                        if code.lower() in searchable_text:
+                            matching_voices.append((voice_name, voice_id))
+                            break
 
         if not matching_voices:
             print("No matching voices found.")
@@ -860,13 +1059,25 @@ def configure_voice(config, engine_key):
 
     # Allow searching by language
     search_term = input(
-        "Search for a voice by language name (or press Enter to see all): "
+        "Search for a voice by language name (e.g., 'marathi', 'hindi', 'english') or press Enter to see all: "
     ).lower()
 
     matching_voices = []
     for voice_name, voice_id in voice_list.items():
-        if search_term in voice_name.lower():
+        # Enhanced search logic for fallback voice list
+        if not search_term:
             matching_voices.append((voice_name, voice_id))
+        else:
+            # Direct text search
+            if search_term in voice_name.lower():
+                matching_voices.append((voice_name, voice_id))
+            else:
+                # Language name to code mapping search
+                language_codes = get_language_codes_for_search(search_term)
+                for code in language_codes:
+                    if code.lower() in voice_name.lower() or code.lower() in voice_id.lower():
+                        matching_voices.append((voice_name, voice_id))
+                        break
 
     if not matching_voices:
         print("No matching voices found.")
@@ -1000,31 +1211,21 @@ def configure_translation_settings(config):
     """Configure general translation settings like enable/disable, clipboard replacement"""
     print("\n===== Translation Settings =====")
 
-    # Configure no_translate (disable translation)
-    current_no_translate = config.get("translate", "no_translate", fallback="False")
+    # Configure translation enabled/disabled
+    current_enabled = config.get("translate", "enabled", fallback="False")
     print("\nTranslation Status")
-    print(f"Currently disabled: {current_no_translate}")
-    print("Disable translation if your text is already in the target language")
-    translate_choice = input("Disable translation? (y/n) [current]: ").lower()
+    print(f"Currently enabled: {current_enabled}")
+    print("Enable translation to convert text from one language to another")
+    translate_choice = input("Enable translation? (y/n) [current]: ").lower()
     if translate_choice == "y":
-        config.set("translate", "no_translate", "True")
+        config.set("translate", "enabled", "True")
+        print("Translation enabled.")
     elif translate_choice == "n":
-        config.set("translate", "no_translate", "False")
-
-    # Configure replace_pb (replace clipboard)
-    current_replace = config.get("translate", "replace_pb", fallback="True")
-    print("\nClipboard Replacement")
-    print(f"Currently enabled: {current_replace}")
-    print("Replace clipboard content with translated text (useful for AAC apps)")
-    replace_choice = input(
-        "Replace clipboard with translated text? (y/n) [current]: "
-    ).lower()
-    if replace_choice == "y":
-        config.set("translate", "replace_pb", "True")
-    elif replace_choice == "n":
-        config.set("translate", "replace_pb", "False")
+        config.set("translate", "enabled", "False")
+        print("Translation disabled.")
 
     print("Translation settings updated.")
+    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
     return config
 
 
@@ -1045,8 +1246,8 @@ def configure_languages(config, provider_key):
         )
         if not end_lang:
             return config
-        config.set("translate", "start_lang", start_lang)
-        config.set("translate", "end_lang", end_lang)
+        config.set("translate", "source_language", start_lang)
+        config.set("translate", "target_language", end_lang)
         return config
 
     # Configure source language
@@ -1072,7 +1273,7 @@ def configure_languages(config, provider_key):
 
     # Update the source language
     lang_name, lang_code = selected_lang
-    config.set("translate", "start_lang", lang_code)
+    config.set("translate", "source_language", lang_code)
     print(f"Selected source language: {lang_name} ({lang_code})")
 
     # Configure target language
@@ -1097,7 +1298,7 @@ def configure_languages(config, provider_key):
 
     # Update the target language
     lang_name, lang_code = selected_lang
-    config.set("translate", "end_lang", lang_code)
+    config.set("translate", "target_language", lang_code)
     print(f"Selected target language: {lang_name} ({lang_code})")
 
     return config
@@ -1119,7 +1320,7 @@ def configure_transliteration(config):
         current_to_script = config.get("transliterate", "to_script", fallback="Deva")
         current_replace_pb = config.get("transliterate", "replace_pb", fallback="True")
 
-        print(f"Current settings:")
+        print("Current settings:")
         print(f"  Transliteration disabled: {current_no_transliterate}")
         print(f"  Language: {current_language}")
         print(f"  From script: {current_from_script}")
@@ -1127,20 +1328,17 @@ def configure_transliteration(config):
         print(f"  Replace clipboard: {current_replace_pb}")
 
         print("\nOptions:")
-        print("1. Enable/Disable transliteration")
+        print("1. Configure credentials & provider")
         print("2. Configure language and scripts")
-        print("3. Configure clipboard replacement")
-        print("4. Back to main menu")
+        print("3. Back to main menu")
 
-        choice = input("Enter your choice (1-4): ")
+        choice = input("Enter your choice (1-3): ")
 
         if choice == "1":
-            config = configure_transliteration_settings(config)
+            config = configure_transliteration_credentials(config)
         elif choice == "2":
             config = configure_transliteration_language_scripts(config)
         elif choice == "3":
-            config = configure_transliteration_clipboard(config)
-        elif choice == "4":
             break
         else:
             print("Invalid choice. Please try again.")
@@ -1156,21 +1354,21 @@ def configure_transliteration_settings(config):
     if not config.has_section("transliterate"):
         config.add_section("transliterate")
 
-    # Configure no_transliterate (disable transliteration)
-    current_no_transliterate = config.get(
-        "transliterate", "no_transliterate", fallback="True"
+    # Configure transliteration enabled/disabled
+    current_enabled = config.get(
+        "transliterate", "enabled", fallback="False"
     )
     print("\nTransliteration Status")
-    print(f"Currently disabled: {current_no_transliterate}")
+    print(f"Currently enabled: {current_enabled}")
     print(
         "Enable transliteration to convert text between scripts (e.g., Latin to Devanagari)"
     )
     transliterate_choice = input("Enable transliteration? (y/n) [current]: ").lower()
     if transliterate_choice == "y":
-        config.set("transliterate", "no_transliterate", "False")
+        config.set("transliterate", "enabled", "True")
         print("Transliteration enabled.")
     elif transliterate_choice == "n":
-        config.set("transliterate", "no_transliterate", "True")
+        config.set("transliterate", "enabled", "False")
         print("Transliteration disabled.")
 
     return config
@@ -1277,30 +1475,49 @@ def configure_transliteration_language_scripts(config):
     return config
 
 
-def configure_transliteration_clipboard(config):
-    """Configure transliteration clipboard replacement settings"""
-    print("\n===== Transliteration Clipboard Settings =====")
+def configure_transliteration_credentials(config):
+    """Configure transliteration provider and credentials"""
+    print("\n===== Transliteration Credentials =====")
 
     # Ensure transliterate section exists
     if not config.has_section("transliterate"):
         config.add_section("transliterate")
 
-    current_replace_pb = config.get("transliterate", "replace_pb", fallback="True")
-    print(f"Currently replace clipboard: {current_replace_pb}")
-    print(
-        "When enabled, transliterated text will replace the original text in clipboard"
-    )
+    # Configure provider
+    current_provider = config.get("transliterate", "provider", fallback="MicrosoftTransliterator")
+    print(f"Current provider: {current_provider}")
+    print("Available providers: MicrosoftTransliterator")
+    provider = input("Enter provider [current]: ").strip()
+    if provider:
+        config.set("transliterate", "provider", provider)
+        print(f"Provider set to: {provider}")
 
-    replace_choice = input(
-        "Replace clipboard with transliterated text? (y/n) [current]: "
-    ).lower()
-    if replace_choice == "y":
-        config.set("transliterate", "replace_pb", "True")
-        print("Clipboard replacement enabled.")
-    elif replace_choice == "n":
-        config.set("transliterate", "replace_pb", "False")
-        print("Clipboard replacement disabled.")
+    # Configure credentials for Microsoft Transliterator
+    if config.get("transliterate", "provider", fallback="MicrosoftTransliterator") == "MicrosoftTransliterator":
+        print("\n--- Microsoft Transliterator Credentials ---")
 
+        current_key = config.get("transliterate", "microsoft_transliterator_secret_key", fallback="")
+        print(f"Current key: {'*' * len(current_key) if current_key else 'Not set'}")
+        key = input("Enter Microsoft Transliterator secret key [current]: ").strip()
+        if key:
+            config.set("transliterate", "microsoft_transliterator_secret_key", key)
+            print("Microsoft Transliterator key updated.")
+
+        current_region = config.get("transliterate", "region", fallback="")
+        print(f"Current region: {current_region}")
+        region = input("Enter Azure region (e.g., uksouth, eastus) [current]: ").strip()
+        if region:
+            config.set("transliterate", "region", region)
+            print(f"Region set to: {region}")
+
+    return config
+
+
+def configure_transliteration_clipboard(config):
+    """Configure transliteration clipboard replacement settings (deprecated)"""
+    print("\n===== Transliteration Clipboard Settings =====")
+    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
+    print("This setting is deprecated and will be ignored.")
     return config
 
 
@@ -1315,8 +1532,8 @@ def view_config(config):
     input("\nPress Enter to continue...")
 
 
-def main():
-    """Main function"""
+def main() -> None:
+    """Run the main CLI configuration interface."""
     parser = argparse.ArgumentParser(
         description="AACSpeakHelper CLI Configuration Tool"
     )
@@ -1335,21 +1552,23 @@ def main():
     # Main menu loop
     while True:
         print_menu(config)
-        choice = input("Enter your choice (1-6): ")
+        choice = input("Enter your choice (1-7): ")
 
         if choice == "1":
-            config = configure_tts(config)
+            config = configure_pipeline(config)
         elif choice == "2":
-            config = configure_translation(config)
+            config = configure_tts(config)
         elif choice == "3":
-            config = configure_transliteration(config)
+            config = configure_translation(config)
         elif choice == "4":
-            view_config(config)
+            config = configure_transliteration(config)
         elif choice == "5":
+            view_config(config)
+        elif choice == "6":
             save_config(config, config_path)
             print("Configuration saved. Exiting...")
             break
-        elif choice == "6":
+        elif choice == "7":
             print("Exiting without saving...")
             break
         else:

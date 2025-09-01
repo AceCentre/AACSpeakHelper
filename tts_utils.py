@@ -374,7 +374,7 @@ def speak(text="", list_voices=False):
     logging.info(f"Available config sections: {utils.config.sections()}")
 
     try:
-        ttsengine = utils.config.get("TTS", "engine")
+        ttsengine = utils.config.get("tts", "engine")
         logging.info(f"TTS engine from config: {ttsengine}")
 
         voice_id = utils.config.get(ttsengine, "voice_id")

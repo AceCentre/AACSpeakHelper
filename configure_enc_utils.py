@@ -118,12 +118,17 @@ def create_default_config():
         "uuid": str(uuid.uuid4())
     }
 
+    # Processing pipeline section
+    config["processing"] = {
+        "pipeline": "translate,transliterate,tts"
+    }
+
     # Translate section
     config["translate"] = {
-        "no_translate": "False",
-        "start_lang": "en",
-        "end_lang": "en",
-        "replace_pb": "True",
+        "enabled": "False",
+        "source_language": "en",
+        "target_language": "en",
+        "replace_clipboard": "True",
         "provider": "GoogleTranslator",
         "microsoft_translator_secret_key": "",
         "papago_translator_client_id": "",
@@ -142,21 +147,21 @@ def create_default_config():
     }
 
     # TTS section
-    config["TTS"] = {
+    config["tts"] = {
+        "enabled": "True",
         "engine": "SherpaOnnxTTS",
-        "bypass_tts": "False",
-        "save_audio_file": "True",
+        "save_audio": "True",
         "rate": "0",
         "volume": "100"
     }
 
     # Transliteration section
     config["transliterate"] = {
-        "no_transliterate": "True",
+        "enabled": "False",
         "language": "hi",
         "from_script": "Latn",
         "to_script": "Deva",
-        "replace_pb": "True"
+        "replace_clipboard": "True"
     }
 
     # Azure TTS section

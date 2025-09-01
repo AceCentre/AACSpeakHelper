@@ -29,9 +29,8 @@ Author: Ace Centre
 
 import requests
 import uuid
-import json
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 
 class AzureTransliterator:
@@ -169,12 +168,18 @@ def transliterate_text(text: str, config, language: str = None, from_script: str
         Optional[str]: Transliterated text, or None if transliteration failed
     """
     try:
-        # Get credentials from config (same as Microsoft Translator)
-        subscription_key = config.get("translate", "microsoft_translator_secret_key", fallback="")
-        region = config.get("translate", "region", fallback="")
-        
+        # Get credentials from transliterate section first, fallback to translate section
+        subscription_key = config.get("transliterate", "microsoft_transliterator_secret_key", fallback="")
+        region = config.get("transliterate", "region", fallback="")
+
+        # Fallback to translate section for backward compatibility
+        if not subscription_key:
+            subscription_key = config.get("translate", "microsoft_translator_secret_key", fallback="")
+        if not region:
+            region = config.get("translate", "region", fallback="")
+
         if not subscription_key or not region:
-            logging.error("Azure transliteration credentials not found in configuration")
+            logging.error("Azure transliteration credentials not found in [transliterate] or [translate] configuration sections")
             return None
         
         # Get transliteration settings from config

@@ -142,6 +142,35 @@ It will now have a config.enc file created. Our code will use that. If keys are 
 
 ## Configuration
 
+AACSpeakHelper uses a modern, intuitive configuration system with positive boolean logic. Instead of confusing double-negative settings like `no_translate = False`, the new system uses clear, positive values like `enabled = true`.
+
+### New Configuration Format
+
+The configuration now uses a modular processing pipeline with intuitive settings:
+
+```ini
+[processing]
+pipeline = translate,transliterate,tts    # Define processing order
+
+[translate]
+enabled = true                           # Clear: true means translation is active
+source_language = en
+target_language = ps
+replace_clipboard = true
+
+[transliterate]
+enabled = true                           # Clear: true means transliteration is active
+language = hi
+from_script = Latn
+to_script = Deva
+replace_clipboard = true
+
+[tts]
+enabled = true                           # Clear: true means TTS is active
+engine = azureTTS
+save_audio = true
+```
+
 Before using AACSpeakHelper, you need to configure it. There are three main approaches:
 
 ### 1. GUI Configuration & Testing Tool (Recommended)
@@ -170,12 +199,14 @@ uv run python cli_config_creator.py
 
 For installed versions, use the "Configure AACSpeakHelper CLI" application from your start menu.
 
-The CLI tool provides an interactive menu to:
-- Configure TTS engines (Sherpa-ONNX, Azure TTS, Google TTS, etc.)
-- Set up translation providers (Google Translator, Microsoft Translator, etc.)
-- Configure transliteration settings for script conversion (Latin ↔ Devanagari, etc.)
-- Configure language pairs and voice settings
+The CLI tool provides an interactive menu with intuitive language:
+- Configure TTS engines with clear enable/disable options
+- Set up translation providers with positive boolean logic
+- Configure transliteration settings with easy-to-understand prompts
+- Configure processing pipeline order
 - Save and manage multiple configuration files
+
+**Key Improvement**: The CLI now uses positive language like "Enable translation?" instead of confusing double-negatives like "Disable translation?"
 
 ### 3. Manual Configuration
 
