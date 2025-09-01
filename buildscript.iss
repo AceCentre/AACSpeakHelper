@@ -6,7 +6,7 @@
 
 #if MyAppVersion == ""
   #undef MyAppVersion
-  #define MyAppVersion "2.4.0"
+  #define MyAppVersion "2.5.0"
 #endif
 
 #define MyAppPublisher "Ace Centre"
