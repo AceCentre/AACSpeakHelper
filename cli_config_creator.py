@@ -1152,6 +1152,10 @@ def configure_transliteration_settings(config):
     """Configure general transliteration settings like enable/disable"""
     print("\n===== Transliteration Settings =====")
 
+    # Ensure transliterate section exists
+    if not config.has_section("transliterate"):
+        config.add_section("transliterate")
+
     # Configure no_transliterate (disable transliteration)
     current_no_transliterate = config.get(
         "transliterate", "no_transliterate", fallback="True"
@@ -1175,6 +1179,10 @@ def configure_transliteration_settings(config):
 def configure_transliteration_language_scripts(config):
     """Configure transliteration language and script settings"""
     print("\n===== Transliteration Language & Scripts =====")
+
+    # Ensure transliterate section exists
+    if not config.has_section("transliterate"):
+        config.add_section("transliterate")
 
     # Import transliteration mappings
     try:
@@ -1272,6 +1280,10 @@ def configure_transliteration_language_scripts(config):
 def configure_transliteration_clipboard(config):
     """Configure transliteration clipboard replacement settings"""
     print("\n===== Transliteration Clipboard Settings =====")
+
+    # Ensure transliterate section exists
+    if not config.has_section("transliterate"):
+        config.add_section("transliterate")
 
     current_replace_pb = config.get("transliterate", "replace_pb", fallback="True")
     print(f"Currently replace clipboard: {current_replace_pb}")

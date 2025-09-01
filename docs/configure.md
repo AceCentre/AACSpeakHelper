@@ -13,9 +13,10 @@ The CLI tool provides an interactive menu with the following options:
 
 1. **Configure TTS Engine** - Set up your Text-to-Speech engine and voice
 2. **Configure Translation** - Set up translation settings and language pairs
-3. **View Current Configuration** - Review your current settings
-4. **Save and Exit** - Save your changes and exit
-5. **Exit without Saving** - Exit without saving changes
+3. **Configure Transliteration** - Set up script conversion settings (e.g., Latin to Devanagari)
+4. **View Current Configuration** - Review your current settings
+5. **Save and Exit** - Save your changes and exit
+6. **Exit without Saving** - Exit without saving changes
 
 ### Configuring TTS Engine
 
@@ -101,6 +102,45 @@ When you select option 2 from the main menu, you can configure translation setti
 **End Language** - The target language for translation (e.g., "ps" for Pashto)
 **Replace Pasteboard** - Whether to replace clipboard content with translated text
 
+### Configuring Transliteration
+
+When you select option 3 from the main menu, you can configure transliteration settings:
+
+#### What is Transliteration?
+
+Transliteration converts text from one script to another while maintaining the same language. For example, converting Latin script "namaste" to Devanagari script "नमस्ते" (both are Hindi, just different scripts).
+
+#### Transliteration Settings
+
+**No Transliterate** - Enable or disable transliteration entirely
+**Language** - The language for transliteration (Hindi, Arabic, Bengali, etc.)
+**From Script** - The source script (e.g., "Latn" for Latin)
+**To Script** - The target script (e.g., "Deva" for Devanagari)
+**Replace Pasteboard** - Whether to replace clipboard content with transliterated text
+
+#### Supported Languages and Scripts
+
+- **Arabic** (ar) - Latin ↔ Arabic script
+- **Bengali** (bn) - Latin ↔ Bengali script
+- **Gujarati** (gu) - Latin ↔ Gujarati script
+- **Hindi** (hi) - Latin ↔ Devanagari script
+- **Kannada** (kn) - Latin ↔ Kannada script
+- **Malayalam** (ml) - Latin ↔ Malayalam script
+- **Marathi** (mr) - Latin ↔ Devanagari script
+- **Oriya** (or) - Latin ↔ Oriya script
+- **Punjabi** (pa) - Latin ↔ Gurmukhi script
+- **Tamil** (ta) - Latin ↔ Tamil script
+- **Telugu** (te) - Latin ↔ Telugu script
+- **Urdu** (ur) - Latin ↔ Arabic script
+
+#### Requirements
+
+Transliteration requires Azure Translator credentials:
+- Azure Translator subscription key
+- Azure resource region (e.g., "uksouth", "eastus")
+
+These can be configured in your settings file or through environment variables.
+
 ## Manual Configuration
 
 If you prefer to edit configuration files directly, you can manually edit the `settings.cfg` file.
@@ -129,6 +169,13 @@ start_lang = en
 end_lang = ps
 replace_pb = True
 provider = GoogleTranslator
+
+[transliterate]
+no_transliterate = True
+language = hi
+from_script = Latn
+to_script = Deva
+replace_pb = True
 
 [TTS]
 engine = azureTTS
@@ -166,6 +213,13 @@ You can create pre-configured settings files and distribute them to users. This 
 - `end_lang` - Target language code (e.g., "ps")
 - `replace_pb` - Replace clipboard content (True/False)
 - `provider` - Translation provider name
+
+**[transliterate]** - Transliteration settings
+- `no_transliterate` - Disable transliteration (True/False)
+- `language` - Language code for transliteration (e.g., "hi")
+- `from_script` - Source script code (e.g., "Latn")
+- `to_script` - Target script code (e.g., "Deva")
+- `replace_pb` - Replace clipboard content (True/False)
 
 **[TTS]** - Text-to-Speech settings
 - `engine` - TTS engine name (e.g., "azureTTS", "Sherpa-ONNX")

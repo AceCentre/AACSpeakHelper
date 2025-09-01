@@ -6,7 +6,7 @@
 
 ## Introduction
 
-AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages. It uses multiple providers' Text-to-Speech (TTS) technology to read aloud the translated text. You can easily configure all these functionalities through our Configure app and maintain numerous settings files for different tasks.
+AAC Speak Helper is designed to enhance your ability to communicate. It leverages the copy-paste clipboard to offer translation services in various languages, transliteration between different scripts (e.g., Latin to Devanagari), and uses multiple providers' Text-to-Speech (TTS) technology to read aloud the processed text. You can easily configure all these functionalities through our Configure app and maintain numerous settings files for different tasks.
 
 ## Use Case
 
@@ -20,7 +20,13 @@ AAC Speak Helper is a Windows executable. It can be called from any AAC app on W
 
 ## How it Works
 
-AAC Speak Helper reads the text once the text is copied to the clipboard (using Ctrl+C). Depending on the configuration settings, it either translates the text using the selected service, speaks it aloud, or reads it. There are additional features, such as putting intonation (or style) onto some voices. We have a graphical application that can configure the app. The main application, though, has no interface. 
+AAC Speak Helper reads the text once the text is copied to the clipboard (using Ctrl+C). Depending on the configuration settings, it can:
+
+1. **Translate** the text using the selected translation service
+2. **Transliterate** the text between different scripts (e.g., convert Latin text to Devanagari script)
+3. **Speak** the processed text aloud using Text-to-Speech technology
+
+There are additional features, such as putting intonation (or style) onto some voices. We have a graphical application that can configure the app. The main application, though, has no interface.
 
 ## Developer details
 
@@ -167,6 +173,7 @@ For installed versions, use the "Configure AACSpeakHelper CLI" application from 
 The CLI tool provides an interactive menu to:
 - Configure TTS engines (Sherpa-ONNX, Azure TTS, Google TTS, etc.)
 - Set up translation providers (Google Translator, Microsoft Translator, etc.)
+- Configure transliteration settings for script conversion (Latin ↔ Devanagari, etc.)
 - Configure language pairs and voice settings
 - Save and manage multiple configuration files
 
