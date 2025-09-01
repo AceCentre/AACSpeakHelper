@@ -182,7 +182,7 @@ TTS_ENGINES = {
         "name": "Sherpa-ONNX",
         "config_section": "SherpaOnnxTTS",
         "credential_fields": [],
-        "voice_list": {"English": "eng", "Chinese": "cmn"},
+        "voice_list": {"English (Alan)": "piper-en-alan-low", "English (Jenny)": "piper-en-jenny-low"},
     },
     "google_trans": {
         "name": "Google Trans",
@@ -386,7 +386,7 @@ def create_default_config(config: configparser.ConfigParser) -> None:
         "voice_id": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\TTS_MS_EN-US_DAVID_11.0"
     }
 
-    config["SherpaOnnxTTS"] = {"voice_id": "eng"}
+    config["SherpaOnnxTTS"] = {"voice_id": "piper-en-alan-low"}
 
     config["ElevenLabsTTS"] = {"api_key": "", "voice_id": ""}
 
@@ -822,10 +822,16 @@ def get_voices_from_engine(engine_key, config):
 
         elif engine_key == "sherpa":
             # Get Sherpa ONNX voices
-            client = SherpaOnnxClient()
-            tts = SherpaOnnxTTS(client)
-            voices = tts.get_voices()
-            return voices
+            try:
+                client = SherpaOnnxClient()
+                tts = SherpaOnnxTTS(client)
+                voices = tts.get_voices()
+                print(f"Retrieved {len(voices) if voices else 0} voices from SherpaOnnx")
+                return voices
+            except Exception as e:
+                print(f"Error getting SherpaOnnx voices: {e}")
+                print("Falling back to hardcoded voice list...")
+                return None
 
         elif engine_key == "google_trans":
             # Google Trans TTS doesn't need credentials

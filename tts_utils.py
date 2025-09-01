@@ -711,7 +711,7 @@ def playSpeech(text, engine, file_format, tts):
 
     start = time.perf_counter()
     try:
-        save_audio_file = utils.config.getboolean("TTS", "save_audio_file")
+        save_audio_file = utils.config.getboolean("tts", "save_audio")
         if save_audio_file:
             utils.save_audio(text=text, engine=engine, file_format=file_format, tts=tts)
             logging.info(f"Speech synthesized for text [{text}] saved in cache.")

@@ -189,7 +189,7 @@ def create_default_config():
 
     # Sherpa ONNX TTS section
     config["SherpaOnnxTTS"] = {
-        "voice_id": "eng"
+        "voice_id": "piper-en-alan-low"
     }
 
     # App Cache section
