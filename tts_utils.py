@@ -169,8 +169,8 @@ def init_sapi_tts():
     voiceid = utils.config.get("sapi5TTS", "voice_id")
     client = SAPIClient()
     client._client.setProperty("voice", voiceid)
-    client._client.setProperty("rate", utils.config.get("TTS", "rate"))
-    client._client.setProperty("volume", utils.config.get("TTS", "volume"))
+    client._client.setProperty("rate", utils.config.get("tts", "rate"))
+    client._client.setProperty("volume", utils.config.get("tts", "volume"))
     return SAPIEngine(client=client)
 
 

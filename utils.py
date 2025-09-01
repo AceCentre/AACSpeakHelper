@@ -385,11 +385,11 @@ def init(input_config, args):
     else:
         logging.error("No 'App' section found in input_config!")
 
-    # Log TTS section details
-    if "TTS" in input_config:
-        logging.info(f"TTS section contents: {dict(input_config['TTS'])}")
+    # Log tts section details
+    if "tts" in input_config:
+        logging.info(f"tts section contents: {dict(input_config['tts'])}")
     else:
-        logging.error("No 'TTS' section found in input_config!")
+        logging.error("No 'tts' section found in input_config!")
 
     # Log azureTTS section details
     if "azureTTS" in input_config:
