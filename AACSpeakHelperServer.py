@@ -67,6 +67,7 @@ def setup_logging():
 
 logfile = setup_logging()
 
+
 def log_debug_info():
     """Log comprehensive debug information for frozen vs development differences"""
     logging.info("=== AACSpeakHelper Server Debug Information ===")
@@ -75,7 +76,7 @@ def log_debug_info():
     logging.info(f"Current working directory: {os.getcwd()}")
     logging.info(f"Script location: {__file__}")
     logging.info(f"Frozen executable: {getattr(sys, 'frozen', False)}")
-    if hasattr(sys, '_MEIPASS'):
+    if hasattr(sys, "_MEIPASS"):
         logging.info(f"PyInstaller temp dir: {sys._MEIPASS}")
     logging.info(f"Python path: {sys.path}")
 
@@ -88,7 +89,7 @@ def log_debug_info():
         logging.error(f"Error listing current directory: {e}")
 
     # Check for config files
-    config_files = ['settings.cfg', 'config.cfg', '.envrc']
+    config_files = ["settings.cfg", "config.cfg", ".envrc"]
     for config_file in config_files:
         config_path = os.path.join(current_dir, config_file)
         if os.path.exists(config_path):
@@ -101,12 +102,13 @@ def log_debug_info():
             logging.info(f"Config file not found: {config_path}")
 
     # Check environment variables
-    important_env_vars = ['PATH', 'PYTHONPATH', 'APPDATA', 'USERPROFILE']
+    important_env_vars = ["PATH", "PYTHONPATH", "APPDATA", "USERPROFILE"]
     for var in important_env_vars:
-        value = os.environ.get(var, 'Not set')
+        value = os.environ.get(var, "Not set")
         logging.info(f"Environment {var}: {value}")
 
     logging.info("=== End Debug Information ===")
+
 
 # Call debug logging immediately
 log_debug_info()
@@ -144,10 +146,14 @@ def check_single_instance():
         win32event.CreateMutex(None, True, mutex_name)
 
         if win32api.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
-            logging.warning("Another instance of AACSpeakHelper server is already running!")
+            logging.warning(
+                "Another instance of AACSpeakHelper server is already running!"
+            )
             return False
         else:
-            logging.info("Single instance check passed - this is the only server instance")
+            logging.info(
+                "Single instance check passed - this is the only server instance"
+            )
             return True
 
     except Exception as e:
@@ -261,7 +267,9 @@ class PipeServerThread(QThread):
                     # Decode and process the message
                     message = data.decode()
                     logging.info(f"PipeServerThread: Received data: {message[:50]}...")
-                    logging.info(f"PipeServerThread: Processing message in thread {threading.current_thread().name}")
+                    logging.info(
+                        f"PipeServerThread: Processing message in thread {threading.current_thread().name}"
+                    )
                     # Emit signal to process the message in the main thread
                     self.message_received.emit(message)
                     try:
@@ -360,7 +368,9 @@ class MainWindow(QWidget):
         Args:
             message (str): JSON-formatted message from the client
         """
-        logging.info(f"MainWindow.handle_message: Starting to process message in thread {threading.current_thread().name}")
+        logging.info(
+            f"MainWindow.handle_message: Starting to process message in thread {threading.current_thread().name}"
+        )
         try:
             # Parse the JSON message
             data = json.loads(message)
@@ -406,21 +416,42 @@ class MainWindow(QWidget):
             self.tray_icon.setToolTip("Handling new message ...")
             self.tray_icon.setIcon(self.icon_loading)
             logging.info(f"Handling new message: {message[:50]}...")
-            if config.getboolean("translate", "no_translate"):
-                text_to_process = clipboard_text
-            else:
-                text_to_process = translate_clipboard(clipboard_text, config)
+
+            # Process text through translation and/or transliteration pipeline
+            text_to_process = clipboard_text
+
+            # Step 1: Translation (if enabled)
+            if not config.getboolean("translate", "no_translate", fallback=True):
+                text_to_process = translate_clipboard(text_to_process, config)
+                if text_to_process is None:
+                    text_to_process = clipboard_text  # Fallback to original text
+
+            # Step 2: Transliteration (if enabled)
+            if not config.getboolean(
+                "transliterate", "no_transliterate", fallback=True
+            ):
+                transliterated_text = transliterate_clipboard(text_to_process, config)
+                if transliterated_text is not None:
+                    text_to_process = transliterated_text
 
             # Perform TTS if not bypassed
             if not config.getboolean("TTS", "bypass_tts", fallback=False):
                 tts_utils.speak(text_to_process, args["listvoices"])
             if tts_utils.voices:
                 self.pipe_thread.voices = tts_utils.voices
-            # Replace clipboard if specified
-            if (
-                config.getboolean("translate", "replace_pb")
-                and text_to_process is not None
-            ):
+
+            # Replace clipboard if specified (check both translation and transliteration settings)
+            should_replace_clipboard = (
+                config.getboolean("translate", "replace_pb", fallback=False)
+                and not config.getboolean("translate", "no_translate", fallback=True)
+            ) or (
+                config.getboolean("transliterate", "replace_pb", fallback=False)
+                and not config.getboolean(
+                    "transliterate", "no_transliterate", fallback=True
+                )
+            )
+
+            if should_replace_clipboard and text_to_process is not None:
                 pyperclip.copy(text_to_process)
 
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -560,6 +591,43 @@ def translate_clipboard(text, config):
         return translation
     except Exception as e:
         logging.error(f"Translation Error: {e}", exc_info=True)
+        return None
+
+
+def transliterate_clipboard(text, config):
+    """
+    Transliterate text using Azure Translator transliteration API.
+
+    This function converts text from one script to another (e.g., Latin to Devanagari)
+    while maintaining the same language, using the Azure transliteration service.
+
+    Args:
+        text (str): Text to transliterate
+        config: Configuration object containing transliteration settings
+
+    Returns:
+        str or None: Transliterated text, or None if transliteration failed
+    """
+    try:
+        # Import the transliteration module
+        from azure_transliteration import transliterate_text
+
+        # Use the transliteration function with config
+        result = transliterate_text(text, config)
+
+        if result is not None:
+            logging.info(f"Transliteration successful: {text} -> {result}")
+            return result
+        else:
+            logging.warning("Transliteration returned None, using original text")
+            return None
+
+    except ImportError as e:
+        logging.error(f"Azure transliteration module not found: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"Transliteration Error: {e}", exc_info=True)
+        return None
 
 
 def normalize_text(text: str):
@@ -619,7 +687,9 @@ def clearCache():
 if __name__ == "__main__":
     # Check if another instance is already running
     if not check_single_instance():
-        logging.error("Exiting: Another instance of AACSpeakHelper server is already running")
+        logging.error(
+            "Exiting: Another instance of AACSpeakHelper server is already running"
+        )
 
         # Show a message box if we're not in frozen mode (development)
         if not getattr(sys, "frozen", False):
@@ -628,8 +698,12 @@ if __name__ == "__main__":
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setWindowTitle("AACSpeakHelper Server")
-                msg.setText("Another instance of AACSpeakHelper server is already running.")
-                msg.setInformativeText("Please close the existing instance before starting a new one.")
+                msg.setText(
+                    "Another instance of AACSpeakHelper server is already running."
+                )
+                msg.setInformativeText(
+                    "Please close the existing instance before starting a new one."
+                )
                 msg.exec()
             except Exception as e:
                 logging.error(f"Error showing message box: {e}")
