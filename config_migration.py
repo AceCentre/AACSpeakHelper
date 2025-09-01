@@ -21,11 +21,11 @@ class ConfigMigrator:
     MIGRATION_MAP = {
         ("translate", "no_translate"): ("translate", "enabled", "invert"),
         ("transliterate", "no_transliterate"): ("transliterate", "enabled", "invert"),
-        ("TTS", "bypass_tts"): ("tts", "enabled", "invert"),
+        ("tts", "bypass_tts"): ("tts", "enabled", "invert"),
         ("translate", "start_lang"): ("translate", "source_language", "direct"),
         ("translate", "end_lang"): ("translate", "target_language", "direct"),
         ("translate", "replace_pb"): ("translate", "replace_clipboard", "direct"),
-        ("TTS", "save_audio_file"): ("tts", "save_audio", "direct"),
+        ("tts", "save_audio_file"): ("tts", "save_audio", "direct"),
     }
     
     def __init__(self):
