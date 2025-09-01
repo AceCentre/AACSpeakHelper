@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""CLI configuration tool for AACSpeakHelper.
+
+A simple command-line interface for configuring AACSpeakHelper settings
+including TTS engines, translation providers, and transliteration options.
+"""
 # cli_config_creator.py
 # A simple CLI configuration tool for AACSpeakHelper
 
@@ -68,6 +73,96 @@ except ImportError:
         Qcri_Translator = {}
         Baidu_Translator = {}
         Yandex_Translator = {}
+
+def get_language_codes_for_search(language_name: str) -> list[str]:
+    """
+    Get language codes for a given language name using langcodes library.
+
+    Args:
+        language_name: Language name in English (e.g., 'marathi', 'hindi')
+
+    Returns:
+        List of language code patterns to search for
+
+    """
+    try:
+        import langcodes
+
+        # Normalize the language name
+        language_name = language_name.lower().strip()
+
+        # Try to find the language by name
+        try:
+            # First try direct lookup by name
+            lang = langcodes.find(language_name)
+            if lang:
+                # Get the main language code
+                main_code = lang.language
+
+                # Generate common patterns for this language code
+                patterns = [
+                    f"{main_code}-",  # e.g., "mr-"
+                    f"{main_code}_",  # e.g., "mr_"
+                ]
+
+                # Add common regional variants if we know them
+                if main_code == "en":
+                    patterns.extend(["en-us", "en-gb", "en-au", "en-ca"])
+                elif main_code == "es":
+                    patterns.extend(["es-es", "es-mx", "es-ar"])
+                elif main_code == "fr":
+                    patterns.extend(["fr-fr", "fr-ca"])
+                elif main_code == "pt":
+                    patterns.extend(["pt-br", "pt-pt"])
+                elif main_code == "zh":
+                    patterns.extend(["zh-cn", "zh-tw", "cmn"])
+                elif main_code == "no":
+                    patterns.extend(["nb-", "nn-"])
+
+                return patterns
+
+        except Exception:
+            pass
+
+        # Fallback: try some common manual mappings for languages that might not be found
+        manual_mappings = {
+            "marathi": ["mr-", "mr_"],
+            "hindi": ["hi-", "hi_"],
+            "tamil": ["ta-", "ta_"],
+            "telugu": ["te-", "te_"],
+            "bengali": ["bn-", "bn_"],
+            "gujarati": ["gu-", "gu_"],
+            "kannada": ["kn-", "kn_"],
+            "malayalam": ["ml-", "ml_"],
+            "punjabi": ["pa-", "pa_"],
+            "urdu": ["ur-", "ur_"],
+            "nepali": ["ne-", "ne_"],
+            "sinhala": ["si-", "si_"],
+            "pashto": ["ps-", "ps_"],
+            "dari": ["prs-", "prs_"],
+            "filipino": ["fil-", "tl-"],
+            "chinese": ["zh-", "zh_", "cmn"],
+            "mandarin": ["zh-", "zh_", "cmn"],
+        }
+
+        if language_name in manual_mappings:
+            return manual_mappings[language_name]
+
+        return []
+
+    except ImportError:
+        # Fallback if langcodes is not available - use minimal manual mapping
+        basic_mappings = {
+            "english": ["en-", "en_"],
+            "spanish": ["es-", "es_"],
+            "french": ["fr-", "fr_"],
+            "german": ["de-", "de_"],
+            "marathi": ["mr-", "mr_"],
+            "hindi": ["hi-", "hi_"],
+            "tamil": ["ta-", "ta_"],
+            "chinese": ["zh-", "zh_", "cmn"],
+        }
+        return basic_mappings.get(language_name, [])
 
 # Define TTS engines
 TTS_ENGINES = {
@@ -196,8 +291,8 @@ TRANSLATION_PROVIDERS = {
 }
 
 
-def get_config_dir():
-    """Get the configuration directory path"""
+def get_config_dir() -> str:
+    """Get the configuration directory path."""
     if getattr(sys, "frozen", False):
         config_dir = os.path.join(
             os.path.expanduser("~"),
@@ -213,8 +308,8 @@ def get_config_dir():
     return config_dir
 
 
-def load_config(custom_config_path=None):
-    """Load configuration from file"""
+def load_config(custom_config_path: str | None = None) -> configparser.ConfigParser:
+    """Load configuration from file."""
     config = configparser.ConfigParser()
 
     if custom_config_path:
@@ -232,8 +327,8 @@ def load_config(custom_config_path=None):
     return config, config_path
 
 
-def create_default_config(config):
-    """Create a default configuration"""
+def create_default_config(config: configparser.ConfigParser) -> None:
+    """Create a default configuration."""
     import uuid
 
     # Add default sections and values
@@ -321,8 +416,8 @@ def create_default_config(config):
     return config
 
 
-def save_config(config, config_path):
-    """Save configuration to file"""
+def save_config(config: configparser.ConfigParser, config_path: str) -> None:
+    """Save configuration to file."""
     with open(config_path, "w") as configfile:
         config.write(configfile)
     print(f"Configuration saved to {config_path}")
@@ -797,7 +892,7 @@ def configure_voice(config, engine_key):
     if voices:
         # Allow searching by language
         search_term = input(
-            "Search for a voice by language name (or press Enter to see all): "
+            "Search for a voice by language name (e.g., 'marathi', 'hindi', 'english') or press Enter to see all: "
         ).lower()
 
         matching_voices = []
@@ -810,8 +905,20 @@ def configure_voice(config, engine_key):
             # Create searchable text from all relevant fields
             searchable_text = f"{voice_name} {voice_id} {language} {gender}".lower()
 
-            if not search_term or search_term in searchable_text:
+            # Enhanced search logic
+            if not search_term:
                 matching_voices.append((voice_name, voice_id))
+            else:
+                # Direct text search
+                if search_term in searchable_text:
+                    matching_voices.append((voice_name, voice_id))
+                else:
+                    # Language name to code mapping search
+                    language_codes = get_language_codes_for_search(search_term)
+                    for code in language_codes:
+                        if code.lower() in searchable_text:
+                            matching_voices.append((voice_name, voice_id))
+                            break
 
         if not matching_voices:
             print("No matching voices found.")
@@ -872,13 +979,25 @@ def configure_voice(config, engine_key):
 
     # Allow searching by language
     search_term = input(
-        "Search for a voice by language name (or press Enter to see all): "
+        "Search for a voice by language name (e.g., 'marathi', 'hindi', 'english') or press Enter to see all: "
     ).lower()
 
     matching_voices = []
     for voice_name, voice_id in voice_list.items():
-        if search_term in voice_name.lower():
+        # Enhanced search logic for fallback voice list
+        if not search_term:
             matching_voices.append((voice_name, voice_id))
+        else:
+            # Direct text search
+            if search_term in voice_name.lower():
+                matching_voices.append((voice_name, voice_id))
+            else:
+                # Language name to code mapping search
+                language_codes = get_language_codes_for_search(search_term)
+                for code in language_codes:
+                    if code.lower() in voice_name.lower() or code.lower() in voice_id.lower():
+                        matching_voices.append((voice_name, voice_id))
+                        break
 
     if not matching_voices:
         print("No matching voices found.")
@@ -1135,7 +1254,7 @@ def configure_transliteration(config):
         current_to_script = config.get("transliterate", "to_script", fallback="Deva")
         current_replace_pb = config.get("transliterate", "replace_pb", fallback="True")
 
-        print(f"Current settings:")
+        print("Current settings:")
         print(f"  Transliteration disabled: {current_no_transliterate}")
         print(f"  Language: {current_language}")
         print(f"  From script: {current_from_script}")
@@ -1331,8 +1450,8 @@ def view_config(config):
     input("\nPress Enter to continue...")
 
 
-def main():
-    """Main function"""
+def main() -> None:
+    """Run the main CLI configuration interface."""
     parser = argparse.ArgumentParser(
         description="AACSpeakHelper CLI Configuration Tool"
     )

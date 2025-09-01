@@ -8,9 +8,8 @@ the confusing boolean logic with an intuitive plugin-based system.
 
 import configparser
 import logging
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Optional
 from abc import ABC, abstractmethod
-from config_migration import config_migrator
 
 
 class ProcessingStep(ABC):
