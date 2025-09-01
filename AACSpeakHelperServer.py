@@ -417,42 +417,44 @@ class MainWindow(QWidget):
             self.tray_icon.setIcon(self.icon_loading)
             logging.info(f"Handling new message: {message[:50]}...")
 
-            # Process text through translation and/or transliteration pipeline
-            text_to_process = clipboard_text
+            # Process text through the new modular pipeline
+            try:
+                from processing_pipeline import processing_pipeline
+                text_to_process = processing_pipeline.process_text(clipboard_text, config)
+            except ImportError:
+                # Fallback to old processing logic if pipeline not available
+                logging.warning("Processing pipeline not available, using fallback logic")
+                text_to_process = clipboard_text
 
-            # Step 1: Translation (if enabled)
-            if not config.getboolean("translate", "no_translate", fallback=True):
-                text_to_process = translate_clipboard(text_to_process, config)
-                if text_to_process is None:
-                    text_to_process = clipboard_text  # Fallback to original text
+                # Step 1: Translation (if enabled)
+                if config.getboolean("translate", "enabled", fallback=False):
+                    translated_text = translate_clipboard(text_to_process, config)
+                    if translated_text is not None:
+                        text_to_process = translated_text
 
-            # Step 2: Transliteration (if enabled)
-            if not config.getboolean(
-                "transliterate", "no_transliterate", fallback=True
-            ):
-                transliterated_text = transliterate_clipboard(text_to_process, config)
-                if transliterated_text is not None:
-                    text_to_process = transliterated_text
+                # Step 2: Transliteration (if enabled)
+                if config.getboolean("transliterate", "enabled", fallback=False):
+                    transliterated_text = transliterate_clipboard(text_to_process, config)
+                    if transliterated_text is not None:
+                        text_to_process = transliterated_text
 
-            # Perform TTS if not bypassed
-            if not config.getboolean("TTS", "bypass_tts", fallback=False):
-                tts_utils.speak(text_to_process, args["listvoices"])
-            if tts_utils.voices:
-                self.pipe_thread.voices = tts_utils.voices
+                # Perform TTS if enabled
+                if config.getboolean("tts", "enabled", fallback=True):
+                    tts_utils.speak(text_to_process, args["listvoices"])
+                if tts_utils.voices:
+                    self.pipe_thread.voices = tts_utils.voices
 
-            # Replace clipboard if specified (check both translation and transliteration settings)
-            should_replace_clipboard = (
-                config.getboolean("translate", "replace_pb", fallback=False)
-                and not config.getboolean("translate", "no_translate", fallback=True)
-            ) or (
-                config.getboolean("transliterate", "replace_pb", fallback=False)
-                and not config.getboolean(
-                    "transliterate", "no_transliterate", fallback=True
+                # Replace clipboard if specified
+                should_replace_clipboard = (
+                    config.getboolean("translate", "enabled", fallback=False)
+                    and config.getboolean("translate", "replace_clipboard", fallback=False)
+                ) or (
+                    config.getboolean("transliterate", "enabled", fallback=False)
+                    and config.getboolean("transliterate", "replace_clipboard", fallback=False)
                 )
-            )
 
-            if should_replace_clipboard and text_to_process is not None:
-                pyperclip.copy(text_to_process)
+                if should_replace_clipboard and text_to_process is not None:
+                    pyperclip.copy(text_to_process)
 
             current_time = time.strftime("%Y-%m-%d %H:%M:%S")
             self.tray_icon.update_last_run_info(current_time, "N/A")

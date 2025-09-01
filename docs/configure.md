@@ -1,5 +1,14 @@
 # Configure
 
+AACSpeakHelper now uses a modern, intuitive configuration system with positive boolean logic. This guide explains how to configure it effectively.
+
+## New Configuration System
+
+✅ **Positive Boolean Logic**: `enabled = true` instead of confusing `no_translate = False`
+✅ **Clear Language**: "Enable translation?" instead of "Disable translation?"
+✅ **Modular Pipeline**: Configure processing order with `pipeline = translate,transliterate,tts`
+✅ **Self-Documenting**: Configuration keys clearly indicate their purpose
+
 After installation, you need to configure the application. There are two main ways to configure AACSpeakHelper:
 
 1. **CLI Configuration Tool** - Use our command-line configuration tool `Configure AACSpeakHelper CLI` (recommended)
@@ -97,10 +106,10 @@ When you select option 2 from the main menu, you can configure translation setti
 
 #### Translation Settings
 
-**No Translate** - Disable translation entirely if your text is already in the target language
-**Start Language** - The language of your input text (e.g., "en" for English)
-**End Language** - The target language for translation (e.g., "ps" for Pashto)
-**Replace Pasteboard** - Whether to replace clipboard content with translated text
+**Enabled** - Enable or disable translation entirely (true/false)
+**Source Language** - The language of your input text (e.g., "en" for English)
+**Target Language** - The target language for translation (e.g., "ps" for Pashto)
+**Replace Clipboard** - Whether to replace clipboard content with translated text
 
 ### Configuring Transliteration
 
@@ -112,11 +121,11 @@ Transliteration converts text from one script to another while maintaining the s
 
 #### Transliteration Settings
 
-**No Transliterate** - Enable or disable transliteration entirely
+**Enabled** - Enable or disable transliteration entirely (true/false)
 **Language** - The language for transliteration (Hindi, Arabic, Bengali, etc.)
 **From Script** - The source script (e.g., "Latn" for Latin)
 **To Script** - The target script (e.g., "Deva" for Devanagari)
-**Replace Pasteboard** - Whether to replace clipboard content with transliterated text
+**Replace Clipboard** - Whether to replace clipboard content with transliterated text
 
 #### Supported Languages and Scripts
 
@@ -163,24 +172,27 @@ You can edit the configuration file using any plain text editor (Notepad, VS Cod
 [App]
 collectstats = True
 
+[processing]
+pipeline = translate,transliterate,tts
+
 [translate]
-no_translate = False
-start_lang = en
-end_lang = ps
-replace_pb = True
+enabled = true
+source_language = en
+target_language = ps
+replace_clipboard = true
 provider = GoogleTranslator
 
 [transliterate]
-no_transliterate = True
+enabled = false
 language = hi
 from_script = Latn
 to_script = Deva
-replace_pb = True
+replace_clipboard = true
 
-[TTS]
+[tts]
+enabled = true
 engine = azureTTS
-bypass_tts = False
-save_audio_file = True
+save_audio = true
 rate = 0
 volume = 100
 
@@ -207,19 +219,29 @@ You can create pre-configured settings files and distribute them to users. This 
 **[App]** - Application settings
 - `collectstats` - Whether to collect anonymous usage statistics
 
+**[processing]** - Processing pipeline settings
+- `pipeline` - Order of processing steps (e.g., "translate,transliterate,tts")
+
 **[translate]** - Translation settings
-- `no_translate` - Disable translation (True/False)
-- `start_lang` - Source language code (e.g., "en")
-- `end_lang` - Target language code (e.g., "ps")
-- `replace_pb` - Replace clipboard content (True/False)
+- `enabled` - Enable translation (true/false)
+- `source_language` - Source language code (e.g., "en")
+- `target_language` - Target language code (e.g., "ps")
+- `replace_clipboard` - Replace clipboard content (true/false)
 - `provider` - Translation provider name
 
 **[transliterate]** - Transliteration settings
-- `no_transliterate` - Disable transliteration (True/False)
+- `enabled` - Enable transliteration (true/false)
 - `language` - Language code for transliteration (e.g., "hi")
 - `from_script` - Source script code (e.g., "Latn")
 - `to_script` - Target script code (e.g., "Deva")
-- `replace_pb` - Replace clipboard content (True/False)
+- `replace_clipboard` - Replace clipboard content (true/false)
+
+**[tts]** - Text-to-Speech settings
+- `enabled` - Enable TTS (true/false)
+- `engine` - TTS engine name (e.g., "azureTTS")
+- `save_audio` - Save audio files (true/false)
+- `rate` - Speech rate (-50 to 50)
+- `volume` - Volume level (0 to 200)
 
 **[TTS]** - Text-to-Speech settings
 - `engine` - TTS engine name (e.g., "azureTTS", "Sherpa-ONNX")
