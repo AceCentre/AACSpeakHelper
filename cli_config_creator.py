@@ -74,6 +74,7 @@ except ImportError:
         Baidu_Translator = {}
         Yandex_Translator = {}
 
+
 def get_language_codes_for_search(language_name: str) -> list[str]:
     """
     Get language codes for a given language name using langcodes library.
@@ -164,6 +165,7 @@ def get_language_codes_for_search(language_name: str) -> list[str]:
         }
         return basic_mappings.get(language_name, [])
 
+
 # Define TTS engines
 TTS_ENGINES = {
     "azure": {
@@ -182,7 +184,10 @@ TTS_ENGINES = {
         "name": "Sherpa-ONNX",
         "config_section": "SherpaOnnxTTS",
         "credential_fields": [],
-        "voice_list": {"English (Alan)": "piper-en-alan-low", "English (Jenny)": "piper-en-jenny-low"},
+        "voice_list": {
+            "English (Alan)": "piper-en-alan-low",
+            "English (Jenny)": "piper-en-jenny-low",
+        },
     },
     "google_trans": {
         "name": "Google Trans",
@@ -337,7 +342,7 @@ def create_default_config(config: configparser.ConfigParser) -> None:
     # Processing pipeline section
     config["processing"] = {
         "pipeline": "translate,transliterate,tts",
-        "replace_clipboard": "True"
+        "replace_clipboard": "True",
     }
 
     config["translate"] = {
@@ -504,7 +509,9 @@ def configure_pipeline(config):
         print(f"Current pipeline: {current_pipeline}")
         print("\nAvailable steps:")
         print("  translate     - Translate text between languages")
-        print("  transliterate - Convert text between scripts (e.g., Latin to Devanagari)")
+        print(
+            "  transliterate - Convert text between scripts (e.g., Latin to Devanagari)"
+        )
         print("  tts           - Convert text to speech")
 
         print("\nPipeline Configuration Options:")
@@ -557,10 +564,14 @@ def configure_pipeline(config):
         elif choice == "6":
             # Configure global clipboard replacement
             print("\n--- Global Clipboard Replacement ---")
-            current_clipboard = config.get("processing", "replace_clipboard", fallback="True")
+            current_clipboard = config.get(
+                "processing", "replace_clipboard", fallback="True"
+            )
             print(f"Currently enabled: {current_clipboard}")
             print("Replace clipboard with final processed text (useful for AAC apps)")
-            clipboard_choice = input("Replace clipboard with processed text? (y/n) [current]: ").lower()
+            clipboard_choice = input(
+                "Replace clipboard with processed text? (y/n) [current]: "
+            ).lower()
             if clipboard_choice == "y":
                 config.set("processing", "replace_clipboard", "True")
                 print("Global clipboard replacement enabled.")
@@ -826,7 +837,9 @@ def get_voices_from_engine(engine_key, config):
                 client = SherpaOnnxClient()
                 tts = SherpaOnnxTTS(client)
                 voices = tts.get_voices()
-                print(f"Retrieved {len(voices) if voices else 0} voices from SherpaOnnx")
+                print(
+                    f"Retrieved {len(voices) if voices else 0} voices from SherpaOnnx"
+                )
                 return voices
             except Exception as e:
                 print(f"Error getting SherpaOnnx voices: {e}")
@@ -1083,7 +1096,10 @@ def configure_voice(config, engine_key):
                 # Language name to code mapping search
                 language_codes = get_language_codes_for_search(search_term)
                 for code in language_codes:
-                    if code.lower() in voice_name.lower() or code.lower() in voice_id.lower():
+                    if (
+                        code.lower() in voice_name.lower()
+                        or code.lower() in voice_id.lower()
+                    ):
                         matching_voices.append((voice_name, voice_id))
                         break
 
@@ -1129,14 +1145,18 @@ def configure_translation(config):
         )
         current_no_translate = config.get("translate", "no_translate", fallback="False")
         current_replace_pb = config.get("translate", "replace_pb", fallback="True")
-        current_start_lang = config.get("translate", "start_lang", fallback="en")
-        current_end_lang = config.get("translate", "end_lang", fallback="en")
+        current_source_language = config.get(
+            "translate", "source_language", fallback="en"
+        )
+        current_target_language = config.get(
+            "translate", "target_language", fallback="en"
+        )
 
         print(f"Current Translation Provider: {current_provider}")
         print(f"Translation Disabled: {current_no_translate}")
         print(f"Replace Clipboard: {current_replace_pb}")
-        print(f"Source Language: {current_start_lang}")
-        print(f"Target Language: {current_end_lang}")
+        print(f"Source Language: {current_source_language}")
+        print(f"Target Language: {current_target_language}")
 
         print("\nTranslation Configuration Options:")
         print("1. Select Translation Provider")
@@ -1233,7 +1253,9 @@ def configure_translation_settings(config):
         print("Translation disabled.")
 
     print("Translation settings updated.")
-    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
+    print(
+        "Note: Clipboard replacement is now configured globally in the Processing Pipeline menu."
+    )
     return config
 
 
@@ -1244,18 +1266,18 @@ def configure_languages(config, provider_key):
 
     if not language_list:
         print("Language list not available for this provider.")
-        start_lang = input(
+        source_language = input(
             "Enter source language code manually (or press Enter to cancel): "
         )
-        if not start_lang:
+        if not source_language:
             return config
-        end_lang = input(
+        target_language = input(
             "Enter target language code manually (or press Enter to cancel): "
         )
-        if not end_lang:
+        if not target_language:
             return config
-        config.set("translate", "source_language", start_lang)
-        config.set("translate", "target_language", end_lang)
+        config.set("translate", "source_language", source_language)
+        config.set("translate", "target_language", target_language)
         return config
 
     # Configure source language
@@ -1363,9 +1385,7 @@ def configure_transliteration_settings(config):
         config.add_section("transliterate")
 
     # Configure transliteration enabled/disabled
-    current_enabled = config.get(
-        "transliterate", "enabled", fallback="False"
-    )
+    current_enabled = config.get("transliterate", "enabled", fallback="False")
     print("\nTransliteration Status")
     print(f"Currently enabled: {current_enabled}")
     print(
@@ -1492,7 +1512,9 @@ def configure_transliteration_credentials(config):
         config.add_section("transliterate")
 
     # Configure provider
-    current_provider = config.get("transliterate", "provider", fallback="MicrosoftTransliterator")
+    current_provider = config.get(
+        "transliterate", "provider", fallback="MicrosoftTransliterator"
+    )
     print(f"Current provider: {current_provider}")
     print("Available providers: MicrosoftTransliterator")
     provider = input("Enter provider [current]: ").strip()
@@ -1501,10 +1523,15 @@ def configure_transliteration_credentials(config):
         print(f"Provider set to: {provider}")
 
     # Configure credentials for Microsoft Transliterator
-    if config.get("transliterate", "provider", fallback="MicrosoftTransliterator") == "MicrosoftTransliterator":
+    if (
+        config.get("transliterate", "provider", fallback="MicrosoftTransliterator")
+        == "MicrosoftTransliterator"
+    ):
         print("\n--- Microsoft Transliterator Credentials ---")
 
-        current_key = config.get("transliterate", "microsoft_transliterator_secret_key", fallback="")
+        current_key = config.get(
+            "transliterate", "microsoft_transliterator_secret_key", fallback=""
+        )
         print(f"Current key: {'*' * len(current_key) if current_key else 'Not set'}")
         key = input("Enter Microsoft Transliterator secret key [current]: ").strip()
         if key:
@@ -1524,7 +1551,9 @@ def configure_transliteration_credentials(config):
 def configure_transliteration_clipboard(config):
     """Configure transliteration clipboard replacement settings (deprecated)"""
     print("\n===== Transliteration Clipboard Settings =====")
-    print("Note: Clipboard replacement is now configured globally in the Processing Pipeline menu.")
+    print(
+        "Note: Clipboard replacement is now configured globally in the Processing Pipeline menu."
+    )
     print("This setting is deprecated and will be ignored.")
     return config
 

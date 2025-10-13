@@ -13,18 +13,39 @@ import base64
 from pathlib import Path
 from threading import Thread, Lock
 from PySide6.QtCore import (
-    Qt, QSize, QObject, Signal, QRunnable, QThreadPool, 
-    QMetaObject, Slot, Q_ARG
+    Qt,
+    QSize,
+    QObject,
+    Signal,
+    QRunnable,
+    QThreadPool,
+    QMetaObject,
+    Slot,
+    Q_ARG,
 )
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
-    QCheckBox, QGroupBox, QProgressBar, QMessageBox, QFileDialog,
-    QDialogButtonBox, QFrame,
-    QAbstractItemView
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QListWidget,
+    QListWidgetItem,
+    QCheckBox,
+    QGroupBox,
+    QProgressBar,
+    QMessageBox,
+    QFileDialog,
+    QDialogButtonBox,
+    QFrame,
+    QAbstractItemView,
 )
 from PySide6.QtGui import QIcon, QMovie, QFont
 from typing import Dict
+
 
 # Define SplashScreen class
 class SplashScreen(QWidget):
@@ -32,55 +53,65 @@ class SplashScreen(QWidget):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
-        
+
         # Create frame for splash screen content
         frame = QWidget(self)
         frame.setObjectName("splash_frame")
-        frame.setStyleSheet("""
+        frame.setStyleSheet(
+            """
             #splash_frame {
                 background-color: white;
                 border-radius: 10px;
                 border: 1px solid #cccccc;
             }
-        """)
+        """
+        )
         frame_layout = QVBoxLayout(frame)
-        
+
         # Add title label
         title_label = QLabel("AACSpeakHelper")
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("""
+        title_label.setStyleSheet(
+            """
             font-size: 18px;
             font-weight: bold;
             color: #333333;
             margin-bottom: 10px;
-        """)
+        """
+        )
         frame_layout.addWidget(title_label)
-        
+
         # Add loading label
         self.loading_label = QLabel("Loading...")
         self.loading_label.setAlignment(Qt.AlignCenter)
-        self.loading_label.setStyleSheet("""
+        self.loading_label.setStyleSheet(
+            """
             font-size: 14px;
             color: #666666;
-        """)
+        """
+        )
         frame_layout.addWidget(self.loading_label)
-        
+
         # Add to main layout
         layout.addWidget(frame)
-        
+
         # Center on screen
         self.resize(300, 150)
         screen = QApplication.primaryScreen().geometry()
-        self.move(screen.width() // 2 - self.width() // 2,
-                  screen.height() // 2 - self.height() // 2)
+        self.move(
+            screen.width() // 2 - self.width() // 2,
+            screen.height() // 2 - self.height() // 2,
+        )
+
 
 # Define LoadingSignals class for thread communication
 class LoadingSignals(QObject):
     progress = Signal(str)  # Signal to update loading progress message
-    finished = Signal()     # Signal to indicate loading is complete
+    finished = Signal()  # Signal to indicate loading is complete
+
 
 # Add project root to path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -95,83 +126,98 @@ except ImportError:
     from ui_form import Ui_Widget
     from ui_item import Ui_item
 from tts_wrapper import (
-    SherpaOnnxTTS, SherpaOnnxClient,
-    MicrosoftTTS, MicrosoftClient,
-    GoogleTransTTS, GoogleTransClient,
-    PlayHTClient, PlayHTTTS,
-    ElevenLabsTTS, ElevenLabsClient
+    SherpaOnnxTTS,
+    SherpaOnnxClient,
+    MicrosoftTTS,
+    MicrosoftClient,
+    GoogleTransTTS,
+    GoogleTransClient,
+    PlayHTClient,
+    PlayHTTTS,
+    ElevenLabsTTS,
+    ElevenLabsClient,
 )
 from language_dictionary import (
-    Google_Translator, MyMemory_Translator, Libre_Translator,
-    DeepL_Translator, Microsoft_Translator, Pons_Translator,
-    Linguee_Translator, Papago_Translator, Qcri_Translator,
-    Baidu_Translator, Yandex_Translator, azure_tts_list,
-    google_TTS_list, gSpeak_TTS_list
+    Google_Translator,
+    MyMemory_Translator,
+    Libre_Translator,
+    DeepL_Translator,
+    Microsoft_Translator,
+    Pons_Translator,
+    Linguee_Translator,
+    Papago_Translator,
+    Qcri_Translator,
+    Baidu_Translator,
+    Yandex_Translator,
+    azure_tts_list,
+    google_TTS_list,
+    gSpeak_TTS_list,
 )
 from configure_enc_utils import load_credentials
 from tts_engine_manager import TTS_ENGINES, TTSEngineHandler
 
 # Language codes mapping
 LANGUAGE_CODES = {
-    'en': 'English',
-    'es': 'Spanish',
-    'fr': 'French',
-    'de': 'German',
-    'it': 'Italian',
-    'pt': 'Portuguese',
-    'ru': 'Russian',
-    'ja': 'Japanese',
-    'ko': 'Korean',
-    'zh': 'Chinese (Simplified)',
-    'ar': 'Arabic',
-    'hi': 'Hindi',
-    'tr': 'Turkish',
-    'nl': 'Dutch',
-    'pl': 'Polish',
-    'vi': 'Vietnamese',
-    'th': 'Thai',
-    'cs': 'Czech',
-    'da': 'Danish',
-    'fi': 'Finnish'
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "zh": "Chinese (Simplified)",
+    "ar": "Arabic",
+    "hi": "Hindi",
+    "tr": "Turkish",
+    "nl": "Dutch",
+    "pl": "Polish",
+    "vi": "Vietnamese",
+    "th": "Thai",
+    "cs": "Czech",
+    "da": "Danish",
+    "fi": "Finnish",
 }
 
 # TTS providers configuration
 PROVIDERS = {
-    'onnx': {
-        'name': 'ONNX',
-        'enabled': True,
-        'client_class': SherpaOnnxClient,
-        'tts_class': SherpaOnnxTTS,
+    "onnx": {
+        "name": "ONNX",
+        "enabled": True,
+        "client_class": SherpaOnnxClient,
+        "tts_class": SherpaOnnxTTS,
     },
-    'azure': {
-        'name': 'Azure',
-        'enabled': True,
-        'client_class': MicrosoftClient,
-        'tts_class': MicrosoftTTS,
+    "azure": {
+        "name": "Azure",
+        "enabled": True,
+        "client_class": MicrosoftClient,
+        "tts_class": MicrosoftTTS,
     },
-    'google': {
-        'name': 'Google Translate',
-        'enabled': True,
-        'client_class': GoogleTransClient,
-        'tts_class': GoogleTransTTS,
+    "google": {
+        "name": "Google Translate",
+        "enabled": True,
+        "client_class": GoogleTransClient,
+        "tts_class": GoogleTransTTS,
     },
-    'elevenlabs': {
-        'name': 'ElevenLabs',
-        'enabled': True,
-        'client_class': ElevenLabsClient,
-        'tts_class': ElevenLabsTTS,
+    "elevenlabs": {
+        "name": "ElevenLabs",
+        "enabled": True,
+        "client_class": ElevenLabsClient,
+        "tts_class": ElevenLabsTTS,
     },
-    'playht': {
-        'name': 'PlayHT',
-        'enabled': True,
-        'client_class': PlayHTClient,
-        'tts_class': PlayHTTTS,
-    }
+    "playht": {
+        "name": "PlayHT",
+        "enabled": True,
+        "client_class": PlayHTClient,
+        "tts_class": PlayHTTTS,
+    },
 }
 
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
+
 
 class SherpaOnnxManager:
     DEFAULT_CACHE_DIR = Path.home() / ".cache" / "sherpa-onnx"
@@ -193,23 +239,23 @@ class SherpaOnnxManager:
 class Widget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
         # Initialize UI first
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-        
+
         # Initialize icons first
         self.iconDownload = QIcon(":/images/images/download.ico")
         self.iconPlayed = QIcon(":/images/images/play-round-icon.png")
         self.iconTick = QIcon(":/images/images/downloaded.ico")
-        
+
         # Create icons dictionary for engine handlers
         icons = {
-            'preview': self.iconPlayed,
-            'download': self.iconDownload,
-            'downloaded': self.iconTick
+            "preview": self.iconPlayed,
+            "download": self.iconDownload,
+            "downloaded": self.iconTick,
         }
-        
+
         # Map engine IDs to actual UI widget names
         list_widget_map = {
             "microsoft": "listWidget_voiceazure",  # The actual name in the UI
@@ -217,18 +263,18 @@ class Widget(QWidget):
             "sherpa": "onnx_listWidget",
             "google_trans": "listWidget_voicegoogleTrans",
             "elevenlabs": "elevenlabs_listWidget",
-            "playht": "playht_listWidget"
+            "playht": "playht_listWidget",
         }
-        
+
         search_box_map = {
             "microsoft": "search_language_azure",  # The actual name in the UI
             "google": "search_language_google",
             "sherpa": "search_language",
             "google_trans": "search_language_googleTrans",
             "elevenlabs": "search_language_elevenlabs",
-            "playht": "search_language_playht"
+            "playht": "search_language_playht",
         }
-        
+
         # Initialize engine handlers
         self.engine_handlers = {}
         for engine_id, engine_def in TTS_ENGINES.items():
@@ -237,115 +283,122 @@ class Widget(QWidget):
                 list_widget = getattr(self.ui, list_widget_map[engine_id])
                 search_box = getattr(self.ui, search_box_map[engine_id])
                 no_creds = getattr(self.ui, f"{engine_id}_no_creds_label", None)
-                
+
                 self.engine_handlers[engine_id] = TTSEngineHandler(
-                    engine_def,
-                    list_widget,
-                    search_box,
-                    no_creds,
-                    icons=icons
+                    engine_def, list_widget, search_box, no_creds, icons=icons
                 )
             except AttributeError as e:
-                logging.warning(f"Skipping engine {engine_id} due to missing UI elements: {e}")
+                logging.warning(
+                    f"Skipping engine {engine_id} due to missing UI elements: {e}"
+                )
                 # Continue with other engines
-        
+
         # Show splash screen
         self.splash = SplashScreen()
         self.splash.show()
         QApplication.processEvents()
-        
+
         try:
             # Initialize paths and attributes
             self.splash.loading_label.setText("Setting up paths...")
             QApplication.processEvents()
-            if getattr(sys, 'frozen', False):
-                self.onnx_cache_path = os.path.join(os.path.dirname(sys.executable), "models")
-                self.config_path = os.path.join(os.path.dirname(sys.executable), "settings.cfg")
+            if getattr(sys, "frozen", False):
+                self.onnx_cache_path = os.path.join(
+                    os.path.dirname(sys.executable), "models"
+                )
+                self.config_path = os.path.join(
+                    os.path.dirname(sys.executable), "settings.cfg"
+                )
             else:
-                self.onnx_cache_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
-                self.config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "settings.cfg")
-            
+                self.onnx_cache_path = os.path.join(
+                    os.path.dirname(os.path.dirname(__file__)), "models"
+                )
+                self.config_path = os.path.join(
+                    os.path.dirname(os.path.dirname(__file__)), "settings.cfg"
+                )
+
             # Create directories if needed
             os.makedirs(self.onnx_cache_path, exist_ok=True)
-            
+
             # Initialize basic attributes
             self.lock = Lock()
             self.temp_config_file = None
             self.credsFilePath = ""
-            
+
             # Initialize logging
-            logging.basicConfig(level=logging.DEBUG,
-                              format='%(asctime)s - %(levelname)s - %(message)s')
-            
+            logging.basicConfig(
+                level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+            )
+
             # Initialize config
             self.splash.loading_label.setText("Loading configuration...")
             QApplication.processEvents()
             self.config = configparser.ConfigParser()
             self.load_existing_config()
-            
+
             # Create missing UI elements for ElevenLabs and PlayHT
             self.splash.loading_label.setText("Creating UI elements...")
             QApplication.processEvents()
             self.create_missing_ui_elements()
-            
+
             # Initialize voice models
             self.splash.loading_label.setText("Loading voice models...")
             QApplication.processEvents()
             self.initialize_voice_models()
-            
+
             # Set up UI connections
             self.splash.loading_label.setText("Setting up UI connections...")
             QApplication.processEvents()
             self.setup_ui_connections()
-            
+
             # Close splash screen and show main window
             self.splash.close()
             self.show()
-            
+
         except Exception as e:
             logging.error(f"Error during initialization: {e}")
-            if hasattr(self, 'splash'):
+            if hasattr(self, "splash"):
                 self.splash.close()
             raise
-        
+
         # Initialize all the paths and other setup...
         # [Keep all the existing initialization code]
-        
+
         # After all initialization is done, close splash and show window
-        if hasattr(self, 'splash') and self.splash:
+        if hasattr(self, "splash") and self.splash:
             self.splash.close()
             self.splash = None
         self.show()
-        
+
         # Set up paths and other non-UI initialization
         self.setup_initial_state()
-        
+
         # Create signals for loading
         self.load_signals = LoadingSignals()
         self.load_signals.progress.connect(self.update_loading_progress)
         self.load_signals.finished.connect(self.finish_loading)
-        
+
         # Call load_initial_data directly instead of using a separate thread
         # This avoids threading issues with Qt
         QMetaObject.invokeMethod(self, "load_initial_data", Qt.QueuedConnection)
-        
+
         # Initialize providers dictionary
         self.providers = {
             "azure": True,
             "google": True,
             "google_trans": True,
-            "onnx": True
+            "onnx": True,
         }
-        
+
         # Set tab titles
         self.ui.tabWidget.setTabText(0, "Speech Engine")
         self.ui.tabWidget.setTabText(1, "Translation")
         self.ui.tabWidget.setTabText(2, "Options")
-        
+
         # Get screen size
         screen = QApplication.primaryScreen()
         self.screenSize = screen.size() if screen else None
-        
+
         # Initialize paths based on frozen state
         home_directory = os.path.expanduser("~")
         if getattr(sys, "frozen", False):
@@ -393,32 +446,34 @@ class Widget(QWidget):
             self.ui.appPath.setText(
                 os.path.join(self.app_data_path, "AACSpeakHelperServer.py")
             )
-        
+
         # Create necessary directories
         for path in [self.audio_path, self.onnx_cache_path]:
             if not os.path.exists(path):
                 os.makedirs(path)
-        
+
         # Initialize state
         self.temp_config_file = None
         self.threadList = []
         self.lock = True
         self.comboBox = "Sherpa-ONNX"  # Default value
         self.ttsEngine = "SherpaOnnxTTS"
-        
+
         # Initialize Sherpa client
         self.sherpa_client = None
         try:
             self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
-            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
+            logging.info(
+                f"Sherpa client initialized with model path: {self.onnx_cache_path}"
+            )
         except Exception as e:
             logging.error(f"Sherpa initialization failed: {e}")
-        
+
         # Set up UI elements
         self.ui.onnx_cache.setText(self.onnx_cache_path)
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
-        
+
         # Connect signals
         self.ui.ttsEngineBox.currentTextChanged.connect(self.on_tts_engine_toggled)
         self.ui.buttonBox.button(QDialogButtonBox.Save).clicked.connect(
@@ -429,32 +484,32 @@ class Widget(QWidget):
         )
         self.ui.browseButton.clicked.connect(self.on_browse_button_pressed)
         self.ui.credsFilePathEdit.textChanged.connect(self.on_creds_file_path_changed)
-        
+
         # Load configuration
         self.config = configparser.ConfigParser()
         self.setWindowTitle("Configure TranslateAndTTS: {}".format(self.config_path))
-        
+
         # Initialize default values
         self.notranslate = False
         self.saveAudio_azure = True
         self.overwritePb = True
         self.bypassTTS = False
-        
+
         if os.path.exists(self.config_path):
             self.load_existing_config()
         else:
             self.initialize_default_config()
-            
+
         # Generate voice models
         self.generate_onnx_voice_models()
         self.generate_azure_voice_models()
         self.generate_google_voice_models()
         self.generate_google_trans_voice_models()
-        
+
         # Set initial engine
         self.on_tts_engine_toggled(self.comboBox)
         self.lock = False
-        
+
         # Set list widget styling
         list_style = """
             QListWidget {
@@ -478,7 +533,7 @@ class Widget(QWidget):
         self.ui.listWidget_voiceazure.setStyleSheet(list_style)
         self.ui.listWidget_voicegoogle.setStyleSheet(list_style)
         self.ui.listWidget_voicegoogleTrans.setStyleSheet(list_style)
-        
+
         # Set scrollbar styling
         self.ui.onnx_listWidget.verticalScrollBar().setStyleSheet(
             "QScrollBar:vertical { width: 30px; }"
@@ -487,118 +542,150 @@ class Widget(QWidget):
         # Set larger font for search boxes
         search_font = QFont()
         search_font.setPointSize(14)
-        
+
         # Debug print search box objects
         logging.debug(f"Azure search box: {self.ui.search_language_azure}")
         logging.debug(f"Google search box: {self.ui.search_language_google}")
         logging.debug(f"ONNX search box: {self.ui.search_language}")
         logging.debug(f"Google Trans search box: {self.ui.search_language_googleTrans}")
-        
+
         self.ui.search_language_azure.setFont(search_font)
         self.ui.search_language_google.setFont(search_font)
-        self.ui.search_language.setFont(search_font)  
+        self.ui.search_language.setFont(search_font)
         self.ui.search_language_googleTrans.setFont(search_font)
-        
+
         # Connect search boxes to filter functions with debug
         logging.debug("Connecting search box signals...")
-        
+
         def debug_text_changed(text, provider):
-            print(f"Text changed in {provider} search box: '{text}'")  # Print for immediate feedback
+            print(
+                f"Text changed in {provider} search box: '{text}'"
+            )  # Print for immediate feedback
             logging.debug(f"Text changed in {provider} search box: '{text}'")
             self.on_search_changed(text, provider)
-            
+
         def debug_return_pressed(provider):
-            print(f"Return pressed in {provider} search box")  # Print for immediate feedback
+            print(
+                f"Return pressed in {provider} search box"
+            )  # Print for immediate feedback
             logging.debug(f"Return pressed in {provider} search box")
             self.on_search_return(provider)
-        
+
         # Connect with debug wrappers
         self.ui.search_language_azure.textChanged.connect(
-            lambda text: debug_text_changed(text, "azure"))
+            lambda text: debug_text_changed(text, "azure")
+        )
         self.ui.search_language_google.textChanged.connect(
-            lambda text: debug_text_changed(text, "google"))
+            lambda text: debug_text_changed(text, "google")
+        )
         self.ui.search_language.textChanged.connect(
-            lambda text: debug_text_changed(text, "onnx"))
+            lambda text: debug_text_changed(text, "onnx")
+        )
         self.ui.search_language_googleTrans.textChanged.connect(
-            lambda text: debug_text_changed(text, "google_trans"))
-        
+            lambda text: debug_text_changed(text, "google_trans")
+        )
+
         self.ui.search_language_azure.returnPressed.connect(
-            lambda: debug_return_pressed("azure"))
+            lambda: debug_return_pressed("azure")
+        )
         self.ui.search_language_google.returnPressed.connect(
-            lambda: debug_return_pressed("google"))
+            lambda: debug_return_pressed("google")
+        )
         self.ui.search_language.returnPressed.connect(
-            lambda: debug_return_pressed("onnx"))
+            lambda: debug_return_pressed("onnx")
+        )
         self.ui.search_language_googleTrans.returnPressed.connect(
-            lambda: debug_return_pressed("google_trans"))
-        
+            lambda: debug_return_pressed("google_trans")
+        )
+
         logging.debug("Search box signals connected")
-        
+
         # Set placeholder text for search boxes
         self.ui.search_language_azure.setPlaceholderText("Search Azure voices...")
         self.ui.search_language_google.setPlaceholderText("Search Google voices...")
         self.ui.search_language.setPlaceholderText("Search ONNX voices...")
-        self.ui.search_language_googleTrans.setPlaceholderText("Search Google Trans voices...")
-        
+        self.ui.search_language_googleTrans.setPlaceholderText(
+            "Search Google Trans voices..."
+        )
+
         # Disable selection highlighting in the list widget
         self.ui.onnx_listWidget.setSelectionMode(QAbstractItemView.NoSelection)
-        self.ui.onnx_listWidget.setAlternatingRowColors(False)  # Disable alternating colors
-        
+        self.ui.onnx_listWidget.setAlternatingRowColors(
+            False
+        )  # Disable alternating colors
+
         # Set stylesheet for consistent background
-        self.ui.onnx_listWidget.setStyleSheet("""
+        self.ui.onnx_listWidget.setStyleSheet(
+            """
             QListWidget {
                 background-color: white;
             }
             QListWidget::item {
                 background-color: white;
             }
-        """)
-        
+        """
+        )
+
         # Connect new search boxes if they exist
         try:
             self.ui.search_language_elevenlabs.textChanged.connect(
-                lambda text: debug_text_changed(text, "elevenlabs"))
+                lambda text: debug_text_changed(text, "elevenlabs")
+            )
             self.ui.search_language_elevenlabs.returnPressed.connect(
-                lambda: debug_return_pressed("elevenlabs"))
-            self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+                lambda: debug_return_pressed("elevenlabs")
+            )
+            self.ui.search_language_elevenlabs.setPlaceholderText(
+                "Search ElevenLabs voices..."
+            )
         except AttributeError:
-            logging.warning("ElevenLabs search box not found in UI during initialization")
-            
+            logging.warning(
+                "ElevenLabs search box not found in UI during initialization"
+            )
+
         try:
             self.ui.search_language_playht.textChanged.connect(
-                lambda text: debug_text_changed(text, "playht"))
+                lambda text: debug_text_changed(text, "playht")
+            )
             self.ui.search_language_playht.returnPressed.connect(
-                lambda: debug_return_pressed("playht"))
+                lambda: debug_return_pressed("playht")
+            )
             self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
         except AttributeError:
             logging.warning("PlayHT search box not found in UI during initialization")
-        
+
         # Connect credential change signals if they exist
         try:
             self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
         except AttributeError:
-            logging.warning("ElevenLabs key field not found in UI during initialization")
-            
+            logging.warning(
+                "ElevenLabs key field not found in UI during initialization"
+            )
+
         try:
             self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
             self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
         except AttributeError:
-            logging.warning("PlayHT credential fields not found in UI during initialization")
+            logging.warning(
+                "PlayHT credential fields not found in UI during initialization"
+            )
 
     def setup_initial_state(self):
         """Initialize basic state and load models once"""
         try:
             # Initialize Sherpa client once
             self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
-            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
-            
+            logging.info(
+                f"Sherpa client initialized with model path: {self.onnx_cache_path}"
+            )
+
             # Load voice models once
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
             self.generate_google_trans_voice_models()
-            
+
             # Load saved credentials and voices
             self.load_config()
-            
+
         except Exception as e:
             logging.error(f"Error in setup_initial_state: {e}")
 
@@ -607,77 +694,80 @@ class Widget(QWidget):
         """Load all initial data in background"""
         try:
             # Initialize logging
-            logging.basicConfig(level=logging.DEBUG,
-                              format='%(asctime)s - %(levelname)s - %(message)s')
+            logging.basicConfig(
+                level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+            )
             logging.debug("Widget initialized")
-            
+
             # Load models one by one, emitting progress
             self.load_signals.progress.emit("Initializing Sherpa ONNX...")
             self.initialize_sherpa()
-            
+
             self.load_signals.progress.emit("Loading Azure voices...")
             self.initialize_azure()
-            
+
             self.load_signals.progress.emit("Loading Google voices...")
             self.initialize_google()
-            
+
             self.load_signals.progress.emit("Loading configuration...")
             self.load_config()
-            
+
             # Signal completion
             self.load_signals.finished.emit()
-            
+
         except Exception as e:
             logging.error(f"Error loading initial data: {e}")
-            
+
     def initialize_sherpa(self):
         """Initialize Sherpa ONNX TTS engine"""
         try:
             # Initialize Sherpa client
-            if not hasattr(self, 'sherpa_client') or self.sherpa_client is None:
+            if not hasattr(self, "sherpa_client") or self.sherpa_client is None:
                 self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
                 logging.info("Sample rate set to 16000")
-                logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
-            
+                logging.info(
+                    f"Sherpa client initialized with model path: {self.onnx_cache_path}"
+                )
+
             # Initialize the Sherpa engine handler
-            if 'sherpa' in self.engine_handlers:
-                handler = self.engine_handlers['sherpa']
+            if "sherpa" in self.engine_handlers:
+                handler = self.engine_handlers["sherpa"]
                 handler.set_model_path(self.onnx_cache_path)
-                handler.initialize({'model_path': self.onnx_cache_path})
+                handler.initialize({"model_path": self.onnx_cache_path})
                 logging.info("Successfully initialized sherpa TTS engine")
         except Exception as e:
             logging.error(f"Error initializing Sherpa ONNX: {e}")
-            
+
     def initialize_azure(self):
         """Initialize Azure TTS engine"""
         try:
             # Get credentials from UI
             key = self.ui.lineEdit_key.text()
             region = self.ui.lineEdit_region.text()
-            
+
             # Initialize the Azure engine handler
-            if 'microsoft' in self.engine_handlers:
-                handler = self.engine_handlers['microsoft']
-                handler.initialize({'key': key, 'region': region})
+            if "microsoft" in self.engine_handlers:
+                handler = self.engine_handlers["microsoft"]
+                handler.initialize({"key": key, "region": region})
                 logging.info("Successfully initialized Azure TTS engine")
         except Exception as e:
             logging.error(f"Error initializing Azure TTS: {e}")
-            
+
     def initialize_google(self):
         """Initialize Google TTS engine"""
         try:
             # Get credentials path from UI
             creds_path = self.ui.credsFilePathEdit.text()
-            
+
             # Initialize the Google engine handler
-            if 'google' in self.engine_handlers:
-                handler = self.engine_handlers['google']
-                handler.initialize({'creds_path': creds_path})
+            if "google" in self.engine_handlers:
+                handler = self.engine_handlers["google"]
+                handler.initialize({"creds_path": creds_path})
                 logging.info("Successfully initialized Google TTS engine")
-                
+
             # Also initialize Google Trans
-            if 'google_trans' in self.engine_handlers:
-                handler = self.engine_handlers['google_trans']
+            if "google_trans" in self.engine_handlers:
+                handler = self.engine_handlers["google_trans"]
                 handler.initialize({})
                 logging.info("Successfully initialized Google Trans TTS engine")
         except Exception as e:
@@ -686,14 +776,14 @@ class Widget(QWidget):
     @Slot(str)
     def update_loading_progress(self, message):
         """Update loading message in splash screen"""
-        if hasattr(self, 'splash') and self.splash:
+        if hasattr(self, "splash") and self.splash:
             self.splash.loading_label.setText(message)
             QApplication.processEvents()
 
     @Slot()
     def finish_loading(self):
         """Called when loading is complete"""
-        if hasattr(self, 'splash') and self.splash:
+        if hasattr(self, "splash") and self.splash:
             self.splash.close()
             self.splash = None
         self.show()
@@ -703,7 +793,7 @@ class Widget(QWidget):
         try:
             if os.path.exists(self.config_path):
                 self.config.read(self.config_path)
-                
+
                 # Load ElevenLabs config
                 if self.config.has_section("ElevenLabsTTS"):
                     self.ui.elevenlabs_key.setText(
@@ -714,12 +804,16 @@ class Widget(QWidget):
                         self.ui.search_language_elevenlabs.show()
                         self.ui.elevenlabs_listWidget.show()
                         self.generate_elevenlabs_voice_models()
-                        
+
                         # Select saved voice if any
-                        saved_voice = self.config.get("ElevenLabsTTS", "voice_id", fallback=None)
+                        saved_voice = self.config.get(
+                            "ElevenLabsTTS", "voice_id", fallback=None
+                        )
                         if saved_voice:
-                            self.select_voice_in_list(self.ui.elevenlabs_listWidget, saved_voice)
-                
+                            self.select_voice_in_list(
+                                self.ui.elevenlabs_listWidget, saved_voice
+                            )
+
                 # Load PlayHT config
                 if self.config.has_section("PlayHTTTS"):
                     self.ui.playht_key.setText(
@@ -733,11 +827,15 @@ class Widget(QWidget):
                         self.ui.search_language_playht.show()
                         self.ui.playht_listWidget.show()
                         self.generate_playht_voice_models()
-                        
+
                         # Select saved voice if any
-                        saved_voice = self.config.get("PlayHTTTS", "voice_id", fallback=None)
+                        saved_voice = self.config.get(
+                            "PlayHTTTS", "voice_id", fallback=None
+                        )
                         if saved_voice:
-                            self.select_voice_in_list(self.ui.playht_listWidget, saved_voice)
+                            self.select_voice_in_list(
+                                self.ui.playht_listWidget, saved_voice
+                            )
 
         except Exception as e:
             logging.error(f"Error loading configuration: {e}")
@@ -748,20 +846,22 @@ class Widget(QWidget):
             self.generate_onnx_voice_models()
             self.generate_azure_voice_models()
             self.generate_google_voice_models()
-            
+
             # Load language codes
             self.ui.comboBox_writeLang.addItems(LANGUAGE_CODES.values())
             self.ui.comboBox_targetLang.addItems(LANGUAGE_CODES.values())
-            
+
             # Set default values
             self.ui.comboBox_writeLang.setCurrentText("English")
             self.ui.comboBox_targetLang.setCurrentText("Chinese (Simplified)")
-            self.ui.comboBox_provider.addItems(["google", "azure", "google_trans", "onnx"])
+            self.ui.comboBox_provider.addItems(
+                ["google", "azure", "google_trans", "onnx"]
+            )
             self.ui.comboBox_provider.setCurrentText("google")
-            
+
             # Set default paths
             self.ui.appPath.setText(os.path.dirname(__file__))
-            
+
         except Exception as e:
             logging.error(f"Error initializing default config: {e}")
 
@@ -770,15 +870,15 @@ class Widget(QWidget):
         if event.type() == QEvent.Type.Timer:
             self.ui.validate_google.setVisible(self.ui.credsFilePathEdit.text() != "")
             self.ui.validate_azure.setVisible(
-                self.ui.lineEdit_key.text() != "" and self.ui.lineEdit_region.text() != ""
+                self.ui.lineEdit_key.text() != ""
+                and self.ui.lineEdit_region.text() != ""
             )
             return super().event_filter(obj, event)
 
     def on_tts_engine_toggled(self, engine_name: str):
         # Find engine definition by UI name
         engine_def = next(
-            (eng for eng in TTS_ENGINES.values() if eng.ui_name == engine_name),
-            None
+            (eng for eng in TTS_ENGINES.values() if eng.ui_name == engine_name), None
         )
         if not engine_def:
             logging.warning(f"Unknown engine name: {engine_name}")
@@ -864,8 +964,8 @@ class Widget(QWidget):
             else print("")
         )
         self.config.set("translate", "no_translate", str(self.notranslate))
-        self.config.set("translate", "start_lang", self.startLang)
-        self.config.set("translate", "end_lang", self.endLang)
+        self.config.set("translate", "source_language", self.startLang)
+        self.config.set("translate", "target_language", self.endLang)
         self.config.set(
             "translate", "replace_pb", str(self.ui.checkBox_overwritepb.isChecked())
         )
@@ -880,7 +980,9 @@ class Widget(QWidget):
         )
         self.config.set("translate", "email", self.ui.email_mymemory.text())
         self.config.set(
-            "translate", "libre_translator_secret_key", self.ui.LibreTranslate_secret_key.text()
+            "translate",
+            "libre_translator_secret_key",
+            self.ui.LibreTranslate_secret_key.text(),
         )
         self.config.set("translate", "url", self.ui.LibreTranslate_url.text())
         self.config.set(
@@ -889,9 +991,7 @@ class Widget(QWidget):
             self.ui.deepl_secret_key.text(),
         )
         self.config.set(
-            "translate",
-            "deepl_pro",
-            str(self.ui.checkBox_pro.isChecked()).lower()
+            "translate", "deepl_pro", str(self.ui.checkBox_pro.isChecked()).lower()
         )
         # Add default microsofttranslator_secret_key if not permanent.
         self.config.set(
@@ -901,13 +1001,17 @@ class Widget(QWidget):
         )
         self.config.set("translate", "region", self.ui.microsoft_region.text())
         self.config.set(
-            "translate", "yandex_translator_secret_key", self.ui.yandex_secret_key.text()
+            "translate",
+            "yandex_translator_secret_key",
+            self.ui.yandex_secret_key.text(),
         )
         self.config.set(
             "translate", "papago_translator_client_id", self.ui.papago_client_id.text()
         )
         self.config.set(
-            "translate", "papago_translator_secret_key", self.ui.papago_secret_key.text()
+            "translate",
+            "papago_translator_secret_key",
+            self.ui.papago_secret_key.text(),
         )
         self.config.set(
             "translate", "baidu_translator_appid", self.ui.baidu_appid.text()
@@ -964,9 +1068,7 @@ class Widget(QWidget):
 
         self.config.set("TTS", "voice_id", self.ui.lineEdit_voiceID.text())
         self.config.set("TTS", "rate", str(self.ui.horizontalSlider_rate.value()))
-        self.config.set(
-            "TTS", "volume", str(self.ui.horizontalSlider_volume.value())
-        )
+        self.config.set("TTS", "volume", str(self.ui.horizontalSlider_volume.value()))
         self.config.set(
             "TTS", "bypass_tts", str(self.ui.bypass_tts_checkBox.isChecked())
         )
@@ -1018,7 +1120,6 @@ class Widget(QWidget):
                 "voice_id",
                 self.ui.listWidget_voicegoogleTrans.currentItem().toolTip(),
             )
-
 
         (
             self.config.add_section("SherpaOnnxTTS")
@@ -1293,7 +1394,7 @@ class Widget(QWidget):
     def preview_pressed(self):
         self.currentButton = self.sender()
         text = self.sender().parent().findChild(QLabel, "name").text()
-        
+
         if self.ui.stackedWidget.currentWidget() == self.ui.azure_page:
             parentWidget = self.ui.listWidget_voiceazure
             for index in range(self.ui.listWidget_voiceazure.count()):
@@ -1324,7 +1425,9 @@ class Widget(QWidget):
                 item = self.ui.listWidget_voicegoogleTrans.item(index)
                 if text == item.text():
                     self.googleTrans_row = self.ui.listWidget_voicegoogleTrans.row(item)
-                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(self.googleTrans_row)
+                    self.ui.listWidget_voicegoogleTrans.setCurrentRow(
+                        self.googleTrans_row
+                    )
                     break
         self.on_save_pressed(False)
         if self.temp_config_file is None:
@@ -1426,8 +1529,10 @@ class Widget(QWidget):
 
     def filter_voices(self, provider: str, search_text: str):
         """Filter voices in the list widget based on search text."""
-        logging.debug(f"Search changed handler called - Provider: {provider}, Text: '{search_text}'")
-        
+        logging.debug(
+            f"Search changed handler called - Provider: {provider}, Text: '{search_text}'"
+        )
+
         # Get the appropriate list widget based on provider
         list_widget = None
         if provider == "azure":
@@ -1438,41 +1543,41 @@ class Widget(QWidget):
             list_widget = self.ui.onnx_listWidget
         elif provider == "google_trans":
             list_widget = self.ui.listWidget_voicegoogleTrans
-        
+
         if not list_widget:
             return
-            
+
         logging.debug(f"Filtering voices with: '{search_text}'")
-        
+
         # Get total items in list widget
         total_items = list_widget.count()
         logging.debug(f"List widget has {total_items} items")
-        
+
         if total_items == 0:
             logging.debug("No voices found in list widget")
             return
-            
+
         # Iterate through all items
         for i in range(total_items):
             item = list_widget.item(i)
             if not item:
                 continue
-                
+
             # Get voice data
             voice_data = item.data(Qt.UserRole)
             if not voice_data:
                 continue
-                
+
             # Get searchable text - combine name and ID
-            name = voice_data.get('name', '').lower()
-            voice_id = voice_data.get('id', '').lower()
-            language = voice_data.get('language', '').lower()
+            name = voice_data.get("name", "").lower()
+            voice_id = voice_data.get("id", "").lower()
+            language = voice_data.get("language", "").lower()
             searchable_text = f"{name} {voice_id} {language}"
-            
+
             # Show/hide based on search
             should_show = not search_text or search_text.lower() in searchable_text
             item.setHidden(not should_show)
-            
+
         logging.debug(f"Finished filtering voices for {provider}")
 
     def filter_azure_voices(self):
@@ -1486,52 +1591,60 @@ class Widget(QWidget):
         try:
             search_text = self.ui.search_language.text().lower()
             logging.debug(f"Filtering voices with: '{search_text}'")
-            
+
             # Get all voices again
             client = SherpaOnnxClient(model_path=self.onnx_cache_path)
             tts = SherpaOnnxTTS(client)
             voices = tts.get_voices()
-            
+
             # Clear current list
             self.ui.onnx_listWidget.clear()
-            
+
             # Add matching voices
             for voice in voices:
                 # Check if search text matches name or any other relevant fields
-                name = voice.get('name', '').lower()
+                name = voice.get("name", "").lower()
                 if search_text in name:
                     # Create widget for this voice
                     item_widget = QWidget()
                     layout = QHBoxLayout()
                     item_widget.setLayout(layout)
-                    
+
                     # Name and info layout
                     name_layout = QHBoxLayout()
                     name_label = QLabel(f"<b>{voice.get('name')}</b>")
                     name_layout.addWidget(name_label)
-                    
+
                     # Check if model is downloaded
-                    voice_id = voice.get('id', '')
-                    model_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "model.onnx")
-                    tokens_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "tokens.txt")
-                    is_downloaded = os.path.exists(model_path) and os.path.exists(tokens_path)
-                    
+                    voice_id = voice.get("id", "")
+                    model_path = os.path.join(
+                        self.onnx_cache_path, f"{voice_id}", "model.onnx"
+                    )
+                    tokens_path = os.path.join(
+                        self.onnx_cache_path, f"{voice_id}", "tokens.txt"
+                    )
+                    is_downloaded = os.path.exists(model_path) and os.path.exists(
+                        tokens_path
+                    )
+
                     layout.addLayout(name_layout)
-                    
+
                     # Buttons layout
                     buttons_layout = QHBoxLayout()
-                    
+
                     # Preview button
                     preview_btn = QPushButton("Preview")
                     preview_btn.setIcon(self.iconPlayed)
-                    preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
+                    preview_btn.clicked.connect(
+                        lambda checked, v=voice: self.preview_voice(v.get("id"))
+                    )
                     buttons_layout.addWidget(preview_btn)
-                    
+
                     # Download button or tick container
                     download_container = QWidget()
                     download_layout = QHBoxLayout()
                     download_container.setLayout(download_layout)
-                    
+
                     if is_downloaded:
                         # Show tick if already downloaded
                         tick_label = QLabel()
@@ -1542,22 +1655,23 @@ class Widget(QWidget):
                         download_btn = QPushButton("Download")
                         download_btn.setIcon(self.iconDownload)
                         download_btn.clicked.connect(
-                            lambda checked, v=voice, b=download_btn, c=download_container: 
-                            self.start_download(v.get('id'), b, c)
+                            lambda checked, v=voice, b=download_btn, c=download_container: self.start_download(
+                                v.get("id"), b, c
+                            )
                         )
                         download_layout.addWidget(download_btn)
-                    
+
                     buttons_layout.addWidget(download_container)
                     layout.addLayout(buttons_layout)
-                    
+
                     # Create and set list item
                     list_item = QListWidgetItem()
                     list_item.setSizeHint(item_widget.sizeHint())
                     self.ui.onnx_listWidget.addItem(list_item)
                     self.ui.onnx_listWidget.setItemWidget(list_item, item_widget)
-            
+
             logging.debug("Finished filtering voices for onnx")
-            
+
         except Exception as e:
             logging.error(f"Error filtering ONNX voices: {e}")
 
@@ -1570,12 +1684,12 @@ class Widget(QWidget):
             if not self.lock:
                 return
             logging.info("Generating Azure voice models...")
-            
+
             # Run in main thread since we're accessing Qt widgets
             self.ui.listWidget_voiceazure.clear()
-            if hasattr(self.ui, 'azure_progressBar'):
+            if hasattr(self.ui, "azure_progressBar"):
                 self.ui.azure_progressBar.setVisible(True)
-            
+
             # Create voice models
             voices = self.get_azure_voices()
             if voices:
@@ -1584,63 +1698,67 @@ class Widget(QWidget):
                         # Create list widget item
                         item = QListWidgetItem()
                         item.setSizeHint(QSize(0, 80))
-                        
+
                         # Create custom widget
                         widget = QWidget()
                         layout = QHBoxLayout(widget)
-                        
+
                         # Add voice name label
-                        name = voice.get('name', 'Unknown')
+                        name = voice.get("name", "Unknown")
                         name_label = QLabel(name)
                         name_label.setStyleSheet("font-weight: bold;")
                         layout.addWidget(name_label)
-                        
+
                         # Add spacer
                         layout.addStretch()
-                        
+
                         # Add preview button
                         preview_btn = QPushButton("Preview")
                         preview_btn.setIcon(self.iconPlayed)
-                        preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                        preview_btn.clicked.connect(
+                            lambda: self.preview_voice(voice.get("id"))
+                        )
                         layout.addWidget(preview_btn)
-                        
+
                         # Set item widget and tooltip
                         self.ui.listWidget_voiceazure.addItem(item)
                         self.ui.listWidget_voiceazure.setItemWidget(item, widget)
-                        item.setToolTip(voice.get('id', ''))
-                        
+                        item.setToolTip(voice.get("id", ""))
+
                         # Store voice data
                         item.setData(Qt.UserRole, voice)
-                        
+
                         # Update progress
-                        if hasattr(self.ui, 'azure_progressBar'):
+                        if hasattr(self.ui, "azure_progressBar"):
                             progress = int((i + 1) / len(voices) * 100)
                             self.ui.azure_progressBar.setValue(progress)
                     except Exception as e:
                         logging.error(f"Error loading Azure voice item: {e}")
                         continue
-            
-            if hasattr(self.ui, 'azure_progressBar'):
+
+            if hasattr(self.ui, "azure_progressBar"):
                 self.ui.azure_progressBar.setVisible(False)
-            
+
         except Exception as e:
             logging.error(f"Error loading Azure voice models: {e}")
-            if hasattr(self.ui, 'azure_progressBar'):
+            if hasattr(self.ui, "azure_progressBar"):
                 self.ui.azure_progressBar.setVisible(False)
 
     def get_azure_voices(self):
         """Get list of available Azure voices."""
         try:
-            key = os.environ.get('MICROSOFT_TOKEN', '')
-            region = os.environ.get('MICROSOFT_REGION', '')
+            key = os.environ.get("MICROSOFT_TOKEN", "")
+            region = os.environ.get("MICROSOFT_REGION", "")
             if not key or not region:
-                logging.warning("Azure TTS credentials not found in environment variables")
+                logging.warning(
+                    "Azure TTS credentials not found in environment variables"
+                )
                 return []
-                
+
             client = MicrosoftClient(credentials=(key, region))
             tts = MicrosoftTTS(client)
-            voices = tts.get_voices()  
-            return [{'id': voice.id, 'name': voice.name} for voice in voices]
+            voices = tts.get_voices()
+            return [{"id": voice.id, "name": voice.name} for voice in voices]
         except Exception as e:
             logging.error(f"Error getting Azure voices: {e}")
             return []
@@ -1686,7 +1804,7 @@ class Widget(QWidget):
                     logging.info(f"Invalid Google Credentials {filename}")
             return google_creds_path
         except Exception as e:
-            print(f'Error: {e}')
+            print(f"Error: {e}")
             return google_creds_path
 
     def generate_google_voice_models(self):
@@ -1695,104 +1813,116 @@ class Widget(QWidget):
             if not self.lock:
                 return
             logging.info("Generating Google voice models...")
-            
+
             # Clear list and show progress
             self.ui.listWidget_voicegoogle.clear()
-            
+
             # Create custom widget for each voice
             voices = self.get_google_trans_voices()
             if voices:
                 for i, voice in enumerate(voices):
                     # Create list widget item
                     item = QListWidgetItem()
-                    item.setSizeHint(QSize(0, 80))  
-                    
+                    item.setSizeHint(QSize(0, 80))
+
                     # Create custom widget
                     widget = QWidget()
                     layout = QHBoxLayout(widget)
-                    
+
                     # Add voice name label
-                    name = voice.get('name', 'Unknown')
+                    name = voice.get("name", "Unknown")
                     name_label = QLabel(name)
                     name_label.setStyleSheet("font-weight: bold;")
                     layout.addWidget(name_label)
-                    
+
                     # Add spacer
                     layout.addStretch()
-                    
+
                     # Add preview button
                     preview_btn = QPushButton("Preview")
                     preview_btn.setIcon(self.iconPlayed)
-                    preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                    preview_btn.clicked.connect(
+                        lambda: self.preview_voice(voice.get("id"))
+                    )
                     layout.addWidget(preview_btn)
-                    
+
                     # Set item widget
                     self.ui.listWidget_voicegoogle.addItem(item)
                     self.ui.listWidget_voicegoogle.setItemWidget(item, widget)
-                    
+
                     # Store voice data
                     item.setData(Qt.UserRole, voice)
-                    
+
                     # Update progress
-                    if hasattr(self.ui, 'google_progressBar'):
+                    if hasattr(self.ui, "google_progressBar"):
                         progress = int((i + 1) / len(voices) * 100)
                         self.ui.google_progressBar.setValue(progress)
-            
-            if hasattr(self.ui, 'google_progressBar'):
+
+            if hasattr(self.ui, "google_progressBar"):
                 self.ui.google_progressBar.setVisible(False)
-            
+
         except Exception as e:
             logging.error(f"Error loading Google voice models: {e}")
-            if hasattr(self.ui, 'google_progressBar'):
+            if hasattr(self.ui, "google_progressBar"):
                 self.ui.google_progressBar.setVisible(False)
 
     def generate_onnx_voice_models(self):
         """Generate ONNX voice models."""
         try:
             self.ui.onnx_listWidget.clear()
-            
+
             # Try to get voices from ONNX client
             try:
-                client = SherpaOnnxClient(model_path=self.onnx_cache_path, tokens_path=None)
+                client = SherpaOnnxClient(
+                    model_path=self.onnx_cache_path, tokens_path=None
+                )
                 tts = SherpaOnnxTTS(client)
-                onnx_voices = tts.get_voices()  
+                onnx_voices = tts.get_voices()
                 if onnx_voices:
                     for i, voice in enumerate(onnx_voices):
                         # Create widget for this voice
                         item_widget = QWidget()
                         layout = QHBoxLayout()
                         item_widget.setLayout(layout)
-                        
+
                         # Name and info layout
                         name_layout = QHBoxLayout()
-                        
+
                         # Name and language
-                        name = voice.get('name', 'Unknown')
+                        name = voice.get("name", "Unknown")
                         name_label = QLabel(f"<b>{name}</b>")
                         name_layout.addWidget(name_label)
-                        
+
                         # Check if model is downloaded
-                        voice_id = voice.get('id', '')
-                        model_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "model.onnx")
-                        tokens_path = os.path.join(self.onnx_cache_path, f"{voice_id}", "tokens.txt")
-                        is_downloaded = os.path.exists(model_path) and os.path.exists(tokens_path)
-                        
+                        voice_id = voice.get("id", "")
+                        model_path = os.path.join(
+                            self.onnx_cache_path, f"{voice_id}", "model.onnx"
+                        )
+                        tokens_path = os.path.join(
+                            self.onnx_cache_path, f"{voice_id}", "tokens.txt"
+                        )
+                        is_downloaded = os.path.exists(model_path) and os.path.exists(
+                            tokens_path
+                        )
+
                         layout.addLayout(name_layout)
-                        
+
                         # Buttons layout
                         buttons_layout = QHBoxLayout()
-                        
+
                         # Preview button
                         preview_btn = QPushButton("Preview")
                         preview_btn.setIcon(self.iconPlayed)
-                        preview_btn.clicked.connect(lambda checked, v=voice: self.preview_voice(v.get('id')))
+                        preview_btn.clicked.connect(
+                            lambda checked, v=voice: self.preview_voice(v.get("id"))
+                        )
                         buttons_layout.addWidget(preview_btn)
-                        
+
                         # Download button or tick container
                         download_container = QWidget()
                         download_layout = QHBoxLayout()
                         download_container.setLayout(download_layout)
-                        
+
                         if is_downloaded:
                             # Show tick if already downloaded
                             tick_label = QLabel()
@@ -1803,26 +1933,29 @@ class Widget(QWidget):
                             download_btn = QPushButton("Download")
                             download_btn.setIcon(self.iconDownload)
                             download_btn.clicked.connect(
-                                lambda checked, v=voice, b=download_btn, c=download_container: 
-                                self.start_download(v.get('id'), b, c)
+                                lambda checked, v=voice, b=download_btn, c=download_container: self.start_download(
+                                    v.get("id"), b, c
+                                )
                             )
                             download_layout.addWidget(download_btn)
-                        
+
                         buttons_layout.addWidget(download_container)
                         layout.addLayout(buttons_layout)
-                        
+
                         # Create and set list item
                         list_item = QListWidgetItem()
                         list_item.setSizeHint(item_widget.sizeHint())
                         self.ui.onnx_listWidget.addItem(list_item)
                         self.ui.onnx_listWidget.setItemWidget(list_item, item_widget)
-                        
+
                         # Update progress
-                        self.ui.onnx_progressBar.setValue((i + 1) * 100 / len(onnx_voices))
-                    
+                        self.ui.onnx_progressBar.setValue(
+                            (i + 1) * 100 / len(onnx_voices)
+                        )
+
             except Exception as e:
                 logging.error(f"Error getting ONNX voices: {e}")
-                
+
         except Exception as e:
             logging.error(f"Error loading ONNX voice models: {e}")
 
@@ -1831,16 +1964,18 @@ class Widget(QWidget):
         try:
             client = SherpaOnnxClient()
             tts = SherpaOnnxTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                    'gender': voice.get('gender', ''),
-                    'downloaded': voice.get('is_downloaded', False)
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                        "gender": voice.get("gender", ""),
+                        "downloaded": voice.get("is_downloaded", False),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting ONNX voices: {e}")
@@ -1849,23 +1984,27 @@ class Widget(QWidget):
     def get_azure_voices(self):
         """Get list of available Azure voices."""
         try:
-            key = os.environ.get('MICROSOFT_TOKEN', '')
-            region = os.environ.get('MICROSOFT_REGION', '')
+            key = os.environ.get("MICROSOFT_TOKEN", "")
+            region = os.environ.get("MICROSOFT_REGION", "")
             if not key or not region:
-                logging.warning("Azure TTS credentials not found in environment variables")
+                logging.warning(
+                    "Azure TTS credentials not found in environment variables"
+                )
                 return []
-                
+
             client = MicrosoftClient(credentials=(key, region))
             tts = MicrosoftTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                    'gender': voice.get('gender', '')
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                        "gender": voice.get("gender", ""),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting Azure voices: {e}")
@@ -1876,14 +2015,16 @@ class Widget(QWidget):
         try:
             client = GoogleTransClient()
             tts = GoogleTransTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting Google Translate voices: {e}")
@@ -1898,103 +2039,126 @@ class Widget(QWidget):
                 self.ui.elevenlabs_page = QWidget()
                 self.ui.elevenlabs_page.setObjectName("elevenlabs_page")
                 self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
-                
+
                 # Create layout
                 layout = QVBoxLayout(self.ui.elevenlabs_page)
-                
+
                 # Create API Key group
                 api_group = QGroupBox("ElevenLabs Credentials", self.ui.elevenlabs_page)
                 api_layout = QGridLayout(api_group)
-                
+
                 # API Key input
                 api_key_label = QLabel("API Key:", api_group)
                 self.ui.elevenlabs_key = QLineEdit(api_group)
                 self.ui.elevenlabs_key.setEchoMode(QLineEdit.Password)
-                self.ui.elevenlabs_key.setPlaceholderText("Enter your ElevenLabs API key")
-                
+                self.ui.elevenlabs_key.setPlaceholderText(
+                    "Enter your ElevenLabs API key"
+                )
+
                 # Save audio file checkbox
                 self.ui.elevenlabs_save_audio = QCheckBox("Save Audio File", api_group)
                 self.ui.elevenlabs_save_audio.setChecked(True)
-                
+
                 # Validate button
-                self.ui.elevenlabs_validate = QPushButton("Validate Credentials", api_group)
-                
+                self.ui.elevenlabs_validate = QPushButton(
+                    "Validate Credentials", api_group
+                )
+
                 # Add widgets to layout
                 api_layout.addWidget(api_key_label, 0, 0)
                 api_layout.addWidget(self.ui.elevenlabs_key, 0, 1)
                 api_layout.addWidget(self.ui.elevenlabs_save_audio, 1, 0, 1, 2)
                 api_layout.addWidget(self.ui.elevenlabs_validate, 2, 0, 1, 2)
-                
+
                 # Create voice models group
-                self.ui.elevenlabs_voice_models = QGroupBox("Voice Models", self.ui.elevenlabs_page)
+                self.ui.elevenlabs_voice_models = QGroupBox(
+                    "Voice Models", self.ui.elevenlabs_page
+                )
                 voice_layout = QVBoxLayout(self.ui.elevenlabs_voice_models)
-                
+
                 # Create progress bar
-                self.ui.elevenlabs_progressBar = QProgressBar(self.ui.elevenlabs_voice_models)
+                self.ui.elevenlabs_progressBar = QProgressBar(
+                    self.ui.elevenlabs_voice_models
+                )
                 self.ui.elevenlabs_progressBar.setVisible(False)
-                
+
                 # Create search box
-                self.ui.search_language_elevenlabs = QLineEdit(self.ui.elevenlabs_voice_models)
-                self.ui.search_language_elevenlabs.setPlaceholderText("Search voices...")
-                
+                self.ui.search_language_elevenlabs = QLineEdit(
+                    self.ui.elevenlabs_voice_models
+                )
+                self.ui.search_language_elevenlabs.setPlaceholderText(
+                    "Search voices..."
+                )
+
                 # Create list widget
-                self.ui.elevenlabs_listWidget = QListWidget(self.ui.elevenlabs_voice_models)
-                
+                self.ui.elevenlabs_listWidget = QListWidget(
+                    self.ui.elevenlabs_voice_models
+                )
+
                 # Create no credentials label
-                self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key and validate to see available voices.", self.ui.elevenlabs_voice_models)
+                self.ui.elevenlabs_no_creds_label = QLabel(
+                    "Please enter your ElevenLabs API key and validate to see available voices.",
+                    self.ui.elevenlabs_voice_models,
+                )
                 self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
                 self.ui.elevenlabs_no_creds_label.setWordWrap(True)
-                
+
                 # Add widgets to layout
                 voice_layout.addWidget(self.ui.elevenlabs_progressBar)
                 voice_layout.addWidget(self.ui.search_language_elevenlabs)
                 voice_layout.addWidget(self.ui.elevenlabs_listWidget)
                 voice_layout.addWidget(self.ui.elevenlabs_no_creds_label)
-                
+
                 # Initially hide the search box and list widget
                 self.ui.search_language_elevenlabs.hide()
                 self.ui.elevenlabs_listWidget.hide()
-                
+
                 # Add groups to main layout
                 layout.addWidget(api_group)
                 layout.addWidget(self.ui.elevenlabs_voice_models)
-                
+
                 # Connect signals
-                self.ui.validate_elevenlabs.clicked.connect(self.validate_elevenlabs_credentials)
-                self.ui.search_language_elevenlabs.textChanged.connect(lambda text: self.filter_voice_list(self.ui.elevenlabs_listWidget, text))
-            
+                self.ui.validate_elevenlabs.clicked.connect(
+                    self.validate_elevenlabs_credentials
+                )
+                self.ui.search_language_elevenlabs.textChanged.connect(
+                    lambda text: self.filter_voice_list(
+                        self.ui.elevenlabs_listWidget, text
+                    )
+                )
+
             # Create PlayHT UI elements if they don't exist
             if not hasattr(self.ui, "playht_page"):
                 # Create the page
                 self.ui.playht_page = QWidget()
                 self.ui.playht_page.setObjectName("playht_page")
                 self.ui.stackedWidget.addWidget(self.ui.playht_page)
-                
+
                 # Create layout
                 layout = QVBoxLayout(self.ui.playht_page)
-                
+
                 # Create API Key group
                 api_group = QGroupBox("PlayHT Credentials", self.ui.playht_page)
                 api_layout = QGridLayout(api_group)
-                
+
                 # API Key input
                 api_key_label = QLabel("API Key:", api_group)
                 self.ui.playht_key = QLineEdit(api_group)
                 self.ui.playht_key.setEchoMode(QLineEdit.Password)
                 self.ui.playht_key.setPlaceholderText("Enter your PlayHT API key")
-                
+
                 # User ID input
                 user_id_label = QLabel("User ID:", api_group)
                 self.ui.playht_userid = QLineEdit(api_group)
                 self.ui.playht_userid.setPlaceholderText("Enter your PlayHT User ID")
-                
+
                 # Save audio file checkbox
                 self.ui.playht_save_audio = QCheckBox("Save Audio File", api_group)
                 self.ui.playht_save_audio.setChecked(True)
-                
+
                 # Validate button
                 self.ui.playht_validate = QPushButton("Validate Credentials", api_group)
-                
+
                 # Add widgets to layout
                 api_layout.addWidget(api_key_label, 0, 0)
                 api_layout.addWidget(self.ui.playht_key, 0, 1)
@@ -2002,158 +2166,197 @@ class Widget(QWidget):
                 api_layout.addWidget(self.ui.playht_userid, 1, 1)
                 api_layout.addWidget(self.ui.playht_save_audio, 2, 0, 1, 2)
                 api_layout.addWidget(self.ui.playht_validate, 3, 0, 1, 2)
-                
+
                 # Create voice models group
-                self.ui.playht_voice_models = QGroupBox("Voice Models", self.ui.playht_page)
+                self.ui.playht_voice_models = QGroupBox(
+                    "Voice Models", self.ui.playht_page
+                )
                 voice_layout = QVBoxLayout(self.ui.playht_voice_models)
-                
+
                 # Create progress bar
                 self.ui.playht_progressBar = QProgressBar(self.ui.playht_voice_models)
                 self.ui.playht_progressBar.setVisible(False)
-                
+
                 # Create search box
                 self.ui.search_language_playht = QLineEdit(self.ui.playht_voice_models)
                 self.ui.search_language_playht.setPlaceholderText("Search voices...")
-                
+
                 # Create list widget
                 self.ui.playht_listWidget = QListWidget(self.ui.playht_voice_models)
-                
+
                 # Create no credentials label
-                self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID and validate to see available voices.", self.ui.playht_voice_models)
+                self.ui.playht_no_creds_label = QLabel(
+                    "Please enter your PlayHT API key and User ID and validate to see available voices.",
+                    self.ui.playht_voice_models,
+                )
                 self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
                 self.ui.playht_no_creds_label.setWordWrap(True)
-                
+
                 # Add widgets to layout
                 voice_layout.addWidget(self.ui.playht_progressBar)
                 voice_layout.addWidget(self.ui.search_language_playht)
                 voice_layout.addWidget(self.ui.playht_listWidget)
                 voice_layout.addWidget(self.ui.playht_no_creds_label)
-                
+
                 # Initially hide the search box and list widget
                 self.ui.search_language_playht.hide()
                 self.ui.playht_listWidget.hide()
-                
+
                 # Add groups to main layout
                 layout.addWidget(api_group)
                 layout.addWidget(self.ui.playht_voice_models)
-                
+
                 # Connect signals
-                self.ui.validate_playht.clicked.connect(self.validate_playht_credentials)
-                self.ui.search_language_playht.textChanged.connect(lambda text: self.filter_voice_list(self.ui.playht_listWidget, text))
-                
+                self.ui.validate_playht.clicked.connect(
+                    self.validate_playht_credentials
+                )
+                self.ui.search_language_playht.textChanged.connect(
+                    lambda text: self.filter_voice_list(self.ui.playht_listWidget, text)
+                )
+
         except Exception as e:
             logging.error(f"Error creating UI elements: {e}")
-            
+
     def validate_elevenlabs_credentials(self):
         """Validate ElevenLabs credentials and load voices if valid"""
         try:
             api_key = self.ui.elevenlabs_key.text()
-            
+
             if not api_key:
-                QMessageBox.warning(self, "Validation Error", "Please enter your ElevenLabs API key.")
+                QMessageBox.warning(
+                    self, "Validation Error", "Please enter your ElevenLabs API key."
+                )
                 return
-            
+
             # Show progress
             self.ui.elevenlabs_progressBar.setVisible(True)
             self.ui.elevenlabs_progressBar.setValue(10)
             QApplication.processEvents()
-            
+
             # Try to initialize client and get voices
             try:
                 client = ElevenLabsClient(api_key=api_key)
                 self.ui.elevenlabs_progressBar.setValue(50)
                 QApplication.processEvents()
-                
+
                 voices = client.get_voices()
                 self.ui.elevenlabs_progressBar.setValue(90)
                 QApplication.processEvents()
-                
+
                 if voices:
                     # Save credentials to config
                     if not self.config.has_section("ElevenLabsTTS"):
                         self.config.add_section("ElevenLabsTTS")
                     self.config.set("ElevenLabsTTS", "api_key", api_key)
-                    
+
                     # Show success message
-                    QMessageBox.information(self, "Validation Success", f"Successfully validated ElevenLabs credentials. Found {len(voices)} voices.")
-                    
+                    QMessageBox.information(
+                        self,
+                        "Validation Success",
+                        f"Successfully validated ElevenLabs credentials. Found {len(voices)} voices.",
+                    )
+
                     # Update UI
                     self.ui.elevenlabs_no_creds_label.hide()
                     self.ui.search_language_elevenlabs.show()
                     self.ui.elevenlabs_listWidget.show()
-                    
+
                     # Generate voice models
                     self.generate_elevenlabs_voice_models()
                 else:
-                    QMessageBox.warning(self, "Validation Warning", "Credentials validated but no voices were found.")
+                    QMessageBox.warning(
+                        self,
+                        "Validation Warning",
+                        "Credentials validated but no voices were found.",
+                    )
             except Exception as e:
-                QMessageBox.critical(self, "Validation Error", f"Failed to validate ElevenLabs credentials: {str(e)}")
+                QMessageBox.critical(
+                    self,
+                    "Validation Error",
+                    f"Failed to validate ElevenLabs credentials: {str(e)}",
+                )
                 logging.error(f"ElevenLabs validation error: {e}")
-            
+
             # Hide progress
             self.ui.elevenlabs_progressBar.setVisible(False)
-            
+
         except Exception as e:
             logging.error(f"Error validating ElevenLabs credentials: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
             self.ui.elevenlabs_progressBar.setVisible(False)
-    
+
     def validate_playht_credentials(self):
         """Validate PlayHT credentials and load voices if valid"""
         try:
             api_key = self.ui.playht_key.text()
             user_id = self.ui.playht_userid.text()
-            
+
             if not api_key or not user_id:
-                QMessageBox.warning(self, "Validation Error", "Please enter both your PlayHT API key and User ID.")
+                QMessageBox.warning(
+                    self,
+                    "Validation Error",
+                    "Please enter both your PlayHT API key and User ID.",
+                )
                 return
-            
+
             # Show progress
             self.ui.playht_progressBar.setVisible(True)
             self.ui.playht_progressBar.setValue(10)
             QApplication.processEvents()
-            
+
             # Try to initialize client and get voices
             try:
                 client = PlayHTClient(api_key=api_key, user_id=user_id)
                 self.ui.playht_progressBar.setValue(50)
                 QApplication.processEvents()
-                
+
                 voices = client.get_voices()
                 self.ui.playht_progressBar.setValue(90)
                 QApplication.processEvents()
-                
+
                 if voices:
                     # Save credentials to config
                     if not self.config.has_section("PlayHTTTS"):
                         self.config.add_section("PlayHTTTS")
                     self.config.set("PlayHTTTS", "api_key", api_key)
                     self.config.set("PlayHTTTS", "user_id", user_id)
-                    
+
                     # Show success message
-                    QMessageBox.information(self, "Validation Success", f"Successfully validated PlayHT credentials. Found {len(voices)} voices.")
-                    
+                    QMessageBox.information(
+                        self,
+                        "Validation Success",
+                        f"Successfully validated PlayHT credentials. Found {len(voices)} voices.",
+                    )
+
                     # Update UI
                     self.ui.playht_no_creds_label.hide()
                     self.ui.search_language_playht.show()
                     self.ui.playht_listWidget.show()
-                    
+
                     # Generate voice models
                     self.generate_playht_voice_models()
                 else:
-                    QMessageBox.warning(self, "Validation Warning", "Credentials validated but no voices were found.")
+                    QMessageBox.warning(
+                        self,
+                        "Validation Warning",
+                        "Credentials validated but no voices were found.",
+                    )
             except Exception as e:
-                QMessageBox.critical(self, "Validation Error", f"Failed to validate PlayHT credentials: {str(e)}")
+                QMessageBox.critical(
+                    self,
+                    "Validation Error",
+                    f"Failed to validate PlayHT credentials: {str(e)}",
+                )
                 logging.error(f"PlayHT validation error: {e}")
-            
+
             # Hide progress
             self.ui.playht_progressBar.setVisible(False)
-            
+
         except Exception as e:
             logging.error(f"Error validating PlayHT credentials: {e}")
             QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
             self.ui.playht_progressBar.setVisible(False)
-    
+
     def filter_voice_list(self, list_widget, search_text):
         """Filter a list widget based on search text"""
         search_text = search_text.lower()
@@ -2163,13 +2366,16 @@ class Widget(QWidget):
                 item.setHidden(False)
             else:
                 item.setHidden(True)
-    
+
     def select_voice_in_list(self, list_widget, voice_id):
         """Select a voice in a list widget by its ID"""
         try:
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
-                if item.data(Qt.UserRole) and item.data(Qt.UserRole).get('id', '') == voice_id:
+                if (
+                    item.data(Qt.UserRole)
+                    and item.data(Qt.UserRole).get("id", "") == voice_id
+                ):
                     list_widget.setCurrentItem(item)
                     return True
             return False
@@ -2182,14 +2388,14 @@ class Widget(QWidget):
         try:
             if not voice_id:
                 return
-                
+
             # Initialize client
             client = SherpaOnnxClient(model_path=self.onnx_cache_path, tokens_path=None)
-            
+
             try:
                 # Use check_and_download_model which will handle downloading if needed
                 result = client.check_and_download_model(voice_id)
-                
+
                 # Handle different return values (some versions return 2 values, others 4)
                 if isinstance(result, tuple) and len(result) == 4:
                     model_path, tokens_path, lexicon_path, dict_dir = result
@@ -2197,38 +2403,36 @@ class Widget(QWidget):
                     model_path, tokens_path = result
                     lexicon_path = ""
                     dict_dir = ""
-                
-                message = f"Voice model {voice_id} is ready to use.\nModel path: {model_path}"
+
+                message = (
+                    f"Voice model {voice_id} is ready to use.\nModel path: {model_path}"
+                )
                 if tokens_path:
                     message += f"\nTokens path: {tokens_path}"
                 if lexicon_path:
                     message += f"\nLexicon path: {lexicon_path}"
                 if dict_dir:
                     message += f"\nDictionary directory: {dict_dir}"
-                
-                QMessageBox.information(
-                    self,
-                    "Download Complete",
-                    message
-                )
-                
+
+                QMessageBox.information(self, "Download Complete", message)
+
                 # Refresh the voice list to update UI
                 self.generate_onnx_voice_models()
-                
+
             except Exception as download_error:
                 logging.error(f"Error during model download: {download_error}")
                 QMessageBox.warning(
                     self,
                     "Download Failed",
-                    f"Failed to download/prepare voice model {voice_id}.\nError: {str(download_error)}"
+                    f"Failed to download/prepare voice model {voice_id}.\nError: {str(download_error)}",
                 )
-                
+
         except Exception as e:
             logging.error(f"Error initializing client for voice {voice_id}: {e}")
             QMessageBox.critical(
                 self,
                 "Download Error",
-                f"Error setting up download for voice model {voice_id}: {str(e)}"
+                f"Error setting up download for voice model {voice_id}: {str(e)}",
             )
 
     def generate_google_trans_voice_models(self):
@@ -2237,55 +2441,57 @@ class Widget(QWidget):
             if not self.lock:
                 return
             logging.info("Generating Google Translate voice models...")
-            
+
             # Clear list and show progress
             self.ui.listWidget_voicegoogleTrans.clear()
-            
+
             # Create custom widget for each voice
             voices = self.get_google_trans_voices()
             if voices:
                 for i, voice in enumerate(voices):
                     # Create list widget item
                     item = QListWidgetItem()
-                    item.setSizeHint(QSize(0, 80))  
-                    
+                    item.setSizeHint(QSize(0, 80))
+
                     # Create custom widget
                     widget = QWidget()
                     layout = QHBoxLayout(widget)
-                    
+
                     # Add voice name label
-                    name = voice.get('name', 'Unknown')
+                    name = voice.get("name", "Unknown")
                     name_label = QLabel(name)
                     name_label.setStyleSheet("font-weight: bold;")
                     layout.addWidget(name_label)
-                    
+
                     # Add spacer
                     layout.addStretch()
-                    
+
                     # Add preview button
                     preview_btn = QPushButton("Preview")
                     preview_btn.setIcon(self.iconPlayed)
-                    preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+                    preview_btn.clicked.connect(
+                        lambda: self.preview_voice(voice.get("id"))
+                    )
                     layout.addWidget(preview_btn)
-                    
+
                     # Set item widget
                     self.ui.listWidget_voicegoogleTrans.addItem(item)
                     self.ui.listWidget_voicegoogleTrans.setItemWidget(item, widget)
-                    
+
                     # Store voice data
                     item.setData(Qt.UserRole, voice)
-                    
+
                     # Update progress
-                    if hasattr(self.ui, 'googleTransTTS_progressBar'):
+                    if hasattr(self.ui, "googleTransTTS_progressBar"):
                         progress = int((i + 1) / len(voices) * 100)
                         self.ui.googleTransTTS_progressBar.setValue(progress)
-            
-            if hasattr(self.ui, 'googleTransTTS_progressBar'):
+
+            if hasattr(self.ui, "googleTransTTS_progressBar"):
                 self.ui.googleTransTTS_progressBar.setVisible(False)
-            
+
         except Exception as e:
             logging.error(f"Error loading Google Translate voice models: {e}")
-            if hasattr(self.ui, 'googleTransTTS_progressBar'):
+            if hasattr(self.ui, "googleTransTTS_progressBar"):
                 self.ui.googleTransTTS_progressBar.setVisible(False)
 
     def load_progress_onnx(self, value):
@@ -2321,16 +2527,18 @@ class Widget(QWidget):
         try:
             client = SherpaOnnxClient()
             tts = SherpaOnnxTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                    'gender': voice.get('gender', ''),
-                    'downloaded': voice.get('is_downloaded', False)
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                        "gender": voice.get("gender", ""),
+                        "downloaded": voice.get("is_downloaded", False),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting ONNX voices: {e}")
@@ -2339,23 +2547,27 @@ class Widget(QWidget):
     def get_azure_voices(self):
         """Get list of available Azure voices."""
         try:
-            key = os.environ.get('MICROSOFT_TOKEN', '')
-            region = os.environ.get('MICROSOFT_REGION', '')
+            key = os.environ.get("MICROSOFT_TOKEN", "")
+            region = os.environ.get("MICROSOFT_REGION", "")
             if not key or not region:
-                logging.warning("Azure TTS credentials not found in environment variables")
+                logging.warning(
+                    "Azure TTS credentials not found in environment variables"
+                )
                 return []
-                
+
             client = MicrosoftClient(credentials=(key, region))
             tts = MicrosoftTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                    'gender': voice.get('gender', '')
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                        "gender": voice.get("gender", ""),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting Azure voices: {e}")
@@ -2366,15 +2578,17 @@ class Widget(QWidget):
         try:
             client = GoogleTransClient()
             tts = GoogleTransTTS(client)
-            voices = tts.get_voices()  
+            voices = tts.get_voices()
             voice_list = []
             for voice in voices:
-                voice_list.append({
-                    'id': voice['id'],
-                    'name': voice['name'],
-                    'language': voice.get('language', ''),
-                    'gender': voice.get('gender', '')
-                })
+                voice_list.append(
+                    {
+                        "id": voice["id"],
+                        "name": voice["name"],
+                        "language": voice.get("language", ""),
+                        "gender": voice.get("gender", ""),
+                    }
+                )
             return voice_list
         except Exception as e:
             logging.error(f"Error getting Google Translate voices: {e}")
@@ -2385,25 +2599,23 @@ class Widget(QWidget):
         try:
             if not self.sherpa_client:
                 raise Exception("Sherpa client not initialized")
-                
+
             # Initialize TTS with the client
             tts = SherpaOnnxTTS(self.sherpa_client)
-            
+
             # Set the voice
             tts.set_voice(voice_id)
-            
+
             # Speak test phrase
             test_text = "Hello, this is a test of the text to speech system."
             tts.speak(test_text)
-            
+
             logging.info(f"Successfully previewed voice: {voice_id}")
-            
+
         except Exception as e:
             logging.error(f"Error previewing voice {voice_id}: {e}")
             QMessageBox.warning(
-                self, 
-                "Preview Error", 
-                f"Failed to preview voice: {str(e)}"
+                self, "Preview Error", f"Failed to preview voice: {str(e)}"
             )
 
     def copy_app_path(self):
@@ -2439,9 +2651,7 @@ class Widget(QWidget):
         else:
             os.makedirs(self.onnx_cache_path)
             os.startfile(self.onnx_cache_path)
-            self.ui.statusBar.setText(
-                "No cached detected. Creating model directory..."
-            )
+            self.ui.statusBar.setText("No cached detected. Creating model directory...")
 
     def cache_clear(self):
         """Clear the audio cache."""
@@ -2502,24 +2712,24 @@ class Widget(QWidget):
         """Load voice models."""
         try:
             # Load Azure voices
-            key = os.environ.get('MICROSOFT_TOKEN', '')
-            region = os.environ.get('MICROSOFT_REGION', '')
+            key = os.environ.get("MICROSOFT_TOKEN", "")
+            region = os.environ.get("MICROSOFT_REGION", "")
             if key and region:
                 client = MicrosoftClient(credentials=(key, region))
                 tts = MicrosoftTTS(client)
-                voices = tts.get_voices()  
+                voices = tts.get_voices()
                 for voice in voices:
                     self.load_azure_items(voices.index(voice), voice, len(voices))
 
             # Load Google voices
-            google_creds_json = os.environ.get('GOOGLE_CREDS_JSON')
+            google_creds_json = os.environ.get("GOOGLE_CREDS_JSON")
             if google_creds_json:
-                temp_creds = tempfile.NamedTemporaryFile(delete=False, suffix='.json')
+                temp_creds = tempfile.NamedTemporaryFile(delete=False, suffix=".json")
                 temp_creds.write(base64.b64decode(google_creds_json))
                 temp_creds.close()
                 client = GoogleTransClient()
                 tts = GoogleTransTTS(client)
-                voices = tts.get_voices()  
+                voices = tts.get_voices()
                 for voice in voices:
                     self.load_google_items(voices.index(voice), voice, len(voices))
 
@@ -2532,35 +2742,95 @@ class Widget(QWidget):
                     "name": model["name"],
                     "description": model["description"],
                     "size": model["size"],
-                    "installed": model["name"].lower().replace(" ", "_") in installed_models,
+                    "installed": model["name"].lower().replace(" ", "_")
+                    in installed_models,
                     "toolTip": model["name"].lower().replace(" ", "_"),
                     "text": model["name"],
-                    "gender": "neutral",  
+                    "gender": "neutral",
                     "id": model["name"].lower().replace(" ", "_"),
-                    "locale": "en-US"
+                    "locale": "en-US",
                 }
                 self.load_onnx_items(i, voice, len(available_models))
 
             # Load Google Translate voices
             # Since GoogleTransClient doesn't have list_voices, we'll use a predefined list
             voices = [
-                {"name": "en", "text": "English", "gender": "neutral", "id": "en", "locale": "en-US"},
-                {"name": "es", "text": "Spanish", "gender": "neutral", "id": "es", "locale": "es-ES"},
-                {"name": "fr", "text": "French", "gender": "neutral", "id": "fr", "locale": "fr-FR"},
-                {"name": "de", "text": "German", "gender": "neutral", "id": "de", "locale": "de-DE"},
-                {"name": "it", "text": "Italian", "gender": "neutral", "id": "it", "locale": "it-IT"},
-                {"name": "pt", "text": "Portuguese", "gender": "neutral", "id": "pt", "locale": "pt-PT"},
-                {"name": "ru", "text": "Russian", "gender": "neutral", "id": "ru", "locale": "ru-RU"},
-                {"name": "ja", "text": "Japanese", "gender": "neutral", "id": "ja", "locale": "ja-JP"},
-                {"name": "ko", "text": "Korean", "gender": "neutral", "id": "ko", "locale": "ko-KR"},
-                {"name": "zh", "text": "Chinese", "gender": "neutral", "id": "zh", "locale": "zh-CN"}
+                {
+                    "name": "en",
+                    "text": "English",
+                    "gender": "neutral",
+                    "id": "en",
+                    "locale": "en-US",
+                },
+                {
+                    "name": "es",
+                    "text": "Spanish",
+                    "gender": "neutral",
+                    "id": "es",
+                    "locale": "es-ES",
+                },
+                {
+                    "name": "fr",
+                    "text": "French",
+                    "gender": "neutral",
+                    "id": "fr",
+                    "locale": "fr-FR",
+                },
+                {
+                    "name": "de",
+                    "text": "German",
+                    "gender": "neutral",
+                    "id": "de",
+                    "locale": "de-DE",
+                },
+                {
+                    "name": "it",
+                    "text": "Italian",
+                    "gender": "neutral",
+                    "id": "it",
+                    "locale": "it-IT",
+                },
+                {
+                    "name": "pt",
+                    "text": "Portuguese",
+                    "gender": "neutral",
+                    "id": "pt",
+                    "locale": "pt-PT",
+                },
+                {
+                    "name": "ru",
+                    "text": "Russian",
+                    "gender": "neutral",
+                    "id": "ru",
+                    "locale": "ru-RU",
+                },
+                {
+                    "name": "ja",
+                    "text": "Japanese",
+                    "gender": "neutral",
+                    "id": "ja",
+                    "locale": "ja-JP",
+                },
+                {
+                    "name": "ko",
+                    "text": "Korean",
+                    "gender": "neutral",
+                    "id": "ko",
+                    "locale": "ko-KR",
+                },
+                {
+                    "name": "zh",
+                    "text": "Chinese",
+                    "gender": "neutral",
+                    "id": "zh",
+                    "locale": "zh-CN",
+                },
             ]
             for i, voice in enumerate(voices):
                 self.load_google_trans_items(i, voice, len(voices))
 
         except Exception as e:
             logging.error(f"Error loading voices: {e}")
-
 
     def load_azure_items(self, index, data, count):
         try:
@@ -2570,7 +2840,7 @@ class Widget(QWidget):
             item_UI.setupUi(item_widget)
             item_UI.name.setText(data["name"])
             font = QFont()
-            font.setPointSize(14)  
+            font.setPointSize(14)
             item_UI.name.setFont(font)
             item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
@@ -2589,7 +2859,7 @@ class Widget(QWidget):
             item_UI.setupUi(item_widget)
             item_UI.name.setText(data["name"])
             font = QFont()
-            font.setPointSize(14)  
+            font.setPointSize(14)
             item_UI.name.setFont(font)
             item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
@@ -2608,13 +2878,13 @@ class Widget(QWidget):
             item_UI.setupUi(item_widget)
             item_UI.name.setText(data["name"])
             font = QFont()
-            font.setPointSize(14)  
+            font.setPointSize(14)
             item_UI.name.setFont(font)
             if data.get("downloaded", False):
                 item_UI.play.setIcon(self.iconPlayed)
                 item_UI.play.clicked.connect(self.preview_pressed)
             else:
-                item_UI.play.setIcon(self.iconDownload)  
+                item_UI.play.setIcon(self.iconDownload)
                 item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
             item.setSizeHint(item_widget.sizeHint())
@@ -2632,7 +2902,7 @@ class Widget(QWidget):
             item_UI.setupUi(item_widget)
             item_UI.name.setText(data["name"])
             font = QFont()
-            font.setPointSize(14)  
+            font.setPointSize(14)
             item_UI.name.setFont(font)
             item_UI.play.clicked.connect(self.preview_pressed)
             item = QListWidgetItem()
@@ -2678,27 +2948,29 @@ class Widget(QWidget):
         try:
             if not self.sherpa_client:
                 raise Exception("Sherpa client not initialized")
-                
+
             # Hide download button
             button.setVisible(False)
-            
+
             # Show spinner
             spinner_label = QLabel()
             spinner_label.setMovie(self.spinner)
             container.layout().addWidget(spinner_label)
             self.spinner.start()
-            
+
             # Track this download
             self.active_downloads[voice_id] = {
-                'button': button,
-                'spinner': spinner_label,
-                'container': container
+                "button": button,
+                "spinner": spinner_label,
+                "container": container,
             }
-            
+
             # Start download in background thread
-            download_thread = Thread(target=self.download_voice_thread, args=(voice_id,))
+            download_thread = Thread(
+                target=self.download_voice_thread, args=(voice_id,)
+            )
             download_thread.start()
-            
+
         except Exception as e:
             logging.error(f"Error starting download for voice {voice_id}: {e}")
             button.setVisible(True)
@@ -2715,24 +2987,24 @@ class Widget(QWidget):
             else:
                 # Use the client's check_and_download_model method
                 success = self.sherpa_client.check_and_download_model(voice_id)
-            
+
             # Update UI in main thread
             QMetaObject.invokeMethod(
-                self, 
+                self,
                 "download_complete",
                 Qt.ConnectionType.QueuedConnection,
                 Q_ARG(str, voice_id),
-                Q_ARG(bool, success)
+                Q_ARG(bool, success),
             )
-                
+
         except Exception as e:
             logging.error(f"Error downloading voice {voice_id}: {e}")
             QMetaObject.invokeMethod(
                 self,
-                "download_complete", 
+                "download_complete",
                 Qt.ConnectionType.QueuedConnection,
                 Q_ARG(str, voice_id),
-                Q_ARG(bool, False)
+                Q_ARG(bool, False),
             )
 
     @Slot(str, bool)
@@ -2740,27 +3012,27 @@ class Widget(QWidget):
         """Handle download completion in main thread"""
         if voice_id not in self.active_downloads:
             return
-            
+
         download_info = self.active_downloads[voice_id]
-        button = download_info['button']
-        spinner = download_info['spinner']
-        container = download_info['container']
-        
+        button = download_info["button"]
+        spinner = download_info["spinner"]
+        container = download_info["container"]
+
         # Remove spinner
         self.spinner.stop()
         spinner.setParent(None)
         spinner.deleteLater()
-        
+
         if success:
             # Remove download button
             button.setParent(None)
             button.deleteLater()
-            
+
             # Add tick icon
             tick_label = QLabel()
             tick_label.setPixmap(self.iconTick.pixmap(16, 16))
             container.layout().addWidget(tick_label)
-            
+
             # Refresh the voice list to show updated status
             self.generate_onnx_voice_models()
             logging.info(f"Successfully downloaded voice model: {voice_id}")
@@ -2768,7 +3040,7 @@ class Widget(QWidget):
             # Show download button again on failure
             button.setVisible(True)
             logging.error(f"Failed to download voice model: {voice_id}")
-        
+
         # Clean up tracking
         del self.active_downloads[voice_id]
 
@@ -2777,25 +3049,23 @@ class Widget(QWidget):
         try:
             self.ui.elevenlabs_listWidget.clear()
             api_key = self.ui.elevenlabs_key.text()
-            
+
             if api_key:
                 self.ui.elevenlabs_progressBar.setVisible(True)
                 self.ui.elevenlabs_progressBar.setValue(0)
-                
+
                 client = ElevenLabsClient(credentials=(api_key,))
                 tts = ElevenLabsTTS(client)
                 voices = tts.get_voices()
-                
+
                 for i, voice in enumerate(voices):
                     self.add_voice_to_list(
-                        voice, 
-                        self.ui.elevenlabs_listWidget,
-                        "elevenlabs"
+                        voice, self.ui.elevenlabs_listWidget, "elevenlabs"
                     )
                     self.ui.elevenlabs_progressBar.setValue((i + 1) * 100 / len(voices))
-                
+
                 self.ui.elevenlabs_progressBar.setVisible(False)
-                
+
         except Exception as e:
             logging.error(f"Error loading ElevenLabs voices: {e}")
             self.ui.elevenlabs_progressBar.setVisible(False)
@@ -2806,19 +3076,15 @@ class Widget(QWidget):
             self.ui.playht_listWidget.clear()
             api_key = self.ui.playht_key.text()
             user_id = self.ui.playht_userid.text()
-            
+
             if api_key and user_id:
                 client = PlayHTClient(credentials=(api_key, user_id))
                 tts = PlayHTTTS(client)
                 voices = tts.get_voices()
-                
+
                 for voice in voices:
-                    self.add_voice_to_list(
-                        voice, 
-                        self.ui.playht_listWidget,
-                        "playht"
-                    )
-                    
+                    self.add_voice_to_list(voice, self.ui.playht_listWidget, "playht")
+
         except Exception as e:
             logging.error(f"Error loading PlayHT voices: {e}")
 
@@ -2835,7 +3101,7 @@ class Widget(QWidget):
                 voice_id = self.ui.elevenlabs_listWidget.currentItem().data(Qt.UserRole)
                 self.config.set("ElevenLabsTTS", "voice_id", voice_id)
                 self.config.set("TTS", "engine", "ElevenLabsTTS")
-            
+
             # Save PlayHT config
             if not self.config.has_section("PlayHTTTS"):
                 self.config.add_section("PlayHTTTS")
@@ -2846,7 +3112,7 @@ class Widget(QWidget):
                 self.config.set("PlayHTTTS", "voice_id", voice_id)
                 self.config.set("TTS", "engine", "PlayHTTTS")
 
-            with open(self.config_path, 'w') as configfile:
+            with open(self.config_path, "w") as configfile:
                 self.config.write(configfile)
 
         except Exception as e:
@@ -2857,7 +3123,7 @@ class Widget(QWidget):
         try:
             if os.path.exists(self.config_path):
                 self.config.read(self.config_path)
-                
+
                 # Load ElevenLabs config
                 if self.config.has_section("ElevenLabsTTS"):
                     self.ui.elevenlabs_key.setText(
@@ -2868,12 +3134,16 @@ class Widget(QWidget):
                         self.ui.search_language_elevenlabs.show()
                         self.ui.elevenlabs_listWidget.show()
                         self.generate_elevenlabs_voice_models()
-                        
+
                         # Select saved voice if any
-                        saved_voice = self.config.get("ElevenLabsTTS", "voice_id", fallback=None)
+                        saved_voice = self.config.get(
+                            "ElevenLabsTTS", "voice_id", fallback=None
+                        )
                         if saved_voice:
-                            self.select_voice_in_list(self.ui.elevenlabs_listWidget, saved_voice)
-                
+                            self.select_voice_in_list(
+                                self.ui.elevenlabs_listWidget, saved_voice
+                            )
+
                 # Load PlayHT config
                 if self.config.has_section("PlayHTTTS"):
                     self.ui.playht_key.setText(
@@ -2887,11 +3157,15 @@ class Widget(QWidget):
                         self.ui.search_language_playht.show()
                         self.ui.playht_listWidget.show()
                         self.generate_playht_voice_models()
-                        
+
                         # Select saved voice if any
-                        saved_voice = self.config.get("PlayHTTTS", "voice_id", fallback=None)
+                        saved_voice = self.config.get(
+                            "PlayHTTTS", "voice_id", fallback=None
+                        )
                         if saved_voice:
-                            self.select_voice_in_list(self.ui.playht_listWidget, saved_voice)
+                            self.select_voice_in_list(
+                                self.ui.playht_listWidget, saved_voice
+                            )
 
         except Exception as e:
             logging.error(f"Error loading configuration: {e}")
@@ -2909,31 +3183,29 @@ class Widget(QWidget):
         try:
             search_text = self.ui.search_language_elevenlabs.text().lower()
             logging.debug(f"Filtering ElevenLabs voices with: '{search_text}'")
-            
+
             # Get all voices again
             api_key = self.ui.elevenlabs_key.text()
             if api_key:
                 client = ElevenLabsClient(credentials=(api_key,))
                 tts = ElevenLabsTTS(client)
                 voices = tts.get_voices()
-                
+
                 # Clear current list
                 self.ui.elevenlabs_listWidget.clear()
-                
+
                 # Add matching voices
                 for voice in voices:
                     # Check if search text matches name or any other relevant fields
-                    name = voice.get('name', '').lower()
-                    description = voice.get('description', '').lower()
+                    name = voice.get("name", "").lower()
+                    description = voice.get("description", "").lower()
                     if search_text in name or search_text in description:
                         self.add_voice_to_list(
-                            voice,
-                            self.ui.elevenlabs_listWidget,
-                            "elevenlabs"
+                            voice, self.ui.elevenlabs_listWidget, "elevenlabs"
                         )
-                
+
                 logging.debug("Finished filtering ElevenLabs voices")
-                
+
         except Exception as e:
             logging.error(f"Error filtering ElevenLabs voices: {e}")
 
@@ -2942,33 +3214,31 @@ class Widget(QWidget):
         try:
             search_text = self.ui.search_language_playht.text().lower()
             logging.debug(f"Filtering PlayHT voices with: '{search_text}'")
-            
+
             # Get all voices again
             api_key = self.ui.playht_key.text()
             user_id = self.ui.playht_userid.text()
-            
+
             if api_key and user_id:
                 client = PlayHTClient(credentials=(api_key, user_id))
                 tts = PlayHTTTS(client)
                 voices = tts.get_voices()
-                
+
                 # Clear current list
                 self.ui.playht_listWidget.clear()
-                
+
                 # Add matching voices
                 for voice in voices:
                     # Check if search text matches name or any other relevant fields
-                    name = voice.get('name', '').lower()
-                    language = voice.get('language', '').lower()
+                    name = voice.get("name", "").lower()
+                    language = voice.get("language", "").lower()
                     if search_text in name or search_text in language:
                         self.add_voice_to_list(
-                            voice,
-                            self.ui.playht_listWidget,
-                            "playht"
+                            voice, self.ui.playht_listWidget, "playht"
                         )
-                
+
                 logging.debug("Finished filtering PlayHT voices")
-                
+
         except Exception as e:
             logging.error(f"Error filtering PlayHT voices: {e}")
 
@@ -3006,36 +3276,36 @@ class Widget(QWidget):
             item_widget = QWidget()
             layout = QHBoxLayout(item_widget)
             layout.setContentsMargins(5, 2, 5, 2)
-            
+
             # Name and info
             name_layout = QVBoxLayout()
-            name_label = QLabel(voice.get('name', ''))
+            name_label = QLabel(voice.get("name", ""))
             name_label.setFont(QFont("Arial", 10, QFont.Bold))
             name_layout.addWidget(name_label)
-            
+
             if provider == "elevenlabs":
-                description = voice.get('description', '')
+                description = voice.get("description", "")
                 if description:
                     desc_label = QLabel(description)
                     desc_label.setStyleSheet("color: gray;")
                     name_layout.addWidget(desc_label)
-            
+
             layout.addLayout(name_layout)
-            
+
             # Preview button
             preview_btn = QPushButton("Preview")
             preview_btn.setIcon(self.iconPlayed)
-            preview_btn.clicked.connect(lambda: self.preview_voice(voice.get('id')))
+            preview_btn.clicked.connect(lambda: self.preview_voice(voice.get("id")))
             layout.addWidget(preview_btn)
-            
+
             # Add to list
             list_item = QListWidgetItem()
             list_item.setSizeHint(item_widget.sizeHint())
-            list_item.setData(Qt.UserRole, voice.get('id'))
-            
+            list_item.setData(Qt.UserRole, voice.get("id"))
+
             list_widget.addItem(list_item)
             list_widget.setItemWidget(list_item, item_widget)
-            
+
         except Exception as e:
             logging.error(f"Error adding voice to list: {e}")
 
@@ -3044,7 +3314,9 @@ class Widget(QWidget):
         # Initialize Sherpa client
         try:
             self.sherpa_client = SherpaOnnxClient(model_path=self.onnx_cache_path)
-            logging.info(f"Sherpa client initialized with model path: {self.onnx_cache_path}")
+            logging.info(
+                f"Sherpa client initialized with model path: {self.onnx_cache_path}"
+            )
         except Exception as e:
             logging.error(f"Sherpa initialization failed: {e}")
 
@@ -3054,7 +3326,7 @@ class Widget(QWidget):
         self.generate_google_trans_voice_models()
         self.generate_elevenlabs_voice_models()
         self.generate_playht_voice_models()
-        
+
         # Load saved credentials and voices
         self.load_config()
 
@@ -3079,7 +3351,7 @@ class Widget(QWidget):
             self.config.add_section("TTS")
         if not self.config.has_section("translate"):
             self.config.add_section("translate")
-        
+
         # Set some default values
         self.config.set("TTS", "engine", "Sherpa-ONNX")
         self.config.set("TTS", "bypass_tts", "False")
@@ -3097,9 +3369,10 @@ class Widget(QWidget):
                 # Set minimum size for the list widget
                 self.ui.onnx_listWidget.setMinimumHeight(300)
                 self.ui.onnx_listWidget.setMinimumWidth(400)
-                
+
                 # Set fixed row height to prevent squashing
-                self.ui.onnx_listWidget.setStyleSheet("""
+                self.ui.onnx_listWidget.setStyleSheet(
+                    """
                     QListWidget {
                         background-color: white;
                         border: 1px solid #cccccc;
@@ -3114,26 +3387,27 @@ class Widget(QWidget):
                         background-color: #e6f3ff;
                         color: black;
                     }
-                """)
-                
+                """
+                )
+
                 # Set uniform item size to prevent squashing
                 self.ui.onnx_listWidget.setUniformItemSizes(True)
-                
+
                 # Adjust item delegate to ensure proper sizing
                 for i in range(self.ui.onnx_listWidget.count()):
                     item = self.ui.onnx_listWidget.item(i)
                     if item:
                         item.setSizeHint(QSize(item.sizeHint().width(), 40))
-        
+
         # Add ElevenLabs and PlayHT to the ttsEngineBox if not already there
         # Use the exact names from TTS_ENGINES dictionary
         from tts_engine_manager import TTS_ENGINES
-        
+
         # Add ElevenLabs
         elevenlabs_ui_name = TTS_ENGINES["elevenlabs"].ui_name
         if self.ui.ttsEngineBox.findText(elevenlabs_ui_name) == -1:
             self.ui.ttsEngineBox.addItem(elevenlabs_ui_name)
-            
+
         # Add PlayHT
         playht_ui_name = TTS_ENGINES["playht"].ui_name
         if self.ui.ttsEngineBox.findText(playht_ui_name) == -1:
@@ -3145,20 +3419,24 @@ class Widget(QWidget):
             self.ui.elevenlabs_page = QWidget()
             self.ui.elevenlabs_page.setObjectName("elevenlabs_page")
             self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
-            
+
             # Create layout
             layout = QVBoxLayout(self.ui.elevenlabs_page)
             layout.setContentsMargins(10, 10, 10, 10)
             layout.setSpacing(10)
-            
+
             # Create ElevenLabs list widget directly on the UI object
             self.ui.elevenlabs_listWidget = QListWidget(self.ui.elevenlabs_page)
             self.ui.elevenlabs_listWidget.setObjectName("elevenlabs_listWidget")
             self.ui.elevenlabs_listWidget.setMinimumHeight(200)
-            self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
-            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.elevenlabs_listWidget.setStyleSheet(
+                "QListWidget::item:selected { background-color: #0078d7; color: white; }"
+            )
+            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            )
             self.ui.elevenlabs_listWidget.setSortingEnabled(True)
-            
+
             # Create ElevenLabs credentials frame
             elevenlabs_creds_frame = QFrame(self.ui.elevenlabs_page)
             elevenlabs_creds_frame.setFrameShape(QFrame.Shape.StyledPanel)
@@ -3166,102 +3444,124 @@ class Widget(QWidget):
             elevenlabs_creds_layout = QGridLayout(elevenlabs_creds_frame)
             elevenlabs_creds_layout.setContentsMargins(10, 10, 10, 10)
             elevenlabs_creds_layout.setSpacing(10)
-            
+
             # Create ElevenLabs API key label and input
             elevenlabs_api_key_label = QLabel("API Key:")
             elevenlabs_api_key_label.setFont(QFont("Arial", 10))
             elevenlabs_creds_layout.addWidget(elevenlabs_api_key_label, 0, 0)
-            
+
             self.ui.elevenlabs_api_key = QLineEdit()
-            self.ui.elevenlabs_api_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
-            self.ui.elevenlabs_api_key.setPlaceholderText("Enter your ElevenLabs API key here")
+            self.ui.elevenlabs_api_key.setStyleSheet(
+                "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;"
+            )
+            self.ui.elevenlabs_api_key.setPlaceholderText(
+                "Enter your ElevenLabs API key here"
+            )
             elevenlabs_creds_layout.addWidget(self.ui.elevenlabs_api_key, 0, 1)
-            
+
             # Create ElevenLabs save audio checkbox
             self.ui.checkBox_saveAudio_elevenlabs = QCheckBox("Save Audio File")
             self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("Arial", 10))
             self.ui.checkBox_saveAudio_elevenlabs.setChecked(True)
-            elevenlabs_creds_layout.addWidget(self.ui.checkBox_saveAudio_elevenlabs, 0, 2)
-            
+            elevenlabs_creds_layout.addWidget(
+                self.ui.checkBox_saveAudio_elevenlabs, 0, 2
+            )
+
             # Create ElevenLabs validate button
             self.ui.validate_elevenlabs = QPushButton("Validate Credentials")
             self.ui.validate_elevenlabs.setMinimumHeight(30)
-            self.ui.validate_elevenlabs.setStyleSheet("background-color: #0078d7; color: white; border-radius: 5px;")
+            self.ui.validate_elevenlabs.setStyleSheet(
+                "background-color: #0078d7; color: white; border-radius: 5px;"
+            )
             elevenlabs_creds_layout.addWidget(self.ui.validate_elevenlabs, 1, 1)
-            
+
             # Add credentials frame to layout
             layout.addWidget(elevenlabs_creds_frame)
-            
+
             # Create ElevenLabs voice models group box
             elevenlabs_voice_models = QGroupBox("Voice Models", self.ui.elevenlabs_page)
             elevenlabs_voice_models.setFont(QFont("Arial", 10, QFont.Weight.Bold))
             elevenlabs_voice_models.setAlignment(Qt.AlignmentFlag.AlignCenter)
             elevenlabs_voice_models_layout = QVBoxLayout(elevenlabs_voice_models)
-            
+
             # Create ElevenLabs progress bar
             elevenlabs_progress_bar = QProgressBar(elevenlabs_voice_models)
             elevenlabs_progress_bar.setObjectName("elevenlabs_progressBar")
             elevenlabs_progress_bar.setVisible(False)
             elevenlabs_voice_models_layout.addWidget(elevenlabs_progress_bar)
-            
+
             # Create ElevenLabs list widget
             elevenlabs_list_widget = QListWidget(elevenlabs_voice_models)
             elevenlabs_list_widget.setObjectName("elevenlabs_listWidget")
             elevenlabs_voice_models_layout.addWidget(elevenlabs_list_widget)
-            
+
             # Add these to the UI object so they can be accessed elsewhere
             self.ui.elevenlabs_progressBar = elevenlabs_progress_bar
             self.ui.elevenlabs_listWidget = elevenlabs_list_widget
-            
+
             # Create ElevenLabs search box
             self.ui.search_language_elevenlabs = QLineEdit()
-            self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
-            self.ui.search_language_elevenlabs.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+            self.ui.search_language_elevenlabs.setPlaceholderText(
+                "Search ElevenLabs voices..."
+            )
+            self.ui.search_language_elevenlabs.setStyleSheet(
+                "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;"
+            )
             elevenlabs_voice_models_layout.addWidget(self.ui.search_language_elevenlabs)
-            
+
             # Add the voice models group box to the UI object and layout
             self.ui.elevenlabs_voice_models = elevenlabs_voice_models
             layout.addWidget(elevenlabs_voice_models)
-            
+
             # Add the list widget to the layout
             layout.addWidget(self.ui.elevenlabs_listWidget)
-            
+
             # Style the ElevenLabs list widget
-            self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
-            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.elevenlabs_listWidget.setStyleSheet(
+                "QListWidget::item:selected { background-color: #0078d7; color: white; }"
+            )
+            self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            )
             self.ui.elevenlabs_listWidget.setSortingEnabled(True)
             self.ui.elevenlabs_listWidget.setMinimumHeight(200)
-            
+
             # Create ElevenLabs no credentials label
-            self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key to access voices")
+            self.ui.elevenlabs_no_creds_label = QLabel(
+                "Please enter your ElevenLabs API key to access voices"
+            )
             self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
             self.ui.elevenlabs_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
             self.ui.elevenlabs_no_creds_label.setStyleSheet("color: #666;")
             elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_no_creds_label)
-            
+
             # Add voice models group box to layout
             layout.addWidget(self.ui.elevenlabs_voice_models)
-        
+
         # Create PlayHT UI elements if they don't exist
         if not hasattr(self.ui, "playht_page"):
             # Create the page
             self.ui.playht_page = QWidget()
             self.ui.playht_page.setObjectName("playht_page")
             self.ui.stackedWidget.addWidget(self.ui.playht_page)
-            
+
             # Create layout
             layout = QVBoxLayout(self.ui.playht_page)
             layout.setContentsMargins(10, 10, 10, 10)
             layout.setSpacing(10)
-            
+
             # Create PlayHT list widget directly on the UI object
             self.ui.playht_listWidget = QListWidget(self.ui.playht_page)
             self.ui.playht_listWidget.setObjectName("playht_listWidget")
             self.ui.playht_listWidget.setMinimumHeight(200)
-            self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
-            self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.playht_listWidget.setStyleSheet(
+                "QListWidget::item:selected { background-color: #0078d7; color: white; }"
+            )
+            self.ui.playht_listWidget.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            )
             self.ui.playht_listWidget.setSortingEnabled(True)
-            
+
             # Create PlayHT credentials frame
             playht_creds_frame = QFrame(self.ui.playht_page)
             playht_creds_frame.setFrameShape(QFrame.Shape.StyledPanel)
@@ -3269,104 +3569,114 @@ class Widget(QWidget):
             playht_creds_layout = QGridLayout(playht_creds_frame)
             playht_creds_layout.setContentsMargins(10, 10, 10, 10)
             playht_creds_layout.setSpacing(10)
-            
+
             # Create PlayHT API key label and input
             playht_api_key_label = QLabel("API Key:")
             playht_api_key_label.setFont(QFont("Arial", 10))
             playht_creds_layout.addWidget(playht_api_key_label, 0, 0)
-            
+
             self.ui.playht_api_key = QLineEdit()
-            self.ui.playht_api_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
+            self.ui.playht_api_key.setStyleSheet(
+                "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;"
+            )
             self.ui.playht_api_key.setPlaceholderText("Enter your PlayHT API key here")
             playht_creds_layout.addWidget(self.ui.playht_api_key, 0, 1)
-            
+
             # Create PlayHT User ID label and input
             playht_userid_label = QLabel("User ID:")
             playht_userid_label.setFont(QFont("Arial", 10))
             playht_creds_layout.addWidget(playht_userid_label, 1, 0)
-            
+
             self.ui.playht_user_id = QLineEdit()
-            self.ui.playht_user_id.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;")
+            self.ui.playht_user_id.setStyleSheet(
+                "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 20em; padding: 6px;"
+            )
             self.ui.playht_user_id.setPlaceholderText("Enter your PlayHT User ID here")
             playht_creds_layout.addWidget(self.ui.playht_user_id, 1, 1)
-            
+
             # Create PlayHT save audio checkbox
             self.ui.checkBox_saveAudio_playht = QCheckBox("Save Audio File")
             self.ui.checkBox_saveAudio_playht.setFont(QFont("Arial", 10))
             self.ui.checkBox_saveAudio_playht.setChecked(True)
             playht_creds_layout.addWidget(self.ui.checkBox_saveAudio_playht, 0, 2)
-            
+
             # Create PlayHT validate button
             self.ui.validate_playht = QPushButton("Validate Credentials")
             self.ui.validate_playht.setMinimumHeight(30)
-            self.ui.validate_playht.setStyleSheet("background-color: #0078d7; color: white; border-radius: 5px;")
+            self.ui.validate_playht.setStyleSheet(
+                "background-color: #0078d7; color: white; border-radius: 5px;"
+            )
             playht_creds_layout.addWidget(self.ui.validate_playht, 1, 2)
-            
+
             # Add credentials frame to layout
             layout.addWidget(playht_creds_frame)
-            
+
             # Create PlayHT voice models group box
             playht_voice_models = QGroupBox("Voice Models", self.ui.playht_page)
             playht_voice_models.setFont(QFont("Arial", 10, QFont.Weight.Bold))
             playht_voice_models.setAlignment(Qt.AlignmentFlag.AlignCenter)
             playht_voice_models_layout = QVBoxLayout(playht_voice_models)
-            
+
             # Create PlayHT progress bar
             playht_progress_bar = QProgressBar(playht_voice_models)
             playht_progress_bar.setObjectName("playht_progressBar")
             playht_progress_bar.setVisible(False)
             playht_voice_models_layout.addWidget(playht_progress_bar)
-            
+
             # Create PlayHT list widget
             playht_list_widget = QListWidget(playht_voice_models)
             playht_list_widget.setObjectName("playht_listWidget")
             playht_voice_models_layout.addWidget(playht_list_widget)
-            
+
             # Add these to the UI object so they can be accessed elsewhere
             self.ui.playht_progressBar = playht_progress_bar
             self.ui.playht_listWidget = playht_list_widget
-            
+
             # Create PlayHT search box
             self.ui.search_language_playht = QLineEdit()
             self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
             playht_voice_models_layout.addWidget(self.ui.search_language_playht)
-            
+
             # Style the PlayHT list widget
-            self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: #0078d7; color: white; }")
-            self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            self.ui.playht_listWidget.setStyleSheet(
+                "QListWidget::item:selected { background-color: #0078d7; color: white; }"
+            )
+            self.ui.playht_listWidget.setVerticalScrollBarPolicy(
+                Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            )
             self.ui.playht_listWidget.setSortingEnabled(True)
             self.ui.playht_listWidget.setMinimumHeight(200)
-            
+
             # Create PlayHT no credentials label
-            self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID to access voices")
+            self.ui.playht_no_creds_label = QLabel(
+                "Please enter your PlayHT API key and User ID to access voices"
+            )
             self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
             self.ui.playht_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
             self.ui.playht_no_creds_label.setStyleSheet("color: #666;")
             playht_voice_models_layout.addWidget(self.ui.playht_no_creds_label)
-            
+
             # Add the voice models group box to the UI object and layout
             self.ui.playht_voice_models = playht_voice_models
             layout.addWidget(playht_voice_models)
-            
+
             # Add the list widget to the layout
             layout.addWidget(self.ui.playht_listWidget)
-        
 
-        
         # Create ElevenLabs save audio checkbox
         self.ui.checkBox_saveAudio_elevenlabs = QCheckBox("Save Audio File")
         self.ui.checkBox_saveAudio_elevenlabs.setFont(QFont("MS Shell Dlg 2", 10))
         self.ui.checkBox_saveAudio_elevenlabs.setChecked(True)
         elevenlabs_creds_layout.addWidget(self.ui.checkBox_saveAudio_elevenlabs, 0, 2)
-        
+
         # Create ElevenLabs validate button
         self.ui.validate_elevenlabs = QPushButton("Validate Credentials")
         self.ui.validate_elevenlabs.setMinimumHeight(30)
         elevenlabs_creds_layout.addWidget(self.ui.validate_elevenlabs, 1, 1)
-        
+
         # Add credentials frame to layout
         layout.addWidget(elevenlabs_creds_frame)
-        
+
         # Create ElevenLabs voice models group box
         self.ui.elevenlabs_voice_models = QGroupBox("Voice Models")
         self.ui.elevenlabs_voice_models.setFont(QFont("MS Shell Dlg 2", 10, QFont.Bold))
@@ -3374,82 +3684,92 @@ class Widget(QWidget):
         elevenlabs_voice_models_layout = QVBoxLayout(self.ui.elevenlabs_voice_models)
         elevenlabs_voice_models_layout.setContentsMargins(2, 2, 2, 2)
         elevenlabs_voice_models_layout.setSpacing(0)
-        
+
         # Create ElevenLabs progress bar
         self.ui.elevenlabs_progressBar = QProgressBar()
         self.ui.elevenlabs_progressBar.setMaximumHeight(15)
         self.ui.elevenlabs_progressBar.setValue(0)
         self.ui.elevenlabs_progressBar.setAlignment(Qt.AlignCenter)
         elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_progressBar)
-        
+
         # Create ElevenLabs search box
         self.ui.search_language_elevenlabs = QLineEdit()
-        self.ui.search_language_elevenlabs.setPlaceholderText("Search ElevenLabs voices...")
+        self.ui.search_language_elevenlabs.setPlaceholderText(
+            "Search ElevenLabs voices..."
+        )
         elevenlabs_voice_models_layout.addWidget(self.ui.search_language_elevenlabs)
-        
+
         # Create ElevenLabs list widget
         self.ui.elevenlabs_listWidget = QListWidget()
-        self.ui.elevenlabs_listWidget.setStyleSheet("QListWidget::item:selected { background-color: blue; color: white; }")
+        self.ui.elevenlabs_listWidget.setStyleSheet(
+            "QListWidget::item:selected { background-color: blue; color: white; }"
+        )
         self.ui.elevenlabs_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.ui.elevenlabs_listWidget.setSortingEnabled(True)
         elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_listWidget)
-        
+
         # Create ElevenLabs no credentials label
-        self.ui.elevenlabs_no_creds_label = QLabel("Please enter your ElevenLabs API key to access voices")
+        self.ui.elevenlabs_no_creds_label = QLabel(
+            "Please enter your ElevenLabs API key to access voices"
+        )
         self.ui.elevenlabs_no_creds_label.setAlignment(Qt.AlignCenter)
         self.ui.elevenlabs_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
         self.ui.elevenlabs_no_creds_label.setStyleSheet("color: #666;")
         elevenlabs_voice_models_layout.addWidget(self.ui.elevenlabs_no_creds_label)
-        
+
         # Add voice models group box to layout
         layout.addWidget(self.ui.elevenlabs_voice_models)
-        
+
         # Add ElevenLabs page to stacked widget
         self.ui.stackedWidget.addWidget(self.ui.elevenlabs_page)
-        
+
         # Create PlayHT page
         self.ui.playht_page = QWidget()
         self.ui.playht_page.setObjectName("playht_page")
         QVBoxLayout(self.ui.playht_page)
-        
+
         # Create PlayHT credentials frame
         playht_creds_frame = QFrame(self.ui.playht_page)
         playht_creds_frame.setFrameShape(QFrame.StyledPanel)
         playht_creds_frame.setFrameShadow(QFrame.Raised)
         playht_creds_layout = QGridLayout(playht_creds_frame)
-        
+
         # Create PlayHT API key label and input
         playht_key_label = QLabel("API Key:")
         playht_key_label.setFont(QFont("MS Shell Dlg 2", 10))
         playht_creds_layout.addWidget(playht_key_label, 0, 0)
-        
+
         self.ui.playht_key = QLineEdit()
-        self.ui.playht_key.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+        self.ui.playht_key.setStyleSheet(
+            "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;"
+        )
         playht_creds_layout.addWidget(self.ui.playht_key, 0, 1)
-        
+
         # Create PlayHT User ID label and input
         playht_userid_label = QLabel("User ID:")
         playht_userid_label.setFont(QFont("MS Shell Dlg 2", 10))
         playht_creds_layout.addWidget(playht_userid_label, 1, 0)
-        
+
         self.ui.playht_userid = QLineEdit()
-        self.ui.playht_userid.setStyleSheet("border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;")
+        self.ui.playht_userid.setStyleSheet(
+            "border-style: outset; border-width: 1px; border-radius: 10px; min-width: 10em; padding: 6px;"
+        )
         playht_creds_layout.addWidget(self.ui.playht_userid, 1, 1)
-        
+
         # Create PlayHT save audio checkbox
         self.ui.checkBox_saveAudio_playht = QCheckBox("Save Audio File")
         self.ui.checkBox_saveAudio_playht.setFont(QFont("MS Shell Dlg 2", 10))
         self.ui.checkBox_saveAudio_playht.setChecked(True)
         playht_creds_layout.addWidget(self.ui.checkBox_saveAudio_playht, 0, 2)
-        
+
         # Create PlayHT validate button
         self.ui.validate_playht = QPushButton("Validate Credentials")
         self.ui.validate_playht.setMinimumHeight(30)
         playht_creds_layout.addWidget(self.ui.validate_playht, 1, 2)
-        
+
         # Add credentials frame to layout
         layout.addWidget(playht_creds_frame)
-        
+
         # Create PlayHT voice models group box
         self.ui.playht_voice_models = QGroupBox("Voice Models")
         self.ui.playht_voice_models.setFont(QFont("MS Shell Dlg 2", 10, QFont.Bold))
@@ -3457,39 +3777,43 @@ class Widget(QWidget):
         playht_voice_models_layout = QVBoxLayout(self.ui.playht_voice_models)
         playht_voice_models_layout.setContentsMargins(2, 2, 2, 2)
         playht_voice_models_layout.setSpacing(0)
-        
+
         # Create PlayHT progress bar
         self.ui.playht_progressBar = QProgressBar()
         self.ui.playht_progressBar.setMaximumHeight(15)
         self.ui.playht_progressBar.setValue(0)
         self.ui.playht_progressBar.setAlignment(Qt.AlignCenter)
         playht_voice_models_layout.addWidget(self.ui.playht_progressBar)
-        
+
         # Create PlayHT search box
         self.ui.search_language_playht = QLineEdit()
         self.ui.search_language_playht.setPlaceholderText("Search PlayHT voices...")
         playht_voice_models_layout.addWidget(self.ui.search_language_playht)
-        
+
         # Create PlayHT list widget
         self.ui.playht_listWidget = QListWidget()
-        self.ui.playht_listWidget.setStyleSheet("QListWidget::item:selected { background-color: blue; color: white; }")
+        self.ui.playht_listWidget.setStyleSheet(
+            "QListWidget::item:selected { background-color: blue; color: white; }"
+        )
         self.ui.playht_listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.ui.playht_listWidget.setSortingEnabled(True)
         playht_voice_models_layout.addWidget(self.ui.playht_listWidget)
-        
+
         # Create PlayHT no credentials label
-        self.ui.playht_no_creds_label = QLabel("Please enter your PlayHT API key and User ID to access voices")
+        self.ui.playht_no_creds_label = QLabel(
+            "Please enter your PlayHT API key and User ID to access voices"
+        )
         self.ui.playht_no_creds_label.setAlignment(Qt.AlignCenter)
         self.ui.playht_no_creds_label.setFont(QFont("MS Shell Dlg 2", 12))
         self.ui.playht_no_creds_label.setStyleSheet("color: #666;")
         playht_voice_models_layout.addWidget(self.ui.playht_no_creds_label)
-        
+
         # Add voice models group box to layout
         layout.addWidget(self.ui.playht_voice_models)
-        
+
         # Add PlayHT page to stacked widget
         self.ui.stackedWidget.addWidget(self.ui.playht_page)
-        
+
         # Initially hide the list widgets and show the no credentials labels
         self.ui.elevenlabs_listWidget.hide()
         self.ui.search_language_elevenlabs.hide()
@@ -3508,40 +3832,45 @@ class Widget(QWidget):
         )
         self.ui.browseButton.clicked.connect(self.on_browse_button_pressed)
         self.ui.credsFilePathEdit.textChanged.connect(self.on_creds_file_path_changed)
-        
+
         self.ui.clear_cache.clicked.connect(self.cache_clear)
         self.ui.cache_pushButton.clicked.connect(self.open_onnx_cache)
-        
+
         # Connect search boxes
         self.ui.search_language_azure.textChanged.connect(
             lambda text: self.on_search_changed(text, "azure")
         )
         self.ui.search_language_google.textChanged.connect(
-            lambda text: self.on_search_changed(text, "google"))
+            lambda text: self.on_search_changed(text, "google")
+        )
         self.ui.search_language.textChanged.connect(
-            lambda text: self.on_search_changed(text, "onnx"))
+            lambda text: self.on_search_changed(text, "onnx")
+        )
         self.ui.search_language_googleTrans.textChanged.connect(
-            lambda text: self.on_search_changed(text, "google_trans"))
-        
+            lambda text: self.on_search_changed(text, "google_trans")
+        )
+
         # Connect ElevenLabs and PlayHT search boxes if they exist
         try:
             self.ui.search_language_elevenlabs.textChanged.connect(
-                lambda text: self.on_search_changed(text, "elevenlabs"))
+                lambda text: self.on_search_changed(text, "elevenlabs")
+            )
         except AttributeError:
             logging.warning("ElevenLabs search box not found in UI")
-            
+
         try:
             self.ui.search_language_playht.textChanged.connect(
-                lambda text: self.on_search_changed(text, "playht"))
+                lambda text: self.on_search_changed(text, "playht")
+            )
         except AttributeError:
             logging.warning("PlayHT search box not found in UI")
-        
+
         # Connect credential change signals if they exist
         try:
             self.ui.elevenlabs_key.textChanged.connect(self.on_elevenlabs_creds_changed)
         except AttributeError:
             logging.warning("ElevenLabs key field not found in UI")
-            
+
         try:
             self.ui.playht_key.textChanged.connect(self.on_playht_creds_changed)
             self.ui.playht_userid.textChanged.connect(self.on_playht_creds_changed)
@@ -3551,7 +3880,7 @@ class Widget(QWidget):
     def setup_tts_engines(self):
         """Set up TTS engine handlers"""
         # Common icons
-        
+
         # Configure all engines
         self.engine_handlers = {
             "microsoft": TTSEngineConfig(  # Changed from "azure"
@@ -3559,39 +3888,39 @@ class Widget(QWidget):
                 engine_id="MicrosoftTTS",  # This matches the tts_wrapper class name
                 client_class=MicrosoftClient,
                 tts_class=MicrosoftTTS,
-                credential_fields=["key", "region"]
+                credential_fields=["key", "region"],
             ),
             "google": TTSEngineConfig(
                 name="Google Cloud",
                 engine_id="GoogleTTS",
                 client_class=GoogleTransClient,
                 tts_class=GoogleTransTTS,
-                credential_fields=["creds_path"]
+                credential_fields=["creds_path"],
             ),
             "elevenlabs": TTSEngineConfig(
                 name="ElevenLabs",
                 engine_id="ElevenLabsTTS",
                 client_class=ElevenLabsClient,
                 tts_class=ElevenLabsTTS,
-                credential_fields=["api_key"]
+                credential_fields=["api_key"],
             ),
             "playht": TTSEngineConfig(
                 name="PlayHT",
                 engine_id="PlayHTTTS",
                 client_class=PlayHTClient,
                 tts_class=PlayHTTTS,
-                credential_fields=["api_key", "user_id"]
-            )
+                credential_fields=["api_key", "user_id"],
+            ),
         }
 
     def on_tts_engine_changed(self, engine_id: str):
         """Handle TTS engine selection changes"""
         if engine_id in self.engine_handlers:
             handler = self.engine_handlers[engine_id]
-            
+
             # Get UI credentials if any
             ui_creds = self.get_ui_credentials(engine_id)
-            
+
             # Initialize with UI credentials
             if handler.initialize(ui_creds):
                 logging.info(f"Successfully initialized {engine_id} TTS engine")
@@ -3603,7 +3932,7 @@ class Widget(QWidget):
         if engine_id == "microsoft":  # Changed from "azure"
             return {
                 "key": self.ui.lineEdit_key.text(),
-                "region": self.ui.lineEdit_region.text()
+                "region": self.ui.lineEdit_region.text(),
             }
         elif engine_id == "google":
             return {"creds_path": self.credsFilePath} if self.credsFilePath else {}
@@ -3614,7 +3943,7 @@ class Widget(QWidget):
         elif engine_id == "playht":
             return {
                 "api_key": self.ui.playht_key.text(),
-                "user_id": self.ui.playht_userid.text()
+                "user_id": self.ui.playht_userid.text(),
             }
         return {}
 
@@ -3626,7 +3955,7 @@ class Signals(QObject):
     itemGenerated = Signal(int, dict, int)
     voicesFetched = Signal(list)
     errorDetected = Signal(str, str)
-    download_progress = Signal(str, float)  
+    download_progress = Signal(str, float)
 
 
 class Player(QRunnable):
@@ -3646,9 +3975,7 @@ class Player(QRunnable):
                         exe_name = file
             GUI_path = os.path.join(application_path, exe_name)
             # Use subprocess.Popen to run the executable
-            os.path.join(
-                os.path.dirname(self.temp_config_file.name), "Audio Files"
-            )
+            os.path.join(os.path.dirname(self.temp_config_file.name), "Audio Files")
             process = subprocess.Popen(
                 [GUI_path, "--config", self.temp_config_file.name, "--preview"]
             )
@@ -3658,9 +3985,7 @@ class Player(QRunnable):
             # TODO: GUI_script_path get the upper directory where translatepb.py is located
             GUI_script_path = os.path.join(application_path, "client.py")
             print(GUI_script_path)
-            os.path.join(
-                os.path.dirname(self.temp_config_file.name), "Audio Files"
-            )
+            os.path.join(os.path.dirname(self.temp_config_file.name), "Audio Files")
             process = subprocess.Popen(
                 [
                     f"{application_path}/venv/Scripts/python.exe",
@@ -3697,6 +4022,7 @@ class Cleaner(QRunnable):
 
 class VoiceLoader(QRunnable):
     """A class to load voice models asynchronously."""
+
     def __init__(self, widget, tts=None):
         super().__init__()
         self.widget = widget
@@ -3732,32 +4058,30 @@ def setup_logging():
     file_formatter = logging.Formatter(
         "%(asctime)s — %(name)s — %(levelname)s — %(funcName)s:%(lineno)d — %(message)s"
     )
-    console_formatter = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s"
-    )
-    
+    console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
     # File handler
-    file_handler = logging.FileHandler(log_file, mode='a')
+    file_handler = logging.FileHandler(log_file, mode="a")
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(logging.DEBUG)
-    
+
     # Console handler
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
     console_handler.setLevel(logging.INFO)
-    
+
     # Get the root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
-    
+
     # Remove any existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # Add our handlers
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
-    
+
     # Log startup information
     logging.info("Starting AACSpeakHelper")
     logging.info(f"Log file location: {log_file}")
@@ -3773,46 +4097,50 @@ class SplashScreen(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setFixedSize(400, 200)
-        
+
         # Create semi-transparent white background
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QWidget {
                 background-color: rgba(255, 255, 255, 0.9);
                 border-radius: 10px;
             }
-        """)
-        
+        """
+        )
+
         layout = QVBoxLayout(self)
-        
+
         # Add loading spinner
         self.spinner = QMovie(":/images/images/loading.gif")
         self.spinner.setScaledSize(QSize(32, 32))
         spinner_label = QLabel()
         spinner_label.setMovie(self.spinner)
         layout.addWidget(spinner_label, alignment=Qt.AlignCenter)
-        
+
         # Add loading text
         self.loading_label = QLabel("Initializing...")
-        self.loading_label.setStyleSheet("""
+        self.loading_label.setStyleSheet(
+            """
             color: black;
             font-size: 14px;
             font-weight: bold;
-        """)
+        """
+        )
         layout.addWidget(self.loading_label, alignment=Qt.AlignCenter)
-        
+
         # Center on screen
         screen = QApplication.primaryScreen().geometry()
         self.move(
             screen.center().x() - self.width() // 2,
-            screen.center().y() - self.height() // 2
+            screen.center().y() - self.height() // 2,
         )
-        
+
         self.spinner.start()
 
 
 class LoadingSignals(QObject):
     progress = Signal(str)  # Signal for updating loading status
-    finished = Signal()     # Signal for when loading is complete
+    finished = Signal()  # Signal for when loading is complete
 
 
 if __name__ == "__main__":

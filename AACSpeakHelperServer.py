@@ -420,10 +420,15 @@ class MainWindow(QWidget):
             # Process text through the new modular pipeline
             try:
                 from processing_pipeline import processing_pipeline
-                text_to_process = processing_pipeline.process_text(clipboard_text, config)
+
+                text_to_process = processing_pipeline.process_text(
+                    clipboard_text, config
+                )
             except ImportError:
                 # Fallback to old processing logic if pipeline not available
-                logging.warning("Processing pipeline not available, using fallback logic")
+                logging.warning(
+                    "Processing pipeline not available, using fallback logic"
+                )
                 text_to_process = clipboard_text
 
                 # Step 1: Translation (if enabled)
@@ -434,7 +439,9 @@ class MainWindow(QWidget):
 
                 # Step 2: Transliteration (if enabled)
                 if config.getboolean("transliterate", "enabled", fallback=False):
-                    transliterated_text = transliterate_clipboard(text_to_process, config)
+                    transliterated_text = transliterate_clipboard(
+                        text_to_process, config
+                    )
                     if transliterated_text is not None:
                         text_to_process = transliterated_text
 
@@ -447,10 +454,14 @@ class MainWindow(QWidget):
                 # Replace clipboard if specified
                 should_replace_clipboard = (
                     config.getboolean("translate", "enabled", fallback=False)
-                    and config.getboolean("translate", "replace_clipboard", fallback=False)
+                    and config.getboolean(
+                        "translate", "replace_clipboard", fallback=False
+                    )
                 ) or (
                     config.getboolean("transliterate", "enabled", fallback=False)
-                    and config.getboolean("transliterate", "replace_clipboard", fallback=False)
+                    and config.getboolean(
+                        "transliterate", "replace_clipboard", fallback=False
+                    )
                 )
 
                 if should_replace_clipboard and text_to_process is not None:
@@ -470,11 +481,31 @@ class MainWindow(QWidget):
 def translate_clipboard(text, config):
     try:
         translator = config.get("translate", "provider")
-        key = (
-            config.get("translate", f"{translator}_secret_key")
-            if not translator == "GoogleTranslator"
-            else None
-        )
+
+        # Get the appropriate secret key based on the translator
+        key = None
+        if translator == "MicrosoftTranslator":
+            key = config.get(
+                "translate", "microsoft_translator_secret_key", fallback=""
+            )
+        elif translator == "MyMemoryTranslator":
+            key = config.get(
+                "translate", "my_memory_translator_secret_key", fallback=""
+            )
+        elif translator == "DeeplTranslator":
+            key = config.get("translate", "deep_l_translator_secret_key", fallback="")
+        elif translator == "LibreTranslator":
+            key = config.get("translate", "libre_translator_secret_key", fallback="")
+        elif translator == "YandexTranslator":
+            key = config.get("translate", "yandex_translator_secret_key", fallback="")
+        elif translator == "QcriTranslator":
+            key = config.get("translate", "qcri_translator_secret_key", fallback="")
+        elif translator == "BaiduTranslator":
+            key = config.get("translate", "baidu_translator_secret_key", fallback="")
+        elif translator == "PapagoTranslator":
+            key = config.get("translate", "papago_translator_secret_key", fallback="")
+        # GoogleTranslator doesn't need a key
+
         email = (
             config.get("translate", "email")
             if translator == "MyMemoryTranslator"
@@ -490,9 +521,11 @@ def translate_clipboard(text, config):
             if translator == "DeeplTranslator"
             else None
         )
-        url = config.get("translate", "url") if translator == "LibreProvider" else None
+        url = (
+            config.get("translate", "url") if translator == "LibreTranslator" else None
+        )
         client_id = (
-            config.get("translate", "papagotranslator_client_id")
+            config.get("translate", "papago_translator_client_id")
             if translator == "PapagoTranslator"
             else None
         )
@@ -505,70 +538,70 @@ def translate_clipboard(text, config):
         match translator:
             case "GoogleTranslator":
                 translate_instance = GoogleTranslator(
-                    source="auto", target=config.get("translate", "end_lang")
+                    source="auto", target=config.get("translate", "target_language")
                 )
             case "PonsTranslator":
                 translate_instance = PonsTranslator(
-                    source="auto", target=config.get("translate", "end_lang")
+                    source="auto", target=config.get("translate", "target_language")
                 )
             case "LingueeTranslator":
                 translate_instance = LingueeTranslator(
-                    source="auto", target=config.get("translate", "end_lang")
+                    source="auto", target=config.get("translate", "target_language")
                 )
             case "MyMemoryTranslator":
                 translate_instance = MyMemoryTranslator(
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     email=email,
                 )
             case "YandexTranslator":
                 translate_instance = YandexTranslator(
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     api_key=key,
                 )
             case "MicrosoftTranslator":
                 translate_instance = MicrosoftTranslator(
                     api_key=key,
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     region=region,
                 )
             case "QcriTranslator":
                 translate_instance = QcriTranslator(
                     source="auto",
-                    target=config.get("translate", "end_lang"),
+                    target=config.get("translate", "target_language"),
                     api_key=key,
                 )
             case "DeeplTranslator":
                 translate_instance = DeeplTranslator(
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     api_key=key,
                     use_free_api=not pro,
                 )
             case "LibreTranslator":
                 translate_instance = LibreTranslator(
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     api_key=key,
                     custom_url=url,
                 )
             case "PapagoTranslator":
                 translate_instance = PapagoTranslator(
                     source="auto",
-                    target=config.get("translate", "end_lang"),
+                    target=config.get("translate", "target_language"),
                     client_id=client_id,
                     secret_key=key,
                 )
             case "ChatGptTranslator":
                 translate_instance = ChatGptTranslator(
-                    source="auto", target=config.get("translate", "end_lang")
+                    source="auto", target=config.get("translate", "target_language")
                 )
             case "BaiduTranslator":
                 translate_instance = BaiduTranslator(
-                    source=config.get("translate", "start_lang"),
-                    target=config.get("translate", "end_lang"),
+                    source=config.get("translate", "source_language"),
+                    target=config.get("translate", "target_language"),
                     appid=appid,
                     appkey=key,
                 )
@@ -578,8 +611,8 @@ def translate_clipboard(text, config):
         #                                          appid=appid,
         #                                          appkey=key)
         logging.info("Translation Provider is {}".format(translator))
-        logging.info(f'Text [{config.get("translate", "start_lang")}]: {text}')
-        if config.get("translate", "end_lang") in [
+        logging.info(f'Text [{config.get("translate", "source_language")}]: {text}')
+        if config.get("translate", "target_language") in [
             "ckb" "ku",
             "kmr",
             "kmr-TR",
@@ -588,7 +621,7 @@ def translate_clipboard(text, config):
             text = normalize_text(text)
         translation = translate_instance.translate(text)
         logging.info(
-            f'Translation [{config.get("translate", "end_lang")}]: {translation}'
+            f'Translation [{config.get("translate", "target_language")}]: {translation}'
         )
         return translation
     except Exception as e:
