@@ -6,29 +6,31 @@ from pathlib import Path
 
 from tts_wrapper import (
     AbstractTTS,
-    MicrosoftTTS,
+    MicrosoftClient,
     GoogleClient,
-    GoogleTTS,
-    SAPIClient,
-    SAPIEngine,
     SherpaOnnxClient,
     GoogleTransTTS,
     ElevenLabsClient,
-    ElevenLabsTTS,
     PlayHTClient,
-    PlayHTTTS,
     PollyClient,
-    PollyTTS,
     WatsonClient,
-    WatsonTTS,
     OpenAIClient,
     WitAiClient,
-    WitAiTTS,
 )
+
+# Platform-specific imports
+if sys.platform == "win32":
+    try:
+        from tts_wrapper import SAPIClient, SAPIEngine
+    except ImportError:
+        SAPIClient = None
+        SAPIEngine = None
+else:
+    SAPIClient = None
+    SAPIEngine = None
 import warnings
 from threading import Thread
 from configure_enc_utils import load_config, load_credentials
-
 
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -88,14 +90,14 @@ def init(module):
 
 
 def init_azure_tts():
-    """Initialize unique instance of MicrosoftTTS based on the changes in voiceid.
+    """Initialize unique instance of MicrosoftClient based on the changes in voiceid.
 
-    Returns: MicrosoftTTS
+    Returns: MicrosoftClient
     """
     logging.info("=== init_azure_tts() Debug Information ===")
 
     # Debug: Check if utils.config exists and has azureTTS section
-    if not hasattr(utils, 'config'):
+    if not hasattr(utils, "config"):
         logging.error("utils.config is not available!")
         return None
 
@@ -122,11 +124,11 @@ def init_azure_tts():
     voiceid = utils.config.get("azureTTS", "voice_id")
     logging.info(f"Azure TTS voice_id: {voiceid}")
 
-    # Create TTS directly with credentials
-    logging.info("Creating MicrosoftTTS instance...")
+    # Create TTS directly with credentials using modern API
+    logging.info("Creating MicrosoftClient instance...")
     try:
-        tts = MicrosoftTTS(credentials=(key, location))
-        logging.info("MicrosoftTTS instance created successfully")
+        tts = MicrosoftClient(credentials=(key, location))
+        logging.info("MicrosoftClient instance created successfully")
 
         logging.info(f"Setting voice to: {voiceid}")
         tts.set_voice(voiceid)
@@ -135,14 +137,14 @@ def init_azure_tts():
         logging.info("=== init_azure_tts() completed successfully ===")
         return tts
     except Exception as e:
-        logging.error(f"Error creating MicrosoftTTS: {e}", exc_info=True)
+        logging.error(f"Error creating MicrosoftClient: {e}", exc_info=True)
         return None
 
 
 def init_google_tts():
-    """Initialize unique instance of GoogleTTS based on the changes in voiceid.
+    """Initialize unique instance of GoogleClient based on the changes in voiceid.
 
-    Returns: GoogleTTS
+    Returns: GoogleClient
     """
     gcreds = utils.config.get("googleTTS", "creds")
     path = Path(gcreds)
@@ -156,8 +158,8 @@ def init_google_tts():
     if not isinstance(gcreds, dict) and os.path.isfile(gcreds):
         logging.info(f"Google TTS credentials file: {gcreds}")
     voiceid = utils.config.get("googleTTS", "voice_id")
-    client = GoogleClient(credentials=gcreds)
-    tts = GoogleTTS(client=client, voice=voiceid)
+    tts = GoogleClient(credentials=gcreds)
+    tts.set_voice(voiceid)
     return tts
 
 
@@ -166,6 +168,10 @@ def init_sapi_tts():
 
     Returns: SAPIEngine
     """
+    if SAPIClient is None or SAPIEngine is None:
+        logging.error("SAPI TTS is not available on this platform")
+        return None
+
     voiceid = utils.config.get("sapi5TTS", "voice_id")
     client = SAPIClient()
     client._client.setProperty("voice", voiceid)
@@ -242,26 +248,28 @@ def init_googleTrans_tts():
 
 
 def init_elevenlabs_tts():
-    """Initialize unique instance of ElevenLabsTTS based on the changes in voiceid.
+    """Initialize unique instance of ElevenLabsClient based on the changes in voiceid.
 
-    Returns: ElevenLabsTTS
+    Returns: ElevenLabsClient
     """
     import os
+
     api_key = utils.config.get("ElevenLabsTTS", "api_key", fallback="")
     if not api_key:
         api_key = os.getenv("ELEVENLABS_API_KEY", "")
     voiceid = utils.config.get("ElevenLabsTTS", "voice_id")
-    client = ElevenLabsClient(credentials=(api_key,))
-    tts = ElevenLabsTTS(client=client, voice=voiceid)
+    tts = ElevenLabsClient(credentials=(api_key,))
+    tts.set_voice(voiceid)
     return tts
 
 
 def init_playht_tts():
-    """Initialize unique instance of PlayHTTTS based on the changes in voiceid.
+    """Initialize unique instance of PlayHTClient based on the changes in voiceid.
 
-    Returns: PlayHTTTS
+    Returns: PlayHTClient
     """
     import os
+
     api_key = utils.config.get("PlayHTTTS", "api_key", fallback="")
     user_id = utils.config.get("PlayHTTTS", "user_id", fallback="")
     if not api_key:
@@ -269,17 +277,18 @@ def init_playht_tts():
     if not user_id:
         user_id = os.getenv("PLAYHT_USER_ID", "")
     voiceid = utils.config.get("PlayHTTTS", "voice_id")
-    client = PlayHTClient(credentials=(api_key, user_id))
-    tts = PlayHTTTS(client=client, voice=voiceid)
+    tts = PlayHTClient(credentials=(api_key, user_id))
+    tts.set_voice(voiceid)
     return tts
 
 
 def init_polly_tts():
-    """Initialize unique instance of PollyTTS based on the changes in voiceid.
+    """Initialize unique instance of PollyClient based on the changes in voiceid.
 
-    Returns: PollyTTS
+    Returns: PollyClient
     """
     import os
+
     region = utils.config.get("PollyTTS", "region", fallback="")
     aws_key_id = utils.config.get("PollyTTS", "aws_key_id", fallback="")
     aws_access_key = utils.config.get("PollyTTS", "aws_access_key", fallback="")
@@ -290,17 +299,18 @@ def init_polly_tts():
     if not aws_access_key:
         aws_access_key = os.getenv("POLLY_AWS_ACCESS_KEY", "")
     voiceid = utils.config.get("PollyTTS", "voice_id")
-    client = PollyClient(credentials=(region, aws_key_id, aws_access_key))
-    tts = PollyTTS(client=client, voice=voiceid)
+    tts = PollyClient(credentials=(region, aws_key_id, aws_access_key))
+    tts.set_voice(voiceid)
     return tts
 
 
 def init_watson_tts():
-    """Initialize unique instance of WatsonTTS based on the changes in voiceid.
+    """Initialize unique instance of WatsonClient based on the changes in voiceid.
 
-    Returns: WatsonTTS
+    Returns: WatsonClient
     """
     import os
+
     api_key = utils.config.get("WatsonTTS", "api_key", fallback="")
     region = utils.config.get("WatsonTTS", "region", fallback="")
     instance_id = utils.config.get("WatsonTTS", "instance_id", fallback="")
@@ -311,8 +321,8 @@ def init_watson_tts():
     if not instance_id:
         instance_id = os.getenv("WATSON_INSTANCE_ID", "")
     voiceid = utils.config.get("WatsonTTS", "voice_id")
-    client = WatsonClient(credentials=(api_key, region, instance_id))
-    tts = WatsonTTS(client=client, voice=voiceid)
+    tts = WatsonClient(credentials=(api_key, region, instance_id))
+    tts.set_voice(voiceid)
     return tts
 
 
@@ -322,6 +332,7 @@ def init_openai_tts():
     Returns: OpenAIClient
     """
     import os
+
     api_key = utils.config.get("OpenAITTS", "api_key", fallback="")
     if not api_key:
         api_key = os.getenv("OPENAI_API_KEY", "")
@@ -333,17 +344,18 @@ def init_openai_tts():
 
 
 def init_witai_tts():
-    """Initialize unique instance of WitAiTTS based on the changes in voiceid.
+    """Initialize unique instance of WitAiClient based on the changes in voiceid.
 
-    Returns: WitAiTTS
+    Returns: WitAiClient
     """
     import os
+
     token = utils.config.get("WitAiTTS", "token", fallback="")
     if not token:
         token = os.getenv("WITAI_TOKEN", "")
     voiceid = utils.config.get("WitAiTTS", "voice_id")
-    client = WitAiClient(credentials=(token,))
-    tts = WitAiTTS(client=client, voice=voiceid)
+    tts = WitAiClient(credentials=(token,))
+    tts.set_voice(voiceid)
     return tts
 
 
@@ -366,7 +378,7 @@ def speak(text="", list_voices=False):
     logging.info(f"List voices: {list_voices}")
 
     # Debug: Check if utils.config exists
-    if not hasattr(utils, 'config'):
+    if not hasattr(utils, "config"):
         logging.error("utils.config is not available in speak()!")
         ready = True
         return
@@ -381,7 +393,9 @@ def speak(text="", list_voices=False):
         logging.info(f"Voice ID from {ttsengine} section: {voice_id}")
 
         if not voice_id:
-            logging.error(f"No voice_id found in {ttsengine} section. Please configure a voice for this engine.")
+            logging.error(
+                f"No voice_id found in {ttsengine} section. Please configure a voice for this engine."
+            )
             ready = True
             return
     except Exception as e:

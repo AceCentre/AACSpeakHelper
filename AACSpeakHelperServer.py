@@ -28,11 +28,42 @@ Note for developers:
 Author: Ace Centre
 """
 
+import configparser
+import json
 import logging
 import os
+import subprocess
 import sys
+import threading
+import time
 import warnings
 import unicodedata
+
+import pyperclip
+import win32api
+import win32event
+import win32file
+import win32pipe
+from PySide6.QtCore import QThread, Signal, Slot, QTimer
+from PySide6.QtGui import QIcon, QAction
+from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QMessageBox
+from deep_translator import (
+    BaiduTranslator,
+    ChatGptTranslator,
+    DeeplTranslator,
+    GoogleTranslator,
+    LibreTranslator,
+    LingueeTranslator,
+    MicrosoftTranslator,
+    MyMemoryTranslator,
+    PapagoTranslator,
+    PonsTranslator,
+    QcriTranslator,
+    YandexTranslator,
+)
+
+import tts_utils
+import utils
 
 warnings.filterwarnings("ignore")
 
@@ -112,23 +143,6 @@ def log_debug_info():
 
 # Call debug logging immediately
 log_debug_info()
-
-import json
-import time
-import threading
-import pyperclip
-import win32file
-import win32pipe
-import win32event
-import win32api
-from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QMessageBox
-from PySide6.QtGui import QIcon, QAction
-from PySide6.QtCore import QThread, Signal, Slot, QTimer
-from deep_translator import *
-import utils
-import tts_utils
-import subprocess
-import configparser
 
 
 def check_single_instance():

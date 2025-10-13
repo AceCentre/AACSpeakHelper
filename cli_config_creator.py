@@ -185,8 +185,26 @@ TTS_ENGINES = {
         "config_section": "SherpaOnnxTTS",
         "credential_fields": [],
         "voice_list": {
-            "English (Alan)": "piper-en-alan-low",
-            "English (Jenny)": "piper-en-jenny-low",
+            "English": "mms_eng",
+            "Spanish": "mms_spa",
+            "French": "mms_fra",
+            "German": "mms_deu",
+            "Italian": "mms_ita",
+            "Portuguese": "mms_por",
+            "Russian": "mms_rus",
+            "Chinese": "mms_cmn",
+            "Japanese": "mms_jpn",
+            "Korean": "mms_kor",
+            "Arabic": "mms_ara",
+            "Hindi": "mms_hin",
+            "Bengali": "mms_ben",
+            "Urdu": "mms_urd",
+            "Turkish": "mms_tur",
+            "Dutch": "mms_nld",
+            "Swedish": "mms_swe",
+            "Norwegian": "mms_nor",
+            "Danish": "mms_dan",
+            "Finnish": "mms_fin",
         },
     },
     "google_trans": {
@@ -747,21 +765,14 @@ def get_voices_from_engine(engine_key, config):
     try:
         from tts_wrapper import (
             MicrosoftClient,
-            MicrosoftTTS,
             SherpaOnnxClient,
-            SherpaOnnxTTS,
             GoogleTransTTS,
             ElevenLabsClient,
-            ElevenLabsTTS,
             PlayHTClient,
-            PlayHTTTS,
             PollyClient,
-            PollyTTS,
             WatsonClient,
-            WatsonTTS,
             OpenAIClient,
             WitAiClient,
-            WitAiTTS,
         )
 
         engine_config = TTS_ENGINES[engine_key]
@@ -777,8 +788,7 @@ def get_voices_from_engine(engine_key, config):
                 )
                 return None
 
-            client = MicrosoftClient(credentials=(key, location))
-            tts = MicrosoftTTS(client)
+            tts = MicrosoftClient(credentials=(key, location))
             voices = tts.get_voices()
 
             # Convert to our format
@@ -834,8 +844,8 @@ def get_voices_from_engine(engine_key, config):
         elif engine_key == "sherpa":
             # Get Sherpa ONNX voices
             try:
-                client = SherpaOnnxClient()
-                tts = SherpaOnnxTTS(client)
+                # For SherpaOnnx, the client IS the TTS object
+                tts = SherpaOnnxClient()
                 voices = tts.get_voices()
                 print(
                     f"Retrieved {len(voices) if voices else 0} voices from SherpaOnnx"
@@ -874,8 +884,7 @@ def get_voices_from_engine(engine_key, config):
                 print("ElevenLabs API key not configured. Please configure it first.")
                 return None
 
-            client = ElevenLabsClient(credentials=(api_key,))
-            tts = ElevenLabsTTS(client)
+            tts = ElevenLabsClient(credentials=(api_key,))
             voices = tts.get_voices()
             return voices
 
@@ -893,8 +902,7 @@ def get_voices_from_engine(engine_key, config):
                 print("PlayHT credentials not configured. Please configure them first.")
                 return None
 
-            client = PlayHTClient(credentials=(api_key, user_id))
-            tts = PlayHTTTS(client)
+            tts = PlayHTClient(credentials=(api_key, user_id))
             voices = tts.get_voices()
             return voices
 
@@ -915,8 +923,7 @@ def get_voices_from_engine(engine_key, config):
                 print("Polly credentials not configured. Please configure them first.")
                 return None
 
-            client = PollyClient(credentials=(region, aws_key_id, aws_access_key))
-            tts = PollyTTS(client)
+            tts = PollyClient(credentials=(region, aws_key_id, aws_access_key))
             voices = tts.get_voices()
             return voices
 
@@ -937,8 +944,7 @@ def get_voices_from_engine(engine_key, config):
                 print("Watson credentials not configured. Please configure them first.")
                 return None
 
-            client = WatsonClient(credentials=(api_key, region, instance_id))
-            tts = WatsonTTS(client)
+            tts = WatsonClient(credentials=(api_key, region, instance_id))
             voices = tts.get_voices()
             return voices
 
@@ -968,8 +974,7 @@ def get_voices_from_engine(engine_key, config):
                 print("WitAI token not configured. Please configure it first.")
                 return None
 
-            client = WitAiClient(credentials=(token,))
-            tts = WitAiTTS(client)
+            tts = WitAiClient(credentials=(token,))
             voices = tts.get_voices()
             return voices
 
