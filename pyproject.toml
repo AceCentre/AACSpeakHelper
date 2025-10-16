@@ -20,7 +20,7 @@ dependencies = [
     "pytz",
     "setuptools",
     "langcodes",
-    "deep-translator[ai]",
+    "deep-translator>=1.11.4",
     "posthog",
     "PySide6",
     "translate",
@@ -60,6 +60,4 @@ py-modules = [
 ]
 # GUI_TranslateAndTTS package excluded from build
 # packages = ["GUI_TranslateAndTTS"]
-
-
 

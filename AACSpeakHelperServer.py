@@ -47,8 +47,8 @@ import win32pipe
 from PySide6.QtCore import QThread, Signal, Slot, QTimer
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu, QMessageBox
+import deep_translator
 from deep_translator import (
-    BaiduTranslator,
     ChatGptTranslator,
     DeeplTranslator,
     GoogleTranslator,
@@ -64,6 +64,11 @@ from deep_translator import (
 
 import tts_utils
 import utils
+
+BaiduTranslator = getattr(deep_translator, "BaiduTranslator", None)
+if BaiduTranslator is None:
+    # Some deep-translator versions expose the class under a different name
+    BaiduTranslator = getattr(deep_translator, "Baidu", None)
 
 warnings.filterwarnings("ignore")
 
@@ -494,7 +499,10 @@ class MainWindow(QWidget):
 
 def translate_clipboard(text, config):
     try:
-        translator = config.get("translate", "provider")
+        translator = config.get("translate", "provider").strip()
+        normalized_provider = translator.lower().replace(" ", "")
+        if normalized_provider in {"baidu", "baidutranslator"}:
+            translator = "BaiduTranslator"
 
         # Get the appropriate secret key based on the translator
         key = None
@@ -613,6 +621,12 @@ def translate_clipboard(text, config):
                     source="auto", target=config.get("translate", "target_language")
                 )
             case "BaiduTranslator":
+                if BaiduTranslator is None:
+                    raise RuntimeError(
+                        "Baidu translator is not available in the installed "
+                        "deep-translator package. Install a version with "
+                        "Baidu support or select another translation provider."
+                    )
                 translate_instance = BaiduTranslator(
                     source=config.get("translate", "source_language"),
                     target=config.get("translate", "target_language"),
