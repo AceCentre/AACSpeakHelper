@@ -80,7 +80,7 @@ def get_language_codes_for_search(language_name: str) -> list[str]:
     Get language codes for a given language name using langcodes library.
 
     Args:
-        language_name: Language name in English (e.g., 'marathi', 'hindi')
+        language_name: Language name in English (e.g., 'japanese', 'marathi', 'hindi')
 
     Returns:
         List of language code patterns to search for
@@ -93,77 +93,27 @@ def get_language_codes_for_search(language_name: str) -> list[str]:
         language_name = language_name.lower().strip()
 
         # Try to find the language by name
-        try:
-            # First try direct lookup by name
-            lang = langcodes.find(language_name)
-            if lang:
-                # Get the main language code
-                main_code = lang.language
+        lang = langcodes.find(language_name)
+        if lang:
+            # Get the main language code (e.g., "ja" for Japanese)
+            main_code = lang.language
 
-                # Generate common patterns for this language code
-                patterns = [
-                    f"{main_code}-",  # e.g., "mr-"
-                    f"{main_code}_",  # e.g., "mr_"
-                ]
+            # Generate patterns to match language codes
+            # This will match "ja-JP", "ja-", "ja_", etc.
+            patterns = [
+                f"{main_code}-",  # e.g., "ja-"
+                f"{main_code}_",  # e.g., "ja_"
+                main_code,        # e.g., "ja" (for 3-letter codes like "jpn")
+            ]
 
-                # Add common regional variants if we know them
-                if main_code == "en":
-                    patterns.extend(["en-us", "en-gb", "en-au", "en-ca"])
-                elif main_code == "es":
-                    patterns.extend(["es-es", "es-mx", "es-ar"])
-                elif main_code == "fr":
-                    patterns.extend(["fr-fr", "fr-ca"])
-                elif main_code == "pt":
-                    patterns.extend(["pt-br", "pt-pt"])
-                elif main_code == "zh":
-                    patterns.extend(["zh-cn", "zh-tw", "cmn"])
-                elif main_code == "no":
-                    patterns.extend(["nb-", "nn-"])
+            return patterns
 
-                return patterns
+    except Exception:
+        pass
 
-        except Exception:
-            pass
-
-        # Fallback: try some common manual mappings for languages that might not be found
-        manual_mappings = {
-            "marathi": ["mr-", "mr_"],
-            "hindi": ["hi-", "hi_"],
-            "tamil": ["ta-", "ta_"],
-            "telugu": ["te-", "te_"],
-            "bengali": ["bn-", "bn_"],
-            "gujarati": ["gu-", "gu_"],
-            "kannada": ["kn-", "kn_"],
-            "malayalam": ["ml-", "ml_"],
-            "punjabi": ["pa-", "pa_"],
-            "urdu": ["ur-", "ur_"],
-            "nepali": ["ne-", "ne_"],
-            "sinhala": ["si-", "si_"],
-            "pashto": ["ps-", "ps_"],
-            "dari": ["prs-", "prs_"],
-            "filipino": ["fil-", "tl-"],
-            "chinese": ["zh-", "zh_", "cmn"],
-            "mandarin": ["zh-", "zh_", "cmn"],
-        }
-
-        if language_name in manual_mappings:
-            return manual_mappings[language_name]
-
-        return []
-
-    except ImportError:
-        # Fallback if langcodes is not available - use minimal manual mapping
-        basic_mappings = {
-            "english": ["en-", "en_"],
-            "spanish": ["es-", "es_"],
-            "french": ["fr-", "fr_"],
-            "german": ["de-", "de_"],
-            "marathi": ["mr-", "mr_"],
-            "hindi": ["hi-", "hi_"],
-            "tamil": ["ta-", "ta_"],
-            "chinese": ["zh-", "zh_", "cmn"],
-        }
-        return basic_mappings.get(language_name, [])
+    # If langcodes fails or is not available, return empty list
+    # This ensures we don't mask incorrect functionality with fallbacks
+    return []
 
 
 # Define TTS engines
@@ -998,18 +948,27 @@ def configure_voice(config, engine_key):
     if voices:
         # Allow searching by language
         search_term = input(
-            "Search for a voice by language name (e.g., 'marathi', 'hindi', 'english') or press Enter to see all: "
+            "Search for a voice by language name (e.g., 'japanese', 'marathi', 'hindi', 'english') or press Enter to see all: "
         ).lower()
 
         matching_voices = []
         for voice in voices:
+            # Handle different voice data structures from different TTS engines
             voice_name = voice.get("name", voice.get("id", ""))
             voice_id = voice.get("id", voice.get("voice_id", ""))
+
+            # Get language information - handle both single language and language_codes list
             language = voice.get("language", "")
+            language_codes = voice.get("language_codes", [])
+            if isinstance(language_codes, str):
+                language_codes = [language_codes]
+
             gender = voice.get("gender", "")
 
             # Create searchable text from all relevant fields
-            searchable_text = f"{voice_name} {voice_id} {language} {gender}".lower()
+            # Include language codes as they appear (e.g., "ja-JP", "en-US")
+            language_codes_str = " ".join(language_codes)
+            searchable_text = f"{voice_name} {voice_id} {language} {language_codes_str} {gender}".lower()
 
             # Enhanced search logic
             if not search_term:
@@ -1020,8 +979,8 @@ def configure_voice(config, engine_key):
                     matching_voices.append((voice_name, voice_id))
                 else:
                     # Language name to code mapping search
-                    language_codes = get_language_codes_for_search(search_term)
-                    for code in language_codes:
+                    language_codes_for_search = get_language_codes_for_search(search_term)
+                    for code in language_codes_for_search:
                         if code.lower() in searchable_text:
                             matching_voices.append((voice_name, voice_id))
                             break
