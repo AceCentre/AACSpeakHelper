@@ -212,7 +212,7 @@ def load_config(custom_config_path=None):
     """
     try:
         # Determine config file path
-        if custom_config_path and os.path.exists(custom_config_path):
+        if custom_config_path:
             config_file = custom_config_path
             logging.info(f"Using custom config path: {config_file}")
         else:
