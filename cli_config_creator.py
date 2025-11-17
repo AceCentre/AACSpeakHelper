@@ -957,7 +957,8 @@ def configure_voice(config, engine_key):
             voice_name = voice.get("name", voice.get("id", ""))
             voice_id = voice.get("id", voice.get("voice_id", ""))
 
-            # Get language information - handle both single language and language_codes list
+            # Get language information - handle both single language and
+            # language_codes list
             language = voice.get("language", "")
             language_codes = voice.get("language_codes", [])
             if isinstance(language_codes, str):
@@ -965,25 +966,40 @@ def configure_voice(config, engine_key):
 
             gender = voice.get("gender", "")
 
-            # Create searchable text from all relevant fields
-            # Include language codes as they appear (e.g., "ja-JP", "en-US")
-            language_codes_str = " ".join(language_codes)
-            searchable_text = f"{voice_name} {voice_id} {language} {language_codes_str} {gender}".lower()
-
             # Enhanced search logic
             if not search_term:
                 matching_voices.append((voice_name, voice_id))
             else:
-                # Direct text search
-                if search_term in searchable_text:
-                    matching_voices.append((voice_name, voice_id))
-                else:
-                    # Language name to code mapping search
-                    language_codes_for_search = get_language_codes_for_search(search_term)
+                is_match = False
+
+                # First, try language name to code mapping search (most specific)
+                language_codes_for_search = get_language_codes_for_search(
+                    search_term
+                )
+                if language_codes_for_search:
+                    # Check if any language code matches
                     for code in language_codes_for_search:
-                        if code.lower() in searchable_text:
-                            matching_voices.append((voice_name, voice_id))
+                        for lang_code in language_codes:
+                            if code.lower() in lang_code.lower():
+                                is_match = True
+                                break
+                        if is_match:
                             break
+
+                # If no language code match, try direct text search in language
+                if not is_match and language:
+                    if search_term in language.lower():
+                        is_match = True
+
+                # If still no match, try direct text search in voice name and ID
+                if not is_match:
+                    voice_name_lower = voice_name.lower()
+                    voice_id_lower = voice_id.lower()
+                    if search_term in voice_name_lower or search_term in voice_id_lower:
+                        is_match = True
+
+                if is_match:
+                    matching_voices.append((voice_name, voice_id))
 
         if not matching_voices:
             print("No matching voices found.")
@@ -1304,9 +1320,7 @@ def configure_transliteration(config):
         print("\n===== Transliteration Configuration =====")
 
         # Show current transliteration settings
-        current_no_transliterate = config.get(
-            "transliterate", "no_transliterate", fallback="True"
-        )
+        current_enabled = config.get("transliterate", "enabled", fallback="False")
         current_language = config.get("transliterate", "language", fallback="hi")
         current_from_script = config.get(
             "transliterate", "from_script", fallback="Latn"
@@ -1314,25 +1328,29 @@ def configure_transliteration(config):
         current_to_script = config.get("transliterate", "to_script", fallback="Deva")
         current_replace_pb = config.get("transliterate", "replace_pb", fallback="True")
 
+        enabled_status = "Enabled" if current_enabled == "True" else "Disabled"
         print("Current settings:")
-        print(f"  Transliteration disabled: {current_no_transliterate}")
+        print(f"  Status: {enabled_status}")
         print(f"  Language: {current_language}")
         print(f"  From script: {current_from_script}")
         print(f"  To script: {current_to_script}")
         print(f"  Replace clipboard: {current_replace_pb}")
 
         print("\nOptions:")
-        print("1. Configure credentials & provider")
-        print("2. Configure language and scripts")
-        print("3. Back to main menu")
+        print("1. Enable/Disable transliteration")
+        print("2. Configure credentials & provider")
+        print("3. Configure language and scripts")
+        print("4. Back to main menu")
 
-        choice = input("Enter your choice (1-3): ")
+        choice = input("Enter your choice (1-4): ")
 
         if choice == "1":
-            config = configure_transliteration_credentials(config)
+            config = configure_transliteration_settings(config)
         elif choice == "2":
-            config = configure_transliteration_language_scripts(config)
+            config = configure_transliteration_credentials(config)
         elif choice == "3":
+            config = configure_transliteration_language_scripts(config)
+        elif choice == "4":
             break
         else:
             print("Invalid choice. Please try again.")
