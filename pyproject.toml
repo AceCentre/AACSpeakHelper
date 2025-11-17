@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aacspeakhelper"
-version = "0.1.0"
+version = "2.5.5"
 description = "A tool for windows to take text from the pasteboard or command line then translate or speak or both that string"
 authors = [
     {name = "Will Wade", email = "willwade@gmail.com"}
