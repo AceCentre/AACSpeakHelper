@@ -204,8 +204,14 @@ def main():
 
     if args["verbose"]:
         print("Sending data to AACSpeakHelper server...")
-        print(f"TTS Engine: {config.get('TTS', 'engine', fallback='Not configured')}")
-        print(f"Voice: {config.get('TTS', 'voice_id', fallback='Default')}")
+        tts_engine = config.get('tts', 'engine', fallback='Not configured')
+        print(f"TTS Engine: {tts_engine}")
+        # Get voice_id from the engine-specific section
+        if tts_engine != 'Not configured' and tts_engine in config:
+            voice_id = config.get(tts_engine, 'voice_id', fallback='Default')
+        else:
+            voice_id = 'Default'
+        print(f"Voice: {voice_id}")
         if not config.getboolean("translate", "noTranslate", fallback=True):
             print(
                 f"Translation: {config.get('translate', 'provider', fallback='None')}"
