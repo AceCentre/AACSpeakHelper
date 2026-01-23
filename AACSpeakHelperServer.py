@@ -279,9 +279,10 @@ class PipeServerThread(QThread):
                 win32pipe.ConnectNamedPipe(pipe, None)
                 logging.info("Client connected.")
 
+                get_voices = False
                 # Read data from the client
                 result, data = win32file.ReadFile(pipe, 64 * 1024)
-                get_voices = False
+                
                 if result == 0:
                     # Decode and process the message
                     message = data.decode()
